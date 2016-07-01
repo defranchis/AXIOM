@@ -1,0 +1,5 @@
+[13:59:27] [INFO ]  Start date          : 2016/06/16 13:59:27
+[13:59:27] [INFO ]  User                : fp-mac
+[13:59:27] [INFO ]  Host                : fp2.dyndns.cern.ch
+[13:59:27] [INFO ]  Wafer Id            : C7
+[13:59:27] [INFO ]  Log will be stored to logs/C7/02_20160616_135927/log.txt

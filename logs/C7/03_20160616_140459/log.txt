@@ -1,0 +1,5 @@
+[14:04:59] [INFO ]  Start date          : 2016/06/16 14:04:59
+[14:04:59] [INFO ]  User                : fp-mac
+[14:04:59] [INFO ]  Host                : fp2.dyndns.cern.ch
+[14:04:59] [INFO ]  Wafer ID            : C7
+[14:04:59] [INFO ]  Wafer Type          : HPK128
