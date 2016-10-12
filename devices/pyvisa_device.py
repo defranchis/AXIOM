@@ -1,5 +1,5 @@
 # ============================================================================
-# File: pyvisa_decices.py
+# File: pyvisa_devices.py
 # -----------------------
 # Communication based ony py-visa.
 # 
@@ -9,6 +9,7 @@
 # ============================================================================
 
 import visa
+import logging
 
 
 # Base error class
@@ -30,15 +31,19 @@ class device(object):
     """
     
     def __init__(self, address=24):
+
+        ## Set up control
         rm = visa.ResourceManager()
         self.ctrl = rm.open_resource('GPIB0::%s::INSTR' % address)
-        self.logging("Initialising device.")
-        self.logging(self.ctrl.query("*IDN?"))
-    
-    def logging(self, msg):
-        standalone == 0
-        if standalone == 1:
-            print "-----> %s" % msg     
-        else:
-            pass
+
+        ## Set up logger
+        self.logging = logging.getLogger('root')
+        self.logging.info("Initialising device.")
+        self.logging.info(self.ctrl.query("*IDN?"))
+
+
+    def findInstruments(self):
+        return visa.get_instruments_list()    
+ 
+
  

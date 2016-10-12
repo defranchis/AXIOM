@@ -16,7 +16,7 @@ class measurement(object):
     
     def __init__(self, wafer_id="", logdir=""):
         self.wafer_id = wafer_id
-        self.type = "HPK128"
+        self.wafer_type = "HPK128"
         
         ## Create wafer directory
         self.wafdir = "logs/%s" % (self.wafer_id)
@@ -32,7 +32,7 @@ class measurement(object):
 
         ## Create logger and formater
         logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s", datefmt='%H:%M:%S')
-        self.logging = logging.getLogger()
+        self.logging = logging.getLogger('root')
         self.logging.setLevel(logging.DEBUG)
 
         ## Add logging to console
@@ -43,7 +43,7 @@ class measurement(object):
         ## Add logging to file
         fileHandler = logging.FileHandler(filename=self.logfile)
         fileHandler.setFormatter(logFormatter)
-        self.logging.addHandler(fileHandler)      
+        self.logging.addHandler(fileHandler)     
     
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())
@@ -79,7 +79,7 @@ class measurement(object):
         self.logging.info("User                : %s" % self.get_user_name())
         self.logging.info("Host                : %s" % self.get_host_name())
         self.logging.info("Wafer ID            : %s" % self.wafer_id)
-        self.logging.info("Wafer Type          : %s" % self.type)
+        self.logging.info("Wafer Type          : %s" % self.wafer_type)
         self.logging.info("Log will be stored to %s" % self.logfile)
         self.logging.info("\n")
         

@@ -8,6 +8,7 @@
 #
 # ============================================================================
 
+import time
 from pyvisa_device import device, device_error
 
 
@@ -36,15 +37,15 @@ class ke2410(device):
         self.ctrl.write("*RST")
     
     def print_idn(self):
-        self.logging("Query ID.")
-        self.logging(self.ctrl.query("*IDN?"))
+        self.logging.info("Query ID.")
+        self.logging.info(self.ctrl.query("*IDN?"))
         return 0
     
     def get_idn(self):
         return self.ctrl.query("*IDN?")
     
     def reset(self):
-        self.logging("Reseting device."""
+        self.logging.info("Reseting device.""")
         self.ctrl.write("*RST")
         return 0
     
@@ -78,7 +79,7 @@ class ke2410(device):
             self.ctrl.write(":ROUT:TERM REAR")
             return 0
         else:
-            self.logging("This terminal doesn't exist on this device.")
+            self.logging.info("This terminal doesn't exist on this device.")
             # rise some error
             return -1
      
@@ -91,22 +92,22 @@ class ke2410(device):
     # ---------------------------------
 
     def set_voltage(self, val):
-        self.logging("Setting voltage to %.2fV." % val)
+        self.logging.info("Setting voltage to %.2fV." % val)
         self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
     def set_current(self, val):
-        self.logging("Setting current to %.6fA." % val)
+        self.logging.info("Setting current to %.6fA." % val)
         self.ctrl.write(":SOUR:CURR %f" % val)
         return 0
 
     def set_voltage_limit(self, val):
-        self.logging("Setting voltage limit to %.2fV." % val)
+        self.logging.info("Setting voltage limit to %.2fV." % val)
         self.ctrl.write(':SENS:VOLT:PROT %f' % val)
         return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
 
     def set_current_limit(self, val):
-        self.logging("Setting current limit to %.6fA." % val)
+        self.logging.info("Setting current limit to %.6fA." % val)
         self.ctrl.write(":SENS:CURR:PROT %f" % val)
         return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
     
@@ -119,36 +120,52 @@ class ke2410(device):
         return 0
 
     def check_compliance(self):
-        self.logging("Checking for compliance.")
+        self.logging.info("Checking for compliance.")
         return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
 
     def set_sense(self, prop):
         if prop == 'voltage':
-            self.logging("Setting sense to voltage.")
+            self.logging.info("Setting sense to voltage.")
             self.ctrl.write(":SENS:FUNC 'VOLT' ")
         elif prop == 'current':
-            self.logging("Setting sense to current.")
+            self.logging.info("Setting sense to current.")
             self.ctrl.write(":SENS:FUNC 'CURR' ")
         elif prop == 'resistance':
-            self.logging("Setting sense to resistance.")
+            self.logging.info("Setting sense to resistance.")
             self.ctrl.write(":SENS:FUNC 'RES' ")
         else:
-            self.logging("Choosen property cannot be measured by this device.")
+            self.logging.info("Choosen property cannot be measured by this device.")
             # rise some error
             return -1
 
     def set_source(self, prop):
         if prop == 'voltage':
-            self.logging("Setting source to voltage.")
+            self.logging.info("Setting source to voltage.")
             self.ctrl.write(":SOUR:FUNC VOLT")
         elif prop == 'current':
-            self.logging("Setting source to current.")
+            self.logging.info("Setting source to current.")
             self.ctrl.write(":SOUR:FUNC CURR")
         else:
-            self.logging("Choosen property cannot be supplied by this device.")
+            self.logging.info("Choosen property cannot be supplied by this device.")
             # rise some error
             return -1
 
+    def ramp_down(self):
+        self.logging.info("Ramping down to 0V.")
+        now = 1# get voltage value
+        for v in range(now, 0, -20):
+            self.ctrl.write(":SOUR:VOLT %f" % v)
+            time.delay(0.02)
+        self.ctrl.write(":SOUR:VOLT 0")
+        return 0
+
+    def ramp_up(self, val):
+        self.logging.info("Ramping up to %.2fV." % val)
+        for v in range(0, val, 20):
+            self.ctrl.write(":SOUR:VOLT %f" % val)
+            time.delay(0.02)
+        self.ctrl.write(":SOUR:VOLT %f" % val)
+        return 0
 
 
     # Read attribute functions
