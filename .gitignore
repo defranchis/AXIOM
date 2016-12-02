@@ -1,0 +1,9 @@
+*.[oa]
+*~
+*.pyc
+*.sublime-project
+*.sublime-workspace
+*.DS_store
+analysis/*
+logs/*
+misc/*

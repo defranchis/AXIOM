@@ -1,3 +1,13 @@
+# ============================================================================
+# File: pyvisa_decices.py
+# -----------------------
+# Communication based ony py-visa.
+# 
+# Date: 06.06.2016
+# Author: Florian Pitters
+#
+# ============================================================================
+
 import visa
 import logging
 
@@ -34,6 +44,4 @@ class device(object):
 
     def findInstruments(self):
         return visa.get_instruments_list()    
- 
-
  

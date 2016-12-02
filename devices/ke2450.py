@@ -1,13 +1,13 @@
 import source_meter
 
 
-class ke2410(source_meter):
+class ke2450(source_meter):
     """ 
-    Keithley 2410 source meter.
+    Keithley 2450 source meter.
     
     Example:
     -------------
-    dev = ke2410(address=24)
+    dev = ke2450(address=24)
     dev.print_idn()
     dev.set_source('voltage')
     dev.set_voltage(10)
@@ -20,8 +20,6 @@ class ke2410(source_meter):
     dev.set_output_off()
     dev.reset()
     """
- 
-
 
 
 
