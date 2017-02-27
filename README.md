@@ -6,13 +6,17 @@ Python framework for HGC sensor testing. Software is based on SPIDR python frame
 Just download the folder.
 
 # Requirements
-
+General
 * matplotlib
 * numpy
-* pyvisa (if gpib communciation is used)
-* pyserial (if serial communication is used)
-* VISA drivers (if gpib communciation is used)
-* FTDI drivers (if serial communciation is used)
+
+If GPIB communication is to be used
+* pyvisa
+* VISA drivers
+
+If serial communication is to be used
+* pyserial
+* FTDI drivers
 
 
 # Instructions
