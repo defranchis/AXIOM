@@ -107,17 +107,45 @@ class source_meter(device):
         self.ctrl.write(":SOUR:CURR %f" % val)
         return 0
 
-    def set_voltage_limit(self, val, debug=0):
+    def ramp_voltage(self, val, debug=0):
+        now = int(round(self.read_voltage()))
         if debug == 1: 
-            self.logging.info("Setting voltage limit to %.2fV." % val)
-        self.ctrl.write(':SENS:VOLT:PROT %f' % val)
-        return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
+            self.logging.info("Ramping voltage from %.2f V to %.2f V." % (now, val))
+        if now > val:
+            for v in range(now, val, -25):
+                self.ctrl.write(":SOUR:VOLT %d" % v)
+                time.sleep(1)
+                if debug == 1: 
+                    print self.read_voltage()
+            self.ctrl.write(":SOUR:VOLT %d" % val)
+        else:
+            for v in range(now, val, +25):
+                self.ctrl.write(":SOUR:VOLT %d" % v)
+                time.sleep(1)
+                if debug == 1: 
+                    print self.read_voltage()
+            self.ctrl.write(":SOUR:VOLT %d" % val)  
+        return 0
 
-    def set_current_limit(self, val, debug=0):
+    def ramp_down(self, debug=0):
         if debug == 1: 
-            self.logging.info("Setting current limit to %.6fA." % val)
-        self.ctrl.write(":SENS:CURR:PROT %f" % val)
-        return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
+            self.logging.info("Ramping down to 0.00 V.")
+        now = int(round(self.read_voltage()))
+        for v in range(now, 0, -25):
+            self.ctrl.write(":SOUR:VOLT %f" % v)
+            time.delay(1)
+        self.ctrl.write(":SOUR:VOLT 0")
+        return 0
+
+    def ramp_up(self, val, debug=0):
+        if debug == 1: 
+            self.logging.info("Ramping up to %.2f V." % val)
+        now = int(round(self.read_voltage()))
+        for v in range(now, val, +25):
+            self.ctrl.write(":SOUR:VOLT %f" % val)
+            time.delay(1)
+        self.ctrl.write(":SOUR:VOLT %f" % val)
+        return 0
     
     def set_voltage_range(self, val, debug=0):
         if debug == 1: 
@@ -127,35 +155,40 @@ class source_meter(device):
     
     def set_current_range(self, val, debug=0):
         if debug == 1: 
-            self.logging.info("Setting current range to %.6fA." % val)
-        self.ctrl.write(":SENS:CURR:RANG %.6f" % val)
+            self.logging.info("Setting current range to %.2EA." % val)
+        self.ctrl.write(":SENS:CURR:RANG %E" % val)
         return 0
-
+        
     def check_compliance(self, debug=0):
         if debug == 1: 
             self.logging.info("Checking for compliance.")
         return self.ctrl.query(":SENS:CURR:PROT:TRIP?")
 
-    def set_sense(self, prop):
+    def set_sense(self, prop, debug=0):
         if prop == 'voltage':
-            self.logging.info("Setting sense to voltage.")
+            if debug == 1:
+                self.logging.info("Setting sense to voltage.")
             self.ctrl.write(":SENS:FUNC 'VOLT' ")
         elif prop == 'current':
-            self.logging.info("Setting sense to current.")
+            if debug == 1:
+                self.logging.info("Setting sense to current.")
             self.ctrl.write(":SENS:FUNC 'CURR' ")
         elif prop == 'resistance':
-            self.logging.info("Setting sense to resistance.")
+            if debug == 1:
+                self.logging.info("Setting sense to resistance.")
             self.ctrl.write(":SENS:FUNC 'RES' ")
         else:
             self.logging.info("Choosen property cannot be measured by this device.")
             return -1
 
-    def set_source(self, prop):
+    def set_source(self, prop, debug=0):
         if prop == 'voltage':
-            self.logging.info("Setting source to voltage.")
+            if debug == 1:
+                self.logging.info("Setting source to voltage.")
             self.ctrl.write(":SOUR:FUNC VOLT")
         elif prop == 'current':
-            self.logging.info("Setting source to current.")
+            if debug == 1:
+                self.logging.info("Setting source to current.")
             self.ctrl.write(":SOUR:FUNC CURR")
         else:
             self.logging.info("Choosen property cannot be supplied by this device.")
@@ -166,25 +199,6 @@ class source_meter(device):
             self.logging.info("Setting NPLC to %d." % val)
         self.ctrl.write(":SENSE:CURR:NPLC %d" % val) 
         self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)  
-        return 0
-
-    def ramp_down(self, debug=0):
-        if debug == 1: 
-            self.logging.info("Ramping down to 0.00 V.")
-        now = int(self.read_voltage())
-        for v in range(now, 0, -20):
-            self.ctrl.write(":SOUR:VOLT %f" % v)
-            time.delay(0.2)
-        self.ctrl.write(":SOUR:VOLT 0")
-        return 0
-
-    def ramp_up(self, val, debug=0):
-        if debug == 1: 
-            self.logging.info("Ramping up to %.2f V." % val)
-        for v in range(0, val, 20):
-            self.ctrl.write(":SOUR:VOLT %f" % val)
-            time.delay(0.2)
-        self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
 

@@ -69,8 +69,8 @@ class lcr_meter(device):
 
     def set_voltage(self, val, debug=0):
         if debug == 1: 
-            self.logging("Setting voltage to %d V." % val)
-        self.ctrl.write("VOLT %dV" % val)
+            self.logging("Setting voltage to %f V." % val)
+        self.ctrl.write("VOLT %fV" % val)
         return 0
 
     def set_frequency(self, val, debug=0):
@@ -255,7 +255,7 @@ class lcr_meter(device):
         self.ctrl.write(":TRIG:SOUR %s" % mode)
         return 0
 
-    def send_trigger(self, debug=0)
+    def send_trigger(self, debug=0):
         if debug == 1:
             self.logging("Sending a trigger.")
         self.ctrl.write("TRIG:IMM")
@@ -264,5 +264,6 @@ class lcr_meter(device):
     def execute_measurement(self, debug=0):
         if debug == 1:
             self.logging("Fetching data.")
-        return self.ctrl.query("FETC?")
+        vals = self.ctrl.query("FETC?").split(",")
+        return float(vals[0]), float(vals[1])
 

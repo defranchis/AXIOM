@@ -1,6 +1,0 @@
-[14:08:54] [INFO ]  Start date          : 2016/06/16 14:08:54
-[14:08:54] [INFO ]  User                : fp-mac
-[14:08:54] [INFO ]  Host                : fp2.dyndns.cern.ch
-[14:08:54] [INFO ]  Wafer ID            : C7
-[14:08:54] [INFO ]  Wafer Type          : HPK128
-[14:08:54] [INFO ]  Log will be stored to logs/C7/05_20160616_140854/log.txt
