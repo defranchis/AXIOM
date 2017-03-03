@@ -21,6 +21,7 @@ from measurement import measurement
 from devices import ke2410 # power supply
 from devices import ke2450 # volt meter
 from devices import hp4980 # lcr meter
+from devices import switchcard # switch
 
 
 class test00_debugging(measurement):
@@ -39,11 +40,11 @@ class test00_debugging(measurement):
         self.pow_supply_address = 24
         self.volt_meter_address = 16
         self.lcr_meter_address = 17
-        self.switch_address = 21
+        self.switch_address = '/dev/tty.usbserial-A5064T4T'
         
         self.lim_cur = 0.0001
         self.lim_vol = 100
-        self.cell_list = [1, 2, 3]
+        self.cell_list = range(1, 19, 1)
         self.volt_list = [1, 5, 10]
 
         self.delay_vol = 10
@@ -52,13 +53,15 @@ class test00_debugging(measurement):
         self.test_vol = 0.5
         self.test_freq = 1E4
 
-        self.mode = 0
+        self.mode = 3
 
         if self.mode == 0:
             self.logging.info("Note: A general test on software functionality.")
             self.logging.info("\t")
 
-        elif self.mode == 1:        
+        elif self.mode == 1:
+            self.logging.info("Note: A test of communication.")
+            self.logging.info("\t")        
             self.logging.info("Settings:")
             self.logging.info("Power supply voltage limit:      %.2fV" % self.lim_vol)
             self.logging.info("Power supply current limit:      %.6fA" % self.lim_cur)
@@ -70,7 +73,9 @@ class test00_debugging(measurement):
             self.logging.info("Channel Delay:                   %.2fs" % self.delay_ch)
             self.logging.info("\t")
 
-        elif self.mode == 2:        
+        elif self.mode == 2:
+            self.logging.info("Note: A test to ramp voltage.")
+            self.logging.info("\t")
             self.logging.info("Settings:")
             self.logging.info("Power supply voltage limit:      %.2fV" % self.lim_vol)
             self.logging.info("Power supply current limit:      %.6fA" % self.lim_cur)
@@ -80,6 +85,10 @@ class test00_debugging(measurement):
             self.logging.info("LCR meter test frequency:        %.0fHz" % self.test_freq)
             self.logging.info("Voltage Delay:                   %.2fs" % self.delay_vol)
             self.logging.info("Channel Delay:                   %.2fs" % self.delay_ch)
+            self.logging.info("\t")
+
+        elif self.mode == 3:
+            self.logging.info("Note: A test for the switch card.")
             self.logging.info("\t")
 
         else:
@@ -89,8 +98,6 @@ class test00_debugging(measurement):
 
     def execute(self):
 
-        
-        
         ## Test functionality
         if self.mode == 0:
             out = []
@@ -203,6 +210,38 @@ class test00_debugging(measurement):
             pow_supply.set_output_off()
             pow_supply.reset()
 
+
+        ## Test switchcard
+        if self.mode == 3:
+
+            ## Set up switch
+            switch = switchcard(self.switch_address)
+            switch.reboot()
+            switch.set_display_mode('ON')
+
+            self.logging.info("\t")           
+            self.logging.info("Channel Set [-]\tChannel Read [-]")
+            self.logging.info("-----------------")
+            self.logging.info("\t")
+
+            try:
+                init = time.time()
+                for i in self.cell_list:
+                    switch.open_channel(i)
+                    ch = switch.get_channel()
+                    t = time.time() - init
+                    if ch == i:
+                        self.logging.info("\t%.3f \t%d \t%d" % (t, i, ch))
+                    else:
+                        self.logging.warning("\t%.3f \t%d \t%d" % (t, i, ch))
+  
+            except KeyboardInterrupt:
+                self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
+
+            ## Save and print
+            self.logging.info("\t")
+            self.logging.info("\t")
+        
 
         else: 
             pass
