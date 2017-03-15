@@ -2,13 +2,13 @@ import time
 from pyvisa_device import device, device_error
 
 
-class ke2410(device):
+class source_meter(device):
     """ 
-    Keithley 2410 source meter.
+    Generic source meter.
     
     Example:
     -------------
-    dev = ke2410(address=24)
+    dev = source_meter(address=24)
     dev.print_idn()
     dev.set_source('voltage')
     dev.set_voltage(10)
@@ -112,16 +112,16 @@ class ke2410(device):
         if debug == 1: 
             self.logging.info("Ramping voltage from %.2f V to %.2f V." % (now, val))
         if now > val:
-            for v in range(now, val, -10):
+            for v in range(now, val, -25):
                 self.ctrl.write(":SOUR:VOLT %d" % v)
-                time.sleep(0.25)
+                time.sleep(1)
                 if debug == 1: 
                     print self.read_voltage()
             self.ctrl.write(":SOUR:VOLT %d" % val)
         else:
-            for v in range(now, val, +10):
+            for v in range(now, val, +25):
                 self.ctrl.write(":SOUR:VOLT %d" % v)
-                time.sleep(0.25)
+                time.sleep(1)
                 if debug == 1: 
                     print self.read_voltage()
             self.ctrl.write(":SOUR:VOLT %d" % val)  
@@ -194,34 +194,12 @@ class ke2410(device):
             self.logging.info("Choosen property cannot be supplied by this device.")
             return -1
 
-    def set_voltage_limit(self, val, debug=0):
-        if debug == 1: 
-            self.logging.info("Setting voltage limit to %.2fV." % val)
-        self.ctrl.write(':SENS:VOLT:PROT %f' % val)
-        return self.ctrl.query(":SENS:VOLT:PROT:LEV?")
-
-    def set_current_limit(self, val, debug=0):
-        if debug == 1: 
-            self.logging.info("Setting current limit to %.6fA." % val)
-        self.ctrl.write(":SENS:CURR:PROT %f" % val)
-        return self.ctrl.query(":SENS:CURR:PROT:LEV?")
-
     def set_nplc(self, val, debug=0):
         if debug == 1: 
             self.logging.info("Setting NPLC to %d." % val)
         self.ctrl.write(":SENSE:CURR:NPLC %d" % val) 
         self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)  
         return 0
-
-    def check_voltage_limit(self, debug=0):
-        if debug == 1: 
-            self.logging.info("Checking for voltage limit.")
-        return float(self.ctrl.query(":SENS:VOLT:PROT:LEV?"))
-
-    def check_current_limit(self, debug=0):
-        if debug == 1: 
-            self.logging.info("Checking for current limit.")
-        return float(self.ctrl.query(":SENS:CURR:PROT:LEV?"))
 
 
 
@@ -248,3 +226,12 @@ class ke2410(device):
 
 
 
+
+
+
+
+
+
+
+
+ 

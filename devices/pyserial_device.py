@@ -60,12 +60,9 @@ class device(object):
             dsrdtr=False
         )
 
-
-
         ## Set up logger
         self.logging = logging.getLogger('root')
         self.logging.info("Initialising device.")
-        self.logging.info("Costum made switch board.")
 
     def list_ports(self):
         print serial.tools.list_ports()

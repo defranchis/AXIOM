@@ -126,12 +126,12 @@ class hp4890(device):
     def check_voltage(self, debug=0):
         if debug == 1: 
             self.logging("Checking voltage setting.")
-        return self.ctrl.query("VOLT?")
+        return float(self.ctrl.query("VOLT?"))
 
     def check_frequency(self, debug=0):
         if debug == 1: 
             self.logging("Checking frequency setting.")
-        return self.ctrl.query("FREQ?")
+        return float(self.ctrl.query("FREQ?"))
 
     def check_mode(self, debug=0):
         if debug == 1:     

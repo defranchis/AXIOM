@@ -31,6 +31,18 @@ def main():
 			msr.execute()
 			msr.finalise()
 
+		elif test == 'test02_scan_iv':
+			msr = test02_scan_iv(ide=id)
+			msr.initialise()
+			msr.execute()
+			msr.finalise()
+
+		elif test == 'test03_scan_cv':
+			msr = test03_scan_cv(ide=id)
+			msr.initialise()
+			msr.execute()
+			msr.finalise()
+
 		elif test == 'test04_single_iv':
 			msr = test04_single_iv(ide=id)
 			msr.initialise()

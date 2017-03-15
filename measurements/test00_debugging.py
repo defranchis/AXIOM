@@ -40,11 +40,11 @@ class test00_debugging(measurement):
         self.pow_supply_address = 24
         self.volt_meter_address = 16
         self.lcr_meter_address = 17
-        self.switch_address = '/dev/tty.usbserial-A5064T4T'
+        self.switch_address = 'COM3'
         
         self.lim_cur = 0.0001
         self.lim_vol = 100
-        self.cell_list = range(1, 19, 1)
+        self.cell_list = range(1, 10, 1)
         self.volt_list = [1, 5, 10]
 
         self.delay_vol = 10

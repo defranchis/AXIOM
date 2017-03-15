@@ -81,7 +81,7 @@ class test05_single_cv(measurement):
         ## Print info
         self.logging.info("Settings:")
         self.logging.info("Power Supply voltage limit:      %8.2E V" % lim_vol)
-        self.logging.info("Power Supply current limit:      %8.2E A" % lim_cur)
+        self.logging.info("Power Supply current limit:      %8.2E A" % float(lim_cur))
         self.logging.info("LCR measurement voltage:         %8.2E V" % lcr_vol)
         self.logging.info("LCR measurement frequency:       %8.2E Hz" % lcr_freq)
         self.logging.info("Voltage Delay:                   %8.2f s" % self.delay_vol)

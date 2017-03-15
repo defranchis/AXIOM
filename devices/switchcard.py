@@ -40,6 +40,10 @@ class switchcard(device):
     
     def __init__(self, port):
         device.__init__(self, port=port, baudrate=115200, termination='\r\n')
+        recv = self.query("SYS.INFO")
+        info = [''.join(i).strip() for i in recv]
+        self.logging.info(' | '.join(info))
+        print '\t'
         self.flush_input()
         self.flush_output()
 
@@ -154,7 +158,7 @@ class switchcard(device):
         if debug == 1: 
             self.logging.info("Displaying humidity (in %) from the sensor on the probecard.")
         try:
-            val = int(self.query("PROBECARD.HUMIDITY", debug)[0].strip())
+            val = float(self.query("PROBECARD.HUMIDITY", debug)[0].strip())
             return val
         except StandardError:
             self.logging.info("Error. Probecard not connected.")
@@ -224,7 +228,16 @@ class switchcard(device):
             self.logging.info("Setting display mode. Valid values are ['ON','OFF','AUTO'].")
         return self.write("UI.DISPLAY %s" % val)
 
-
-
-
-
+dev = switchcard(port='COM3')
+print dev.check_connection()
+print dev.idn()
+    
+print dev.reboot()
+time.sleep(1)
+print dev.get_idn()
+print dev.print_info()
+print "\n"
+print dev.get_probecard_humidity()
+print dev.get_matrix_humidity()
+print dev.get_probecard_temperature()
+print dev.get_matrix_temperature()
