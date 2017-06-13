@@ -210,7 +210,7 @@ class ke2410(device):
         if debug == 1: 
             self.logging.info("Setting NPLC to %d." % val)
         self.ctrl.write(":SENSE:CURR:NPLC %d" % val) 
-        self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)  
+        #self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)  
         return 0
 
     def check_voltage_limit(self, debug=0):

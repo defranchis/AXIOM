@@ -67,6 +67,24 @@ def main():
 			msr.execute()
 			msr.finalise()
 
+		elif test == 'test08_interpad_res':
+			msr = test08_interpad_res(ide=id)
+			msr.initialise()
+			msr.execute()
+			msr.finalise()
+
+		elif test == 'test09_interpad_cap':
+			msr = test09_interpad_cap(ide=id)
+			msr.initialise()
+			msr.execute()
+			msr.finalise()
+
+		elif test == 'test13_scan_cv_overnight':
+			msr = test13_scan_cv_overnight(ide=id)
+			msr.initialise()
+			msr.execute()
+			msr.finalise()
+
 		else:
 			print 'Unknown Test.'
 

@@ -53,7 +53,7 @@ class test00_debugging(measurement):
         self.test_vol = 0.5
         self.test_freq = 1E4
 
-        self.mode = 3
+        self.mode = 0
 
         if self.mode == 0:
             self.logging.info("Note: A general test on software functionality.")
@@ -110,8 +110,8 @@ class test00_debugging(measurement):
             ## Create fake data
             try:
                 for i in range(1, 10):
-                    out.append([i, i**2])
-                    time.sleep(0.3)
+                    out.append([i, i**2, 0.1])
+                    time.sleep(0.1)
                     self.logging.info("\t%d \t%d" % (i, i**2))
   
             except KeyboardInterrupt:
@@ -121,7 +121,15 @@ class test00_debugging(measurement):
             self.logging.info("\t")
             self.logging.info("\t")
             self.save_list(out, "out.dat", fmt="%4d", header=' x [-]\ty [-]')
-            #self.print_graph(np.array(out)[:, 0], np.array(out)[:, 1], 0.5, 'x', 'y', fn="out.png")
+            self.print_graph(np.array(out)[:, 0], np.array(out)[:, 1], np.array(out)[:, 2], 'x', 'y', 'Test Data', fn="out.png")
+
+            if (5 in np.array(out)[:, 0]):
+                print np.array([val for val in out if (val[0] == 5)])[:, 1]
+                self.print_graph(np.array([val for val in out if (val[0] == 5)])[:, 1], \
+                    np.array([val for val in out if (val[0] == 5)])[:, 1], \
+                    np.array([val for val in out if (val[0] == 5)])[:, 1], \
+                    'Channel Nr. [-]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_all_channels_10V_%s.png" % self.id)
+       
         
 
         ## Test communication

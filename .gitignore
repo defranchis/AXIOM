@@ -3,7 +3,8 @@
 *.pyc
 *.sublime-project
 *.sublime-workspace
-*.DS_store
+.DS_store
 analysis/*
+data/*
 logs/*
 misc/*

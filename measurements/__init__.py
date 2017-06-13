@@ -7,5 +7,6 @@ from test04_single_iv import test04_single_iv
 from test05_single_cv import test05_single_cv
 from test06_longterm_iv import test06_longterm_iv
 from test07_longterm_cv import test07_longterm_cv
-# from iv_cross_coupling import iv_cross_coupling
-# from cv_cross_coupling import cv_cross_coupling
+#from test08_interpad_res import test08_interpad_res
+from test09_interpad_cap import test09_interpad_cap
+from test13_scan_cv_overnight import test13_scan_cv_overnight

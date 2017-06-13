@@ -88,7 +88,7 @@ class switchcard(device):
         if debug == 1: 
             self.logging.info("Displaying humidity (in %) from the sensor on the switching matrix.")
         try:
-            val = float(self.query("MATRIX.HUMIDITY", debug)[0].strip())
+            val = self.query("MATRIX.HUMIDITY", debug)[0].strip()
             return val
         except StandardError:
             self.logging.info("Value Error.")
@@ -158,7 +158,7 @@ class switchcard(device):
         if debug == 1: 
             self.logging.info("Displaying humidity (in %) from the sensor on the probecard.")
         try:
-            val = float(self.query("PROBECARD.HUMIDITY", debug)[0].strip())
+            val = self.query("PROBECARD.HUMIDITY", debug)[0].strip()
             return val
         except StandardError:
             self.logging.info("Error. Probecard not connected.")
@@ -227,17 +227,3 @@ class switchcard(device):
         if debug == 1: 
             self.logging.info("Setting display mode. Valid values are ['ON','OFF','AUTO'].")
         return self.write("UI.DISPLAY %s" % val)
-
-dev = switchcard(port='COM3')
-print dev.check_connection()
-print dev.idn()
-    
-print dev.reboot()
-time.sleep(1)
-print dev.get_idn()
-print dev.print_info()
-print "\n"
-print dev.get_probecard_humidity()
-print dev.get_matrix_humidity()
-print dev.get_probecard_temperature()
-print dev.get_matrix_temperature()

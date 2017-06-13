@@ -24,6 +24,7 @@ import numpy as np
 from measurement import measurement
 from devices import ke2410 # power supply
 from devices import hp4980 # lcr meter
+from devices import switchcard # switch
 from utils import lcr_series_equ, lcr_parallel_equ
 
 
@@ -39,17 +40,18 @@ class test07_longterm_cv(measurement):
         
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
-        self.lcr_meter_address = 17     # gpib address of the lcr meter     
+        self.lcr_meter_address = 17     # gpib address of the lcr meter   
+        self.switch_address = 'COM3'    # serial port of switch card  
                     
         self.lim_cur = 0.0005           # compliance in [A]      
         self.lim_vol = 500              # compliance in [V]
-        self.volt_list = [150]          # list of bias voltage in [V]  
+        self.volt_list = [-150]          # list of bias voltage in [V]  
         
         self.delay_msr = 1              # delay between two consecutive measurements in [s]
         self.duration_msr = 100         # total measurement time in [s]
         
         self.lcr_vol = 0.5              # ac voltage amplitude in [mV]
-        self.lcr_freq = 10000           # ac voltage frequency in [kHz]
+        self.lcr_freq = 50000           # ac voltage frequency in [kHz]
         
 
 
@@ -70,25 +72,58 @@ class test07_longterm_cv(measurement):
         lcr_meter.reset()
         lcr_meter.set_voltage(self.lcr_vol)
         lcr_meter.set_frequency(self.lcr_freq)
-        lcr_meter.set_mode('ZTR')
+        lcr_meter.set_mode('RX')
+
+        # Set up switch
+        # switch = switchcard(self.switch_address)
+        # switch.reboot()
+        # switch.set_measurement_type('CV')
+        # switch.set_display_mode('ON')
+
+        ## Check settings
+        lim_vol = pow_supply.check_voltage_limit()
+        lim_cur = pow_supply.check_current_limit()
+        lcr_vol = float(lcr_meter.check_voltage())
+        lcr_freq = float(lcr_meter.check_frequency())
+        # temp_pc = switch.get_probecard_temperature()
+        # temp_sc = switch.get_matrix_temperature()
+        # # humd_pc = switch.get_probecard_humidity()
+        # # humd_sc = switch.get_matrix_humidity()
+        # type_msr = switch.get_measurement_type()
+        # type_disp = switch.get_display_mode()
 
         ## Print info
         self.logging.info("Settings:")
-        self.logging.info("Power Supply voltage limit:      %.2f V" % self.lim_vol)
-        self.logging.info("Power Supply current limit:      %.6f A" % self.lim_cur)
-        self.logging.info("LCR measurement voltage:         %.2f V" % self.lcr_vol)
-        self.logging.info("LCR measurement frequency:       %.6f Hz" % self.lcr_freq)
+        self.logging.info("Power supply voltage limit:      %8.2E V" % lim_vol)
+        self.logging.info("Power supply current limit:      %8.2E A" % lim_cur)
+        self.logging.info("LCR measurement voltage:         %8.2E V" % lcr_vol)
+        self.logging.info("LCR measurement frequency:       %8.2E Hz" % lcr_freq)
+        # self.logging.info("Probecard temperature:           %8.1f C" % temp_pc)
+        # self.logging.info("Switchcard temperature:          %8.1f C" % temp_sc)
+        # self.logging.info("Probecard humidity:              %8.1f %" % humd_pc)
+        # self.logging.info("Switchcard humidity:             %8.1f %" % humd_sc)
+        # self.logging.info("Switchcard measurement setting:  %s" % type_msr)
+        # self.logging.info("Switchcard display setting:      %s" % type_disp)
         self.logging.info("\t")
 
-        self.logging.info("\tVoltage [V]\tTime [s]\tCpar [F]\tCser [F]")
+        self.logging.info("\tVoltage [V]\tTime [s]\tR [Ohm]\tX [Ohm]\tCapacitance [F]")
         self.logging.info("\t--------------------------------------------------")
 
         ## Prepare
         out = []
+        hd = ' Scan CV\n' \
+           + ' Measurement Settings:\n' \
+           + ' Power supply voltage limit:      %8.2E V\n' % lim_vol \
+           + ' Power supply current limit:      %8.2E A\n' % lim_cur \
+           + ' LCR measurement voltage:         %8.2E V\n' % lcr_vol \
+           + ' LCR measurement frequency:       %8.0E Hz\n' % lcr_freq \
+           + ' Voltage [V]\tTime [s]\tR [Ohm]\tX [Ohm]\tCapacitance [F]\tTotal Current [A]\n'
+
         t = 0
         err = 10**(-14)
 
         ## Loop over voltages
+        # switch.open_channel(0)
         for v in self.volt_list:
             pow_supply.ramp_voltage(v)
             time.sleep(self.delay_msr)
@@ -102,15 +137,15 @@ class test07_longterm_cv(measurement):
                 
                 vol = pow_supply.read_voltage()
                 cur_tot = pow_supply.read_current()
-                z, phi = lcr_meter.execute_measurement()
+                r, x = lcr_meter.execute_measurement()
 
-                rs, cs, ls, D = lcr_series_equ(self.lcr_freq, z, phi)
-                rp, cp, lp, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+                cap = (-10**(12))/(2*np.pi*self.lcr_freq*x)
                 
-                out.append([vol, t, z, phi, cs, cp, cur_tot])
+                out.append([vol, t, r, x, cap, cur_tot])
                 time.sleep(self.delay_msr)
 
-                self.logging.info("\t%.2E \t%.2E \t%.3E \t%.3E" % (vol, t, cp, cs))
+                self.logging.info("\t%.2E \t%.2E \t%.3E \t%.3E \t%.3E" % (vol, t, r, x, cap))
+
 
         ## Close connections
         pow_supply.ramp_voltage(0)
@@ -120,8 +155,10 @@ class test07_longterm_cv(measurement):
         ## Save and print
         self.logging.info("")
         self.save_list(out, "cv_long.dat", fmt="%.5E", header=' volt [V]\t time [s]\tz [Ohm]\tphi [rad]\tcs [F]\tcp [F]\ttotal current[A]')
+        self.print_graph(np.array(out)[:, 1], np.array(out)[:, 4], err, 'Time [s]', 
+                         'Capacitance [F]', 'Longerm CV ' + self.id, fn="cv_long_%s.png" % self.id)
         self.print_graph(np.array(out)[:, 1], np.array(out)[:, 5], err, 'Time [s]', 
-                         'Parallel Capacitance [F]', 'Longerm CV ' + self.id, fn="cv_long_%s.png" % self.id)        
+                         'Total Current [A]', 'Longerm CV ' + self.id, fn="cv_long_total_current_%s.png" % self.id)        
         self.logging.info("")
 
 

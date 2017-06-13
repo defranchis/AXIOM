@@ -1,5 +1,5 @@
 # ============================================================================
-# File: test04_single_iv.py
+# File: test06_longterm_iv.py
 # ------------------------------
 # 
 # Notes:
@@ -8,7 +8,8 @@
 #   configure and prepare
 #   for each voltage:
 #       set voltage
-#       measure voltage, current, total current
+#       while measurement time is not reached:
+#           measure voltage, time, current, total current
 #   finish
 #
 # Status:
@@ -22,27 +23,28 @@ import numpy as np
 from measurement import measurement
 from devices import ke2410 # power supply
 from devices import ke6487 # volt meter
+from devices import switchcard # switch
 
 
-class test04_single_iv(measurement):
-    """Measurement of I-V curve for a single cell."""
+class test08_interpad_res(measurement):
+    """Multiple measurements of IV over a longer period."""
     
     def initialise(self):
-        self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("IV Scan")
+        self.logging.info("IV Longterm")
         self.logging.info("------------------------------------------")
-        self.logging.info("Measurement of IV for a single cell.")
+        self.logging.info("Multiple measurements of IV over a longer period.")
         self.logging.info("\t")
         
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
-        self.volt_meter_address = 23    # gpib address of the multi meter
+        self.volt_meter_address = 23    # gpib address of the multimeter
+        self.switch_address = 'COM3'    # serial port of switch card
         
-        self.lim_cur = 0.001           # compliance in [A]
-        self.lim_vol = 1000             # compliance in [V]
-        self.volt_list = np.loadtxt('config/voltagesIV.txt', dtype=int)
-        # self.volt_list = [0, -1, -3, -5, -7,-9,-11,-13,-15,-17,-19,-21,-23,-25,-27,-30]
+        self.lim_cur = 0.0005           # compliance in [A]
+        self.lim_vol = 500              # compliance in [V]
+        
+        self.volt_list = [0,-10,-20]
 
         self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
         
@@ -134,6 +136,8 @@ class test04_single_iv(measurement):
                          'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
         self.logging.info("\n")
 
-    
+
     def finalise(self):
         self._finalise()
+
+

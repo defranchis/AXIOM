@@ -1,5 +1,5 @@
 # ============================================================================
-# File: test05_singe_cv.py
+# File: test07_longterm_cv.py
 # ------------------------------
 # 
 # Notes:
@@ -8,10 +8,11 @@
 #   configure and prepare
 #   for each voltage:
 #       set voltage
-#       measure voltage, z, phi
-#       calculate cp, cs
+#       while measurement time is not reached:
+#           measure voltage, time, z, phi
+#           calculate cp, cs
 #   finish
-#
+#   
 # Status:
 #   works well
 #
@@ -23,11 +24,11 @@ import numpy as np
 from measurement import measurement
 from devices import ke2410 # power supply
 from devices import hp4980 # lcr meter
-from utils import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+from utils import lcr_series_equ, lcr_parallel_equ
 
 
-class test05_single_cv(measurement):
-    """Measurement of C-V curve for a single cell on the wafer."""
+class test09_interpad_cap(measurement):
+    """Multiple measurements of IV over a longer period."""
     
     def initialise(self):
         self.logging.info("\t")
@@ -44,8 +45,8 @@ class test05_single_cv(measurement):
         
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 500              # compliance in [V]
-        self.volt_list = np.loadtxt('config/voltagesCVneg.txt', dtype=int)
-        # self.volt_list = [0, -25, -50, -75, -100, -125, -150, -170, -180, -190, -200, -210, -220, -230, -250, -275, -300, -325, -350]
+        self.volt_list = np.loadtxt('config/voltagesCV.txt', dtype=int)
+        # self.volt_list = [0, -1, -3, -5, -7,-9,-11,-13,-15,-17,-19,-21,-23,-25,-27,-30]
 
         self.lcr_vol = 0.5              # ac voltage amplitude in [mV]
         self.lcr_freq = 50000           # ac voltage frequency in [kHz]
@@ -88,7 +89,7 @@ class test05_single_cv(measurement):
         self.logging.info("Voltage Delay:                   %8.2f s" % self.delay_vol)
         self.logging.info("\t")
 
-        self.logging.info("\tVoltage [V]\tChannel [-]\tR [kOhm]\tX [kOhm]\tCs [pF]\tCp [pF]\tTotal Current [A]")
+        self.logging.info("\tVoltage [V]\tChannel [-]\tR [kOhm]\tX [kOhm]\tCs [pF]\tCp [pF]\tRs [Ohm]\tRp [Ohm]\tTotal Current [A]")
         self.logging.info("\t--------------------------------------------------------------------------")
 
 
@@ -101,7 +102,7 @@ class test05_single_cv(measurement):
            + ' LCR measurement voltage:         %8.2E V\n' % lcr_vol \
            + ' LCR measurement frequency:       %8.0E Hz\n' % lcr_freq \
            + ' Voltage Delay:                   %8.2f s\n\n' % self.delay_vol \
-           + ' Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tR [kOhm]\tR_Err [kOhm]\tX [kOhm]\tX_Err [kOhm]\tCs [pF]\tCp [pF]\tTotal Current [A]\n'
+           + ' Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tR [kOhm]\tR_Err [kOhm]\tX [kOhm]\tX_Err [kOhm]\tCs [pF]\tCp [pF]\tRs [Ohm]\tRp [Ohm]\tTotal Current [A]\n'
 
         ## Loop over voltages
         try:
@@ -132,9 +133,9 @@ class test05_single_cv(measurement):
                 r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
                 r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
             
-                out.append([v, vol, j, r, r_err, x, x_err, c_s, c_p, cur_tot])
-                self.logging.info("\t%.2f \t%4d\t%.3f \t%.3f \t%.3E \t%.3E \t%.2E" % (vol, j, r/1000., x/1000., c_s*10**(12), c_p*10**(12), cur_tot))
-  
+                out.append([v, vol, j, r, r_err, x, x_err, c_s, c_p, r_s, r_p, cur_tot])
+                self.logging.info("\t%.2f \t%4d\t%.3f \t%.3f \t%.3E \t%.3E \t%.3E \t%.3E \t%.2E" % (vol, j, r/1000., x/1000., c_s*10**(12), c_p*10**(12), r_s, r_p, cur_tot))
+
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
@@ -157,8 +158,6 @@ class test05_single_cv(measurement):
                          'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
         self.logging.info("")
     
-
+    
     def finalise(self):
         self._finalise()
-
-

@@ -43,7 +43,8 @@ class measurement(object):
 
         ## Add colours
         if platform.system() == 'Windows':
-            logging.StreamHandler.emit = add_coloring_to_emit_windows(logging.StreamHandler.emit)
+            # logging.StreamHandler.emit = add_coloring_to_emit_windows(logging.StreamHandler.emit)
+            pass
         else:
             logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
@@ -91,8 +92,8 @@ class measurement(object):
     def print_graph(self, x, y, yerr, xlabel, ylabel, title, fn="out.dat", info="Saving output to file %s"):   
         self.init_style_old()
         #plt.gca().margins(0.1, 0.1)
-        plt.errorbar(x, y, yerr=yerr, ls='-', marker='s')
-        plt.gca().yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1E'))
+        plt.errorbar(x, y, yerr=yerr, ls=' ', marker='s')
+        plt.gca().yaxis.set_major_formatter(mtick.FormatStrFormatter('%.3E'))
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
