@@ -1,5 +1,4 @@
-from devices import *
-from measurements import *
+import measurements
 from optparse import OptionParser
 
 
@@ -17,76 +16,27 @@ def main():
 		return 0
 
 	if len(args) < 1:
-		parser.error("You have to given an identifier")
+		parser.error("You have to give an identifier")
 	id = args[0]
 
 	test_list = []	
 	if len(args) > 1:
 		test_list = args[1:]
 
-	for test in test_list:
-		if test == 'test00_debugging':
-			msr = test00_debugging(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
+	for test_name in test_list:
+		
+		try:
+			test = getattr(measurements, test_name)
+		except AttributeError:
+			print('Unknown Test.')
+			return 1
 
-		elif test == 'test02_scan_iv':
-			msr = test02_scan_iv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
+		msr = test(ide = id)
+		msr.initialise()
+		msr.execute()
+		msr.finalise()
 
-		elif test == 'test03_scan_cv':
-			msr = test03_scan_cv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
 
-		elif test == 'test04_single_iv':
-			msr = test04_single_iv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test05_single_cv':
-			msr = test05_single_cv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test06_longterm_iv':
-			msr = test06_longterm_iv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test07_longterm_cv':
-			msr = test07_longterm_cv(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test08_interpad_res':
-			msr = test08_interpad_res(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test09_interpad_cap':
-			msr = test09_interpad_cap(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		elif test == 'test13_scan_cv_overnight':
-			msr = test13_scan_cv_overnight(ide=id)
-			msr.initialise()
-			msr.execute()
-			msr.finalise()
-
-		else:
-			print 'Unknown Test.'
 
 if __name__ == "__main__":
     main()

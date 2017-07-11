@@ -5,3 +5,4 @@ from ke2001 import ke2001
 from ke6487 import ke6487
 from hp4980 import hp4980
 from switchcard import switchcard
+from simulated_devices import simulatedMultimeter, simulatedPsu
