@@ -38,6 +38,6 @@ Notes
 
 # To Do
 
-- [ ] Automatic recognition of tests
 - [ ] Add GUI
-
+- [ ] Add ethernet device
+- [ ] Add USB device
