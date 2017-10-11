@@ -1,5 +1,4 @@
-from devices import *
-from measurements import *
+import measurements
 from optparse import OptionParser
 
 
@@ -25,7 +24,6 @@ def main():
 		test_list = args[1:]
 
 	for test_name in test_list:
-
 		try:
 			test = getattr(measurements, test_name)
 		except AttributeError:
