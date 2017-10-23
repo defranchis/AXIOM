@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test03_scan_cv.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -26,7 +26,7 @@ from utils import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 class test03_scan_cv(measurement):
     """Measurement of C-V curves for individual cells across the wafer matrix."""
-    
+
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("")
@@ -40,22 +40,22 @@ class test03_scan_cv(measurement):
         self.pow_supply_address = 24    # gpib address of the power supply
         self.lcr_meter_address = 17     # gpib address of the lcr meter
         self.switch_address = 'COM3'    # serial port of switch card
-        
+
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 100              # compliance in [V]
         self.cell_list = np.loadtxt('config/channels256_from_schematics_sorted_few.txt', dtype=int)
         self.volt_list = np.loadtxt('config/voltagesCV6Inch256Pos.txt', dtype=int)
-        
+
         self.delay_vol = 30              # delay between setting voltage and executing measurement in [s]
         self.delay_ch = 0.3              # delay between setting channel and executing measurement in [s]
 
         self.lcr_vol = 0.501             # ac voltage amplitude in [mV]
         self.lcr_freq = 50000            # ac voltage frequency in [Hz]
-    
+
         #self.cor_open = np.loadtxt('config/valuesOpen.txt') # open correction for lcr meter
         #self.cor_short = np.loadtxt('config/valuesShort.txt') # short correction for lcr meter
         #self.cor_load = np.loadtxt('config/valuesLoad.txt') # load correction for lcr meter
-        
+
 
     def execute(self):
 
@@ -139,7 +139,7 @@ class test03_scan_cv(measurement):
 
                 cur_tot = pow_supply.read_current()
                 vol = pow_supply.read_voltage()
-                
+
                 j = 1
                 for c in self.cell_list:
                     switch.open_channel(c)
@@ -149,7 +149,7 @@ class test03_scan_cv(measurement):
                         lcr_meter.set_frequency(freq_nom)
                         time.sleep(1)
                         freq = float(lcr_meter.check_frequency())
-    
+
                         ## Through away first measurements after voltage change
                         if j == 0:
                             switch.open_channel(c)
@@ -157,31 +157,27 @@ class test03_scan_cv(measurement):
                                 lcr_meter.execute_measurement()
                                 pow_supply.read_current()
                                 time.sleep(0.001)
-    
-                        tmp1 = []
-                        tmp2 = []
-                        for i in range(3):
-                            r, x = lcr_meter.execute_measurement()
-                            tmp1.append(r)
-                            tmp2.append(x)
-                        r = np.mean(np.array(tmp1))
-                        x = np.mean(np.array(tmp2))
-                        r_err = np.std(np.array(tmp1))
-                        x_err = np.std(np.array(tmp2))
-                    
-                        time.sleep(0.001)            
-                
-                        z = np.sqrt(r**2 + x**2)
-                        phi = np.arctan(x/r)
+
+                        measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
+                        means = np.mean(measurements, axis = 0)
+                        errs = np.std(measurements, axis = 0)
+
+                        R, X = means
+                        dR, dX = errs
+
+                        time.sleep(0.001)
+
+                        z = np.sqrt(R**2 + X**2)
+                        phi = np.arctan(X/R)
                         r_s, c_s, l_s, D = lcr_series_equ(freq, z, phi)
                         r_p, c_p, l_p, D = lcr_parallel_equ(freq, z, phi)
-                        
+
                         out.append([v, vol, freq, c, r, r_err, x, x_err, c_s, c_p, cur_tot])
                         self.logging.info("\t%.2f \t%4d \t%7d \t%.3f \t%.3f \t%.3E \t%.3E \t%.2E" % (vol, j, freq, r/1000., x/1000., c_s*10**(12), c_p*10**(12), cur_tot))
 
                     j += 1
 
-  
+
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
@@ -204,7 +200,7 @@ class test03_scan_cv(measurement):
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[:, 5], \
                 np.array([val for val in out if (val[2] == ch)])[:, 6], \
-                'Bias Voltage [V]', 'Parallel Capacitance [F]', 'CV ' + self.id, fn="cv_channel_%d_%s.png" % (ch, self.id))   
+                'Bias Voltage [V]', 'Parallel Capacitance [F]', 'CV ' + self.id, fn="cv_channel_%d_%s.png" % (ch, self.id))
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[2:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[2:, 7]**(-2), \
                 np.array([val for val in out if (val[2] == ch)])[2:, 7] * 0.01 * 2 * (np.array([val for val in out if (val[2] == ch)])[2:, 7]*0.01)**(-3), \
@@ -231,6 +227,6 @@ class test03_scan_cv(measurement):
 
         if 0:
             self.save_list(range(0,512,1), "channel_list.txt", fmt='%d', header='')
-    
+
     def finalise(self):
         self._finalise()

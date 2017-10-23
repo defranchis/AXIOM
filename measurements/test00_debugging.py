@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test00_debugging.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -35,13 +35,13 @@ class test00_debugging(measurement):
         self.logging.info("------------------------------------------")
         self.logging.info("A test on communication and functionality.")
         self.logging.info("\t")
-        
+
         self._initialise()
         self.pow_supply_address = 24
         self.volt_meter_address = 16
         self.lcr_meter_address = 17
         self.switch_address = 'COM3'
-        
+
         self.lim_cur = 0.0001
         self.lim_vol = 100
         self.cell_list = range(1, 10, 1)
@@ -61,7 +61,7 @@ class test00_debugging(measurement):
 
         elif self.mode == 1:
             self.logging.info("Note: A test of communication.")
-            self.logging.info("\t")        
+            self.logging.info("\t")
             self.logging.info("Settings:")
             self.logging.info("Power supply voltage limit:      %.2fV" % self.lim_vol)
             self.logging.info("Power supply current limit:      %.6fA" % self.lim_cur)
@@ -92,9 +92,9 @@ class test00_debugging(measurement):
             self.logging.info("\t")
 
         else:
-            self.logging.info("Nothing happening in this mode.") 
-        
-        
+            self.logging.info("Nothing happening in this mode.")
+
+
 
     def execute(self):
 
@@ -102,7 +102,7 @@ class test00_debugging(measurement):
         if self.mode == 0:
             out = []
 
-            self.logging.info("\t")           
+            self.logging.info("\t")
             self.logging.info("X[-]\tY[-]")
             self.logging.info("-----------------")
             self.logging.info("\t")
@@ -113,7 +113,7 @@ class test00_debugging(measurement):
                     out.append([i, i**2, 0.1])
                     time.sleep(0.1)
                     self.logging.info("\t%d \t%d" % (i, i**2))
-  
+
             except KeyboardInterrupt:
                 self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
 
@@ -129,11 +129,11 @@ class test00_debugging(measurement):
                     np.array([val for val in out if (val[0] == 5)])[:, 1], \
                     np.array([val for val in out if (val[0] == 5)])[:, 1], \
                     'Channel Nr. [-]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_all_channels_10V_%s.png" % self.id)
-       
-        
+
+
 
         ## Test communication
-        elif self.mode == 1: 
+        elif self.mode == 1:
 
             ## Set up power supply
             pow_supply = ke2410(self.pow_supply_address)
@@ -144,7 +144,7 @@ class test00_debugging(measurement):
             pow_supply.set_voltage(0)
             pow_supply.set_terminal('rear')
             pow_supply.set_output_on()
-    
+
             ## Set up volt meter
             volt_meter = ke2450(self.volt_meter_address)
             volt_meter.reset()
@@ -153,26 +153,26 @@ class test00_debugging(measurement):
             volt_meter.set_current_range(1E-4)
             volt_meter.set_voltage(0)
             volt_meter.set_output_on()
-    
+
             ## Set up lcr meter
             lcr_meter = hp4980(self.lcr_meter_address)
             lcr_meter.reset()
             lcr_meter.set_voltage(self.test_vol)
             lcr_meter.set_frequency(self.test_freq)
             lcr_meter.set_mode('CPRP')
-    
+
             for v in self.volt_list:
                 pow_supply.ramp_voltage(v)
                 time.sleep(1)
-    
+
                 vol = pow_supply.read_voltage()
                 cur = pow_supply.read_current()
                 cap, res = lcr_meter.execute_measurement()
-                cur_tot = pow_supply.read_current() 
-    
+                cur_tot = pow_supply.read_current()
+
                 self.logging.info("vol %E, cur %E, cap %E, cur_tot %E" % (vol, cur, cap, cur_tot))
-    
-    
+
+
             ## Close connections
             pow_supply.set_output_off()
             pow_supply.reset()
@@ -181,7 +181,7 @@ class test00_debugging(measurement):
 
 
         ## Test ramping of voltage
-        elif self.mode == 2: 
+        elif self.mode == 2:
 
             ## Set up power supply
             pow_supply = ke2410(self.pow_supply_address)
@@ -202,17 +202,17 @@ class test00_debugging(measurement):
                 for v in [-5, -1, 0, 1, 5, 10, 25, 50]:
                     pow_supply.ramp_voltage(v, debug=1)
                     time.sleep(1)
-        
+
                     vol = pow_supply.read_voltage()
                     cur = volt_meter.read_current()
                     cur_tot = pow_supply.read_current()
-        
+
                     self.logging.info("vol %E, cur_tot %E" % (vol, cur_tot))
-  
+
             except KeyboardInterrupt:
                 pow_supply.ramp_voltage(0)
                 self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
-    
+
             ## Close connections
             pow_supply.ramp_voltage(0, debug=1)
             pow_supply.set_output_off()
@@ -227,7 +227,7 @@ class test00_debugging(measurement):
             switch.reboot()
             switch.set_display_mode('ON')
 
-            self.logging.info("\t")           
+            self.logging.info("\t")
             self.logging.info("Channel Set [-]\tChannel Read [-]")
             self.logging.info("-----------------")
             self.logging.info("\t")
@@ -242,19 +242,18 @@ class test00_debugging(measurement):
                         self.logging.info("\t%.3f \t%d \t%d" % (t, i, ch))
                     else:
                         self.logging.warning("\t%.3f \t%d \t%d" % (t, i, ch))
-  
+
             except KeyboardInterrupt:
                 self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
 
             ## Save and print
             self.logging.info("\t")
             self.logging.info("\t")
-        
 
-        else: 
+
+        else:
             pass
-    
-    
+
+
     def finalise(self):
         self._finalise()
-

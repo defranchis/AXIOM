@@ -2,18 +2,18 @@ import time
 from pyvisa_device import device, device_error
 
 
-class hp4890(device):
-    """ 
-    Keysight E4890 lcr meter.
-    
+class hp4980(device):
+    """
+    Keysight E4980 lcr meter.
+
     Example:
     -------------
-    dev = hp4890(address=24)
+    dev = hp4980(address=24)
     dev.print_idn()
     dev.reset()
-    
+
     "FUNC:IMP:RANG 1E4"
-    
+
     "COMP ON" dev.set_comparator(0)
     "INIT:CONT OFF" dev.set_trigger_continous(0)
     "INIT:IMM" dev.set_trigger_immediate()
@@ -26,36 +26,36 @@ class hp4890(device):
         self.ctrl.write("*RST")
 
     def print_idn(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Query ID.")
         self.logging(self.ctrl.query("*IDN?"))
         return 0
-    
+
     def get_idn(self):
         return self.ctrl.query("*IDN?")
-    
+
     def reset(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Reseting device.")
         self.ctrl.write("*RST")
         return 0
 
     def restart(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Restarting device.")
         self.ctrl.write(":SYST:REST")
         return 0
-    
+
     def clear_status(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Clearing all status bits.")
         self.ctrl.write("*CLS")
         return 0
 
     def self_test(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Executing internal self test.")
-        return self.ctrl.query("*TST?")  
+        return self.ctrl.query("*TST?")
 
 
 
@@ -63,7 +63,7 @@ class hp4890(device):
     # ---------------------------------
 
     def set_voltage(self, val, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Setting voltage to %f V." % val)
         self.ctrl.write("VOLT %fV" % val)
         return 0
@@ -75,7 +75,7 @@ class hp4890(device):
         return 0
 
     def set_mode(self, mode='CSRS', debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Setting measurement mode to %s. Options are ['CSRS', 'CPRP', 'ZTD']." % mode)
         self.ctrl.write("FUNC:IMP %s" % mode)
         return 0
@@ -91,7 +91,7 @@ class hp4890(device):
             self.logging("Setting impedance measurement range to %E." % val)
         self.ctrl.write("FUNC:IMP:RANG %E" % val)
         return 0
-    
+
 
     def set_read_format(self, mode='ASC:LONG', debug=0):
         if debug == 1:
@@ -124,27 +124,27 @@ class hp4890(device):
         return 0
 
     def check_voltage(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking voltage setting.")
         return float(self.ctrl.query("VOLT?"))
 
     def check_frequency(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking frequency setting.")
         return float(self.ctrl.query("FREQ?"))
 
     def check_mode(self, debug=0):
-        if debug == 1:     
+        if debug == 1:
             self.logging("Checking measurement type.")
         return self.ctrl.query("FUNC:IMP?")
 
     def check_current(self, debug=0):
-        if debug == 1:     
+        if debug == 1:
             self.logging("Checking current setting.")
         return self.ctrl.query("CURR?")
 
     def check_range(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking measurement range.")
         return self.ctrl.query("FUNC:IMP:RANG?")
 
@@ -155,24 +155,24 @@ class hp4890(device):
     # ---------------------------------
 
     def set_correction_cable_length(self, val, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Setting correction cable length to %d meters. Options are [0, 1, 2, 4]." % val)
-        self.ctrl.write("CORR:LENG %dM" % val) 
+        self.ctrl.write("CORR:LENG %dM" % val)
         return 0
 
     def check_correction_cable_length(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking correction cable length.")
         return self.ctrl.query("CORR:LENG?")
 
     def execute_closed_correction(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Do open correction for all frequencies.")
         self.ctrl.write("CORR:OPEN")
         return 0
 
     def execute_short_correction(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Do short correction for all frequencies.")
         self.ctrl.write("CORR:SHOR")
         return 0
@@ -185,45 +185,45 @@ class hp4890(device):
 
     def set_open_correction(self, val, debug=0):
         if debug == 1:
-            self.logging("Setting open correction status to %d." % val) 
-        self.ctrl.write("CORR:OPEN:STAT %d" % val) 
+            self.logging("Setting open correction status to %d." % val)
+        self.ctrl.write("CORR:OPEN:STAT %d" % val)
         return 0
 
     def set_short_correction(self, val, debug=0):
         if debug == 1:
-            self.logging("Setting short correction status to %d." % val) 
-        self.ctrl.write("CORR:SHOR:STAT %d" % val) 
-        return 0 
+            self.logging("Setting short correction status to %d." % val)
+        self.ctrl.write("CORR:SHOR:STAT %d" % val)
+        return 0
 
     def set_load_correction(self, val, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Setting load correction status to %d." % val)
-        self.ctrl.write("CORR:LOAD:STAT %d" % val) 
+        self.ctrl.write("CORR:LOAD:STAT %d" % val)
         return 0
 
     def check_open_correction(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking open correction status.")
         return self.ctrl.query("CORR:OPEN:STAT?")
 
     def check_short_correction(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking short correction status.")
         return self.ctrl.query("CORR:SHOR:STAT?")
 
     def check_load_correction(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking load correction status.")
         return self.ctrl.query("CORR:LOAD:STAT?")
 
     def set_load_correction_type(self, val='CPRP', debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Setting load correction type to %d." % val)
         self.ctrl.write("CORR:LOAD:TYPE %d" % val)
         return 0
 
     def check_load_correction_type(self, debug=0):
-        if debug == 1: 
+        if debug == 1:
             self.logging("Checking load correction type.")
         return self.ctrl.query("CORR:LOAD:TYPE?")
 

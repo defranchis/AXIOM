@@ -33,7 +33,6 @@ Notes
 
 * Folder devices holds all communication drivers
 * Folder measurements holds all measurement scripts
-* Folder analysis holds the visualisation
 
 
 # To Do
@@ -41,3 +40,4 @@ Notes
 - [ ] Add GUI
 - [ ] Add ethernet device
 - [ ] Add USB device
+- [ ] Fix autolisting of existing tests
