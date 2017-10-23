@@ -25,7 +25,7 @@ from devices import switchcard # switch
 
 
 class test00_debugging(measurement):
-    """A test on communication and functionality."""
+    """A test on communication and functionality"""
 
     def initialise(self):
         #self.logging.info("\t")
@@ -33,7 +33,7 @@ class test00_debugging(measurement):
         self.logging.info("------------------------------------------")
         self.logging.info("Debugging")
         self.logging.info("------------------------------------------")
-        self.logging.info("A test on communication and functionality.")
+        self.logging.info(self.__doc__)
         self.logging.info("\t")
 
         self._initialise()
@@ -100,19 +100,33 @@ class test00_debugging(measurement):
 
         ## Test functionality
         if self.mode == 0:
-            out = []
 
+            ## Header
+            hd = [
+                'Debugging\n',
+                'Measurement Settings:',
+                '\n\n',
+                'X[-]\tY[-]'
+            ]
+
+            ## Print Info
+            for line in hd[1:-2]:
+                self.logging.info(line)
             self.logging.info("\t")
-            self.logging.info("X[-]\tY[-]")
-            self.logging.info("-----------------")
             self.logging.info("\t")
+            self.logging.info(hd[-1])
+            self.logging.info("-" * int(1.2 * len(hd[-1])))
+
+            ## Prepare
+            out = []
 
             ## Create fake data
             try:
                 for i in range(1, 10):
-                    out.append([i, i**2, 0.1])
+                    line = [i, i**2, 0.1]
+                    out.append(line)
                     time.sleep(0.1)
-                    self.logging.info("\t%d \t%d" % (i, i**2))
+                    self.logging.info("{:<5.2E}\t{: <5.2E}".format(*line))
 
             except KeyboardInterrupt:
                 self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
@@ -120,16 +134,8 @@ class test00_debugging(measurement):
             ## Save and print
             self.logging.info("\t")
             self.logging.info("\t")
-            self.save_list(out, "out.dat", fmt="%4d", header=' x [-]\ty [-]')
+            self.save_list(out, "out.dat", fmt="%4d", header="\n".join(hd))
             self.print_graph(np.array(out)[:, 0], np.array(out)[:, 1], np.array(out)[:, 2], 'x', 'y', 'Test Data', fn="out.png")
-
-            if (5 in np.array(out)[:, 0]):
-                print np.array([val for val in out if (val[0] == 5)])[:, 1]
-                self.print_graph(np.array([val for val in out if (val[0] == 5)])[:, 1], \
-                    np.array([val for val in out if (val[0] == 5)])[:, 1], \
-                    np.array([val for val in out if (val[0] == 5)])[:, 1], \
-                    'Channel Nr. [-]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_all_channels_10V_%s.png" % self.id)
-
 
 
         ## Test communication
@@ -171,7 +177,6 @@ class test00_debugging(measurement):
                 cur_tot = pow_supply.read_current()
 
                 self.logging.info("vol %E, cur %E, cap %E, cur_tot %E" % (vol, cur, cap, cur_tot))
-
 
             ## Close connections
             pow_supply.set_output_off()

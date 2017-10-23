@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test02_scan_iv.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -24,33 +24,33 @@ from devices import switchcard # switch
 
 class test02_scan_iv(measurement):
     """Measurement of I-V curves for individual cells across the wafer matrix."""
-    
+
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
         self.logging.info("IV Scan")
         self.logging.info("------------------------------------------")
-        self.logging.info("Measurement of I-V curves for individual cells across the wafer matrix.")
+        self.logging.info(self.__doc__)
         self.logging.info("\t")
-        
+
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
         self.volt_meter_address = 23    # gpib address of the multi meter
         self.switch_address = 'COM3'    # serial port of switch card
-        
+
         self.lim_cur = 0.0001           # compliance in [A]
         self.lim_vol = 100              # compliance in [V]
 
         self.cell_list = np.loadtxt('config/channels128_from_schematics_sorted.txt', dtype=int)
         self.volt_list = [-10]
-        
+
         self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
-        self.delay_ch = 0.1             # delay between setting channel and executing measurement in [s]
+        self.delay_ch = 0.3             # delay between setting channel and executing measurement in [s]
 
 
 
     def execute(self):
-        
+
         ## Set up power supply
         pow_supply = ke2410(self.pow_supply_address)
         pow_supply.reset()
@@ -58,16 +58,14 @@ class test02_scan_iv(measurement):
         pow_supply.set_sense('current')
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
-        pow_supply.set_nplc(2)
         pow_supply.set_terminal('rear')
+        pow_supply.set_interlock_on()
         pow_supply.set_output_on()
 
         ## Set up volt meter
         volt_meter = ke6487(self.volt_meter_address)
         volt_meter.reset()
         volt_meter.setup_ammeter()
-        # volt_meter.set_auto_range(0)
-        # volt_meter.set_range(2E-8)
         volt_meter.set_nplc(2)
 
         # Set up switch
@@ -81,41 +79,40 @@ class test02_scan_iv(measurement):
         lim_cur = pow_supply.check_current_limit()
         temp_pc = switch.get_probecard_temperature()
         temp_sc = switch.get_matrix_temperature()
-        humd_pc = switch.get_probecard_humidity()
-        humd_sc = switch.get_matrix_humidity()
+        # humd_pc = switch.get_probecard_humidity()
+        # humd_sc = switch.get_matrix_humidity()
         type_msr = switch.get_measurement_type()
         type_disp = switch.get_display_mode()
 
-        ## Print Info
-        self.logging.info("Settings:")
-        self.logging.info("Power supply voltage limit:      %8.2E V" % lim_vol)
-        self.logging.info("Power supply current limit:      %8.2E A" % lim_cur)
-        self.logging.info("Voltage delay:                   %8.2f s" % self.delay_vol)
-        self.logging.info("Channel delay:                   %8.2f s" % self.delay_ch)
-        self.logging.info("Probecard temperature:           %8.1f C" % temp_pc)
-        self.logging.info("Switchcard temperature:          %8.1f C" % temp_sc)
-        # self.logging.info("Probecard humidity:              %s %" % humd_pc)
-        # self.logging.info("Switchcard humidity:             %s %" % humd_sc)
-        self.logging.info("Switchcard measurement setting:  %s" % type_msr)
-        self.logging.info("Switchcard display setting:      %s" % type_disp)
-        self.logging.info("\t")
+        ## Header
+        hd = [
+            'Scan IV\n',
+            'Measurement Settings:',
+            'Power supply voltage limit:      %8.2E V' % lim_vol,
+            'Power supply current limit:      %8.2E A' % lim_cur,
+            'Voltage delay:                   %8.2f s' % self.delay_vol,
+            'Channel delay:                   %8.2f s' % self.delay_ch,
+            'Probecard temperature:           %8.1f C' % temp_pc,
+            'Switchcard temperature:          %8.1f C' % temp_sc,
+            # 'Probecard humidity:              %s %' % humd_pc,
+            # 'Switchcard humidity:             %s %' % humd_sc,
+            'Switchcard measurement setting:  %s' % type_msr,
+            'Switchcard display setting:      %s' % type_disp,
+            '\n\n',
+            'Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
+        ]
 
-        self.logging.info("\tVoltage [V]\tChannel [-]\tCurrent Mean [A]\tCurrent Err [A]\tTot. Current [A]\tTot. Current Err [A]")
-        self.logging.info("\t--------------------------------------------------------------------------------------")
+        ## Print Info
+        for line in hd[1:-2]:
+            self.logging.info(line)
+        self.logging.info("\t")
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
-        hd = ' Single IV\n' \
-           + ' Measurement Settings:\n' \
-           + ' Power supply voltage limit:      %8.2E V\n' % lim_vol \
-           + ' Power supply current limit:      %8.2E A\n' % lim_cur \
-           + ' Voltage Delay:                   %8.2f s\n' % self.delay_vol \
-           + ' Channel Delay:                   %8.2f s\n' % self.delay_ch \
-           + ' Probecard temperature:           %8.1f C\n' % temp_pc \
-           + ' Switchcard temperature:          %8.1f C\n' % temp_sc \
-           + ' Switchcard measurement setting:  %s\n' % type_msr \
-           + ' Switchcard display setting:      %s\n\n\n' % type_disp \
-           + ' Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tCurrent Mean [A]\tCurrent Error [A]\tTotal Current [A]\tTotal Current Error A]\n'
+        flag_list = np.zeros(len(self.cell_list))
 
        ## Loop over voltages
         try:
@@ -127,53 +124,69 @@ class test02_scan_iv(measurement):
                 j = 0
                 for c in self.cell_list:
 
-                    ## Through away first measurements after voltage change
-                    if j == 0:
+                    ## Only measure unflagged cells
+                    if flag_list[j] == 0:
+
+                        ## Through away first measurements after voltage change
+                        if j == 0:
+                            switch.open_channel(c)
+                            for k in range(3):
+                                volt_meter.read_current()
+                                pow_supply.read_current()
+                                time.sleep(0.001)
+
+                        ## Go on with normal measurement
                         switch.open_channel(c)
-                        for k in range(3):
-                            volt_meter.read_current()
-                            pow_supply.read_current()
-                            time.sleep(0.001)
+                        time.sleep(self.delay_ch)
 
-                    switch.open_channel(c)
-                    time.sleep(self.delay_ch)
-                    vol = pow_supply.read_voltage()
-                
+                        cur_tot = pow_supply.read_current()
+                        vol = pow_supply.read_voltage()
+
+                        measurements = np.array([volt_meter.read_current() for _ in range(5)])
+                        means = np.mean(measurements, axis=0)
+                        errs = np.std(measurements, axis=0)
+
+                        i = means
+                        di = errs
+
+                        ## Flag cell if current too large
+                        if i > 1E-4:
+                            flag_list[j] = 1
+
+                    ## Handle flagged cells
+                    else:
+                        cur_tot = pow_supply.read_current()
+                        vol = pow_supply.read_voltage()
+
+                        i = np.nan
+                        di = np.nan
+
                     j += 1
-                    tmp = []
-                    tmp2 = []
-                    for i in range(3):
-                        tmp.append(volt_meter.read_current())
-                        tmp2.append(pow_supply.read_current())
-                    cur = np.mean(np.array(tmp))
-                    err = np.std(np.array(tmp))
-                    cur_tot = np.mean(np.array(tmp2))
-                    cur_tot_err = np.std(np.array(tmp2))
-
+                    line = [v, vol, j, i, di, cur_tot]
+                    out.append(line)
                     time.sleep(0.001)
-        
-                    out.append([v, vol, j, cur, err, cur_tot, cur_tot_err])
-                    self.logging.info("\t%.2E \t%4d \t%.3E \t%.3E \t%.2E \t%.2E" % (vol, j, cur, err, cur_tot, cur_tot_err))
-  
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5d}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
 
         ## Close connections
         pow_supply.ramp_voltage(0)
-        volt_meter.reset()
+        time.sleep(15)
+        pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
 
         ## Save and print
         self.logging.info("\n")
-        self.save_list(out, "iv.dat", fmt="%.5E", header=hd)
+        self.save_list(out, "iv.dat", fmt="%.5E", header="\n".join(hd))
         self.print_graph(np.array(out)[:, 2], np.array(out)[:, 5], np.array(out)[:, 5]*0.001, \
             'Channel Nr. [-]', 'Total Current [A]', 'All Channels ' + self.id, fn="iv_all_channels_%s.png" % self.id)
         self.print_graph(np.array(out)[:, 2], np.array(out)[:, 3], np.array(out)[:, 4], \
             'Channel Nr. [-]', 'Leakage Current [A]',  'IV All Channels ' + self.id, fn="iv_all_channels_%s.png" % self.id)
         if 1:
-            ch = 1
+            ch = 34
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[:, 3], \
                 np.array([val for val in out if (val[2] == ch)])[:, 4], \
@@ -207,7 +220,6 @@ class test02_scan_iv(measurement):
                 'Channel Nr. [-]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_total_current_all_channels_1000V_%s.png" % self.id)
         self.logging.info("\n")
 
-    
-    
+
     def finalise(self):
         self._finalise()

@@ -9,4 +9,3 @@ from test06_longterm_iv import test06_longterm_iv
 from test07_longterm_cv import test07_longterm_cv
 from test08_interpad_res import test08_interpad_res
 from test09_interpad_cap import test09_interpad_cap
-from test13_scan_cv_overnight import test13_scan_cv_overnight

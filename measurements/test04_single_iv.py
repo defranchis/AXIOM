@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test04_single_iv.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -26,30 +26,30 @@ from devices import ke6487 # volt meter
 
 class test04_single_iv(measurement):
     """Measurement of I-V curve for a single cell."""
-    
+
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
         self.logging.info("IV Scan")
         self.logging.info("------------------------------------------")
-        self.logging.info("Measurement of IV for a single cell.")
+        self.logging.info(self.__doc__)
         self.logging.info("\t")
-        
+
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
         self.volt_meter_address = 23    # gpib address of the multi meter
-        
-        self.lim_cur = 0.001           # compliance in [A]
+
+        self.lim_cur = 0.001            # compliance in [A]
         self.lim_vol = 1000             # compliance in [V]
         self.volt_list = np.loadtxt('config/voltagesIV.txt', dtype=int)
         # self.volt_list = [0, -1, -3, -5, -7,-9,-11,-13,-15,-17,-19,-21,-23,-25,-27,-30]
 
-        self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
-        
-        
+        self.delay_vol = 1              # delay between setting voltage and executing measurement in [s]
+
+
 
     def execute(self):
-        
+
         ## Set up power supply
         pow_supply = ke2410(self.pow_supply_address)
         pow_supply.reset()
@@ -58,6 +58,7 @@ class test04_single_iv(measurement):
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
         pow_supply.set_terminal('rear')
+        pow_supply.set_interlock_on()
         pow_supply.set_output_on()
 
         ## Set up volt meter
@@ -70,70 +71,74 @@ class test04_single_iv(measurement):
         lim_vol = pow_supply.check_voltage_limit()
         lim_cur = pow_supply.check_current_limit()
 
-        ## Print Info
-        self.logging.info("Settings:")
-        self.logging.info("Power Supply voltage limit:      %8.2E V" % lim_vol)
-        self.logging.info("Power Supply current limit:      %8.2E A" % lim_cur)
-        self.logging.info("Voltage Delay:                   %8.2f s" % self.delay_vol)
-        self.logging.info("\t")
+        ## Header
+        hd = [
+            'Single IV\n',
+            'Measurement Settings:',
+            'Power supply voltage limit:      %8.2E V' % lim_vol,
+            'Power supply current limit:      %8.2E A' % lim_cur,
+            'Voltage Delay:                   %8.2f s' % self.delay_vol,
+            '\n\n',
+            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
+        ]
 
-        self.logging.info("\tVoltage [V]\tCurrent Mean[A]\tCurrent Error[A]\tTotal current [A]")
-        self.logging.info("\t-----------------------------------------------------------------------")
+        ## Print Info
+        for line in hd[1:-2]:
+            self.logging.info(line)
+        self.logging.info("\t")
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
-        hd = ' Single IV\n' \
-           + ' Measurement Settings:\n' \
-           + ' Power supply voltage limit:      %8.2E V\n' % lim_vol \
-           + ' Power supply current limit:      %8.2E A\n' % lim_cur \
-           + ' Voltage Delay:                   %8.2f s\n\n' % self.delay_vol \
-           + ' Volt [V]\tCurrent Mean [A]\tCurrent Error [A]\tTotal Current[A]\t'
 
         ## Loop over voltages
         try:
             for v in self.volt_list:
                 pow_supply.ramp_voltage(v)
                 time.sleep(self.delay_vol)
-                time.sleep(0.001)
-        
+
                 cur_tot = pow_supply.read_current()
                 vol = pow_supply.read_voltage()
-                
-                tmp = []
-                for i in range(5):
-                    tmp.append(volt_meter.read_current())
-                cur = np.mean(np.array(tmp))
-                err = np.std(np.array(tmp))
-                
-                time.sleep(0.001)
-        
-                out.append([vol, cur, err, cur_tot])
-                self.logging.info("\t%.2E \t%.3E \t%.3E \t%.2E" % (vol, cur, err, cur_tot))
-  
+
+                measurements = np.array([volt_meter.read_current() for _ in range(5)])
+                means = np.mean(measurements, axis=0)
+                errs = np.std(measurements, axis=0)
+
+                I = means
+                dI = errs
+
+                line = [v, vol, I, dI, cur_tot]
+                out.append(line)
+                self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
 
+
         ## Close connections
         pow_supply.ramp_voltage(0)
-        volt_meter.reset()
         time.sleep(15)
+        pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
 
+
         ## Save and print
         self.logging.info("\n")
-        self.save_list(out, "iv.dat", fmt="%.5E", header=hd)
-        self.print_graph(np.array(out)[:, 0], np.array(out)[:, 1], np.array(out)[:, 2], \
+        self.save_list(out, "iv.dat", fmt="%.5E", header="\n".join(hd))
+        self.print_graph(np.array(out)[:, 0], np.array(out)[:, 2], np.array(out)[:, 3], \
                          'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_%s.png" % self.id)
         self.print_graph(np.array([val for val in out if (val[0] < 251 and val[0]>-0.1)])[:, 0], \
-                         np.array([val for val in out if (val[0] < 251 and val[0]>-0.1)])[:, 1], \
                          np.array([val for val in out if (val[0] < 251 and val[0]>-0.1)])[:, 2], \
+                         np.array([val for val in out if (val[0] < 251 and val[0]>-0.1)])[:, 3], \
                          'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id, fn="iv_zoom_%s.png" % self.id)
-        self.print_graph(np.array(out)[:, 0], np.array(out)[:, 3], np.array(out)[:, 3]*0.0001, \
+        self.print_graph(np.array(out)[:, 0], np.array(out)[:, 4], np.array(out)[:, 4]*0.01, \
                          'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
         self.logging.info("\n")
 
-    
+
     def finalise(self):
         self._finalise()

@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test07_longterm_cv.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -12,7 +12,7 @@
 #           measure voltage, time, z, phi
 #           calculate cp, cs
 #   finish
-#   
+#
 # Status:
 #   works well
 #
@@ -29,20 +29,20 @@ from utils import lcr_series_equ, lcr_parallel_equ
 
 class test09_interpad_cap(measurement):
     """Multiple measurements of IV over a longer period."""
-    
+
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("")
         self.logging.info("------------------------------------------")
         self.logging.info("Single CV Measurement")
         self.logging.info("------------------------------------------")
-        self.logging.info("Measurement of CV for a single cell.")
+        self.logging.info(self.__doc__)
         self.logging.info("\t")
-        
+
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
         self.lcr_meter_address = 17     # gpib address of the lcr meter
-        
+
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 500              # compliance in [V]
         self.volt_list = np.loadtxt('config/voltagesCV6Inch128Neg.txt', dtype=int)
@@ -50,10 +50,10 @@ class test09_interpad_cap(measurement):
 
         self.lcr_vol = 1                # ac voltage amplitude in [mV]
         self.lcr_freq = 50000           # ac voltage frequency in [kHz]
-    
+
         self.delay_vol = 20             # delay between setting voltage and executing measurement in [s]
-        
-        
+
+
 
     def execute(self):
 
@@ -65,6 +65,7 @@ class test09_interpad_cap(measurement):
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
         pow_supply.set_terminal('rear')
+        pow_supply.set_interlock_on()
         pow_supply.set_output_on()
 
         ## Set up lcr meter
@@ -80,29 +81,29 @@ class test09_interpad_cap(measurement):
         lcr_vol = float(lcr_meter.check_voltage())
         lcr_freq = float(lcr_meter.check_frequency())
 
-        ## Print info
-        self.logging.info("Settings:")
-        self.logging.info("Power Supply voltage limit:      %8.2E V" % lim_vol)
-        self.logging.info("Power Supply current limit:      %8.2E A" % float(lim_cur))
-        self.logging.info("LCR measurement voltage:         %8.2E V" % lcr_vol)
-        self.logging.info("LCR measurement frequency:       %8.2E Hz" % lcr_freq)
-        self.logging.info("Voltage Delay:                   %8.2f s" % self.delay_vol)
+        ## Header
+        hd = [
+            'Interpad C\n',
+            'Measurement Settings:',
+            'Power Supply voltage limit:      %8.2E V' % lim_vol,
+            'Power Supply current limit:      %8.2E A' % float(lim_cur),
+            'LCR measurement voltage:         %8.2E V' % lcr_vol,
+            'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
+            'Voltage Delay:                   %8.2f s' % self.delay_vol,
+            '\n\n',
+            ' Nominal Voltage [V]\t Measured Voltage [V]\tFrequency [Hz]\tCp [F]\tCp_Err [F]\tRp [Ohm]\tRp_Err [Ohm]\tTotal Current [A]'
+        ]
+
+        ## Print Info
+        for line in hd[1:-2]:
+            self.logging.info(line)
         self.logging.info("\t")
-
-        self.logging.info("\tVoltage [V]\tFrequency[Hz]\tCp [pF]\tRp [Ohm]\tTotal Current [A]")
-        self.logging.info("\t--------------------------------------------------------------------------")
-
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
-        hd = ' Single CV\n' \
-           + ' Measurement Settings:\n' \
-           + ' Power supply voltage limit:      %8.2E V\n' % lim_vol \
-           + ' Power supply current limit:      %8.2E A\n' % lim_cur \
-           + ' LCR measurement voltage:         %8.2E V\n' % lcr_vol \
-           + ' LCR measurement frequency:       %8.0E Hz\n' % lcr_freq \
-           + ' Voltage Delay:                   %8.2f s\n\n' % self.delay_vol \
-           + ' Nominal Voltage [V]\t Measured Voltage [V]\tFrequency [Hz]\tCp [F]\tCp_Err [F]\tRp [Ohm]\tRp_Err [Ohm]\tTotal Current [A]\n'
 
         ## Loop over voltages
         try:
@@ -117,22 +118,14 @@ class test09_interpad_cap(measurement):
 
                     cur_tot = pow_supply.read_current()
                     vol = pow_supply.read_voltage()
-        
-                    tmp1 = []
-                    tmp2 = []
-                    for i in range(5):
-                        cp, rp = lcr_meter.execute_measurement()
-                        tmp1.append(cp)
-                        tmp2.append(rp)
-                    cp = np.mean(np.array(tmp1))
-                    rp = np.mean(np.array(tmp2))
-                    cp_err = np.std(np.array(tmp1))
-                    rp_err = np.std(np.array(tmp2))
-                    
-                    time.sleep(0.001)            
 
-                    out.append([v, vol, freq, cp, cp_err, rp, rp_err, cur_tot])
-                    self.logging.info("\t%8.2f \t%8d \t%8.3E \t%8.3E \t%8.2E" % (vol, freq, cp*10**(12), rp, cur_tot))
+                    measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
+                    c, r = np.mean(measurements, axis=0)
+                    dc, dr = np.std(measurements, axis=0)
+
+                    line = [v, vol, freq, cp, cp_err, rp, rp_err, cur_tot]
+                    out.append(line)
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}".format(*line))
 
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
@@ -142,18 +135,19 @@ class test09_interpad_cap(measurement):
         ## Close connections
         pow_supply.ramp_voltage(0)
         time.sleep(15)
+        pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
 
         ## Save and print
         self.logging.info("")
-        self.save_list(out, "cv.dat", fmt="%.5E", header=hd)
+        self.save_list(out, "cv_inter.dat", fmt="%.5E", header="\n".join(hd))
         self.print_graph(np.array(out)[:, 1], np.array(out)[:, 3], np.array(out)[:, 3] * 0.01, \
-                         'Bias Voltage [V]', 'Parallel Capacitance [F]',  'CV ' + self.id, fn="cv_%s.png" % self.id)
+                    'Bias Voltage [V]', 'Parallel Capacitance [F]',  'CV ' + self.id, fn="cv_inter_%s.png" % self.id)
         self.print_graph(np.array(out)[:, 1], np.array(out)[:, 7], np.array(out)[:, 7]*0.01, \
-                         'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
+                    'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
         self.logging.info("")
-    
-    
+
+
     def finalise(self):
         self._finalise()
