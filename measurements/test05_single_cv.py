@@ -42,15 +42,15 @@ class test05_single_cv(measurement):
         self.pow_supply_address = 24    # gpib address of the power supply
         self.lcr_meter_address = 17     # gpib address of the lcr meter
 
-        self.lim_cur = 0.0005           # compliance in [A]
+        self.lim_cur = 0.001           # compliance in [A]
         self.lim_vol = 500              # compliance in [V]
-        self.volt_list = np.loadtxt('config/voltagesCVneg.txt', dtype=int)
-        # self.volt_list = [0, -25, -50, -75, -100, -125, -150, -170, -180, -190, -200, -210, -220, -230, -250, -275, -300, -325, -350]
+        self.volt_list = np.loadtxt('config/voltagesCV6Inch128Pos.txt', dtype=int)
+        # self.volt_list = [0, -25, -50, -75, -100, -125, -150, -170, -180, -190, -200, -210, -220, -230, -250, -275, -300, -325, -350, -400]
 
         self.lcr_vol = 0.5              # ac voltage amplitude in [mV]
         self.lcr_freq = 50000           # ac voltage frequency in [kHz]
 
-        self.delay_vol = 20             # delay between setting voltage and executing measurement in [s]
+        self.delay_vol = 60             # delay between setting voltage and executing measurement in [s]
 
 
 
@@ -89,7 +89,7 @@ class test05_single_cv(measurement):
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
             'Voltage Delay:                   %8.2f s' % self.delay_vol,
             '\n\n',
-            'Nominal Voltage [V]\t Measured Voltage [V]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
+            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
 
         ## Print Info
@@ -112,21 +112,27 @@ class test05_single_cv(measurement):
                 cur_tot = pow_supply.read_current()
                 vol = pow_supply.read_voltage()
 
-                measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
-                means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)
+                # for freq_nom in [self.lcr_freq]:
+                for freq_nom in [5E2, 1E3, 5E3, 1E4, 2E4, 5E4, 1E5, 1E6]:
+                    lcr_meter.set_frequency(freq_nom)
+                    time.sleep(1)
+                    freq = float(lcr_meter.check_frequency())
 
-                r, x = means
-                dr, dx = errs
+                    measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
+                    means = np.mean(measurements, axis=0)
+                    errs = np.std(measurements, axis=0)
 
-                z = np.sqrt(r**2 + x**2)
-                phi = np.arctan(x/r)
-                r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
-                r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+                    r, x = means
+                    dr, dx = errs
 
-                line = [v, vol, r, dr, x, dx, c_s, c_p, cur_tot]
-                out.append(line)
-                self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+                    z = np.sqrt(r**2 + x**2)
+                    phi = np.arctan(x/r)
+                    r_s, c_s, l_s, D = lcr_series_equ(freq, z, phi)
+                    r_p, c_p, l_p, D = lcr_parallel_equ(freq, z, phi)
+
+                    line = [v, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                    out.append(line)
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)

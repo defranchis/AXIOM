@@ -45,13 +45,13 @@ class test09_interpad_cap(measurement):
 
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 500              # compliance in [V]
-        self.volt_list = np.loadtxt('config/voltagesCV6Inch128Neg.txt', dtype=int)
+        self.volt_list = np.loadtxt('config/voltagesCV6Inch128Pos.txt', dtype=int)
         # self.volt_list = [-25, -50, -75, -100, -125, -150, -170, -190,-200,-210]
 
         self.lcr_vol = 1                # ac voltage amplitude in [mV]
         self.lcr_freq = 50000           # ac voltage frequency in [kHz]
 
-        self.delay_vol = 20             # delay between setting voltage and executing measurement in [s]
+        self.delay_vol = 5             # delay between setting voltage and executing measurement in [s]
 
 
 
@@ -111,21 +111,21 @@ class test09_interpad_cap(measurement):
                 pow_supply.ramp_voltage(v)
                 time.sleep(self.delay_vol)
 
-                for freq_nom in [5E2, 1E3, 2E3, 3E3, 5E3, 1E4, 2E4, 5E4, 1E5, 1E6]:
+                cur_tot = pow_supply.read_current()
+                vol = pow_supply.read_voltage()
+                
+                for freq_nom in [5E2, 1E3, 5E3, 1E4, 2E4, 5E4, 1E5, 1E6]:
                     lcr_meter.set_frequency(freq_nom)
-                    time.sleep(1)
+                    time.sleep(0.1)
                     freq = float(lcr_meter.check_frequency())
-
-                    cur_tot = pow_supply.read_current()
-                    vol = pow_supply.read_voltage()
 
                     measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
                     c, r = np.mean(measurements, axis=0)
                     dc, dr = np.std(measurements, axis=0)
 
-                    line = [v, vol, freq, cp, cp_err, rp, rp_err, cur_tot]
+                    line = [v, vol, freq, c, dc, r, dr, cur_tot]
                     out.append(line)
-                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}".format(*line))
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.3E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}".format(*line))
 
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)

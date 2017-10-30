@@ -43,10 +43,11 @@ class test06_longterm_iv(measurement):
 
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 500              # compliance in [V]
-        self.volt_list = [-15]          # list of bias voltage in [V]
+        # self.volt_list = [+10, +50, +100, +200, +300] 
+        self.volt_list = [-10, -50, -100, -200, -300]          # list of bias voltage in [V]
 
-        self.delay_msr = 0.1           # delay between two consecutive measurements in [s]
-        self.duration_msr = 60         # total measurement time in [s]
+        self.delay_msr = 0.05          # delay between two consecutive measurements in [s]
+        self.duration_msr = 15         # total measurement time in [s]
 
 
 
@@ -67,7 +68,7 @@ class test06_longterm_iv(measurement):
         volt_meter = ke6487(self.volt_meter_address)
         volt_meter.reset()
         volt_meter.setup_ammeter()
-        volt_meter.set_nplc(2)
+        volt_meter.set_nplc(1)
 
         ## Check settings
         lim_vol = pow_supply.check_voltage_limit()
@@ -79,7 +80,6 @@ class test06_longterm_iv(measurement):
             'Measurement Settings:',
             'Power supply voltage limit:      %8.2E V' % lim_vol,
             'Power supply current limit:      %8.2E A' % lim_cur,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol,
             '\n\n',
             'Nominal Voltage [V]\tMeasured Voltage [V]\tTime [s]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -87,41 +87,45 @@ class test06_longterm_iv(measurement):
         ## Print Info
         for line in hd[1:-2]:
             self.logging.info(line)
-            self.logging.info("\t")
-            self.logging.info("\t")
-            self.logging.info(hd[-1])
-            self.logging.info("-" * int(1.2 * len(hd[-1])))
+        self.logging.info("\t")
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
-        t = 0
 
         ## Loop over voltages
-        for v in self.volt_list:
-            pow_supply.ramp_voltage(v)
-            time.sleep(self.delay_msr)
-
-            vol = pow_supply.read_voltage()
-            cur_tot = pow_supply.read_current()
-
-            t0 = time.time()
-            while t < self.duration_msr:
-                time.sleep(0.5)
-                t = time.time() - t0
+        try:
+            for v in self.volt_list:
+                pow_supply.ramp_voltage(v)
 
                 vol = pow_supply.read_voltage()
                 cur_tot = pow_supply.read_current()
 
-                measurements = np.array([volt_meter.read_current() for _ in range(5)])
-                means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)
+                t = 0
+                t0 = time.time()
+                while t < self.duration_msr:
+                    time.sleep(self.delay_msr)
+                    t = time.time() - t0
 
-                i = means
-                di = errs
+                    cur_tot = pow_supply.read_current()
 
-                line = [v, vol, t, i, di, cur_tot]
-                out.append(line)
-                self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+                    measurements = np.array([volt_meter.read_current() for _ in range(3)])
+                    means = np.mean(measurements, axis=0)
+                    errs = np.std(measurements, axis=0)
+
+                    i = means
+                    di = errs
+
+                    line = [v, vol, t, i, di, cur_tot]
+                    out.append(line)
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
+        except KeyboardInterrupt:
+            pow_supply.ramp_voltage(0)
+            self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
+
 
         ## Close connections
         pow_supply.ramp_voltage(0)
@@ -129,6 +133,7 @@ class test06_longterm_iv(measurement):
         pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
+        volt_meter.reset()
 
         ## Save and print
         self.logging.info("\t")

@@ -5,6 +5,7 @@ Python framework for HGC sensor testing. Software is based on SPIDR python frame
 # Install
 Just download the folder.
 
+
 # Requirements
 General
 * matplotlib
@@ -22,14 +23,14 @@ If serial communication is to be used
 # Instructions
 Use 'main.py' to execute measurements. Syntax is 'python main.py [identifier] [test]'.
 
-Examples
+# Examples
 
 * python main.py test test00_debugging
 * python main.py cell52 test04_single_iv
-* python main.py sensor1008  test03_scan_cv
+* python main.py sensor1008 test03_scan_cv
 
 
-Notes
+# Notes
 
 * Folder devices holds all communication drivers
 * Folder measurements holds all measurement scripts
@@ -40,4 +41,3 @@ Notes
 - [ ] Add GUI
 - [ ] Add ethernet device
 - [ ] Add USB device
-- [ ] Fix autolisting of existing tests

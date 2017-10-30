@@ -21,7 +21,6 @@
 import time
 import logging
 import numpy as np
-import scipy.optimize as opt
 from measurement import measurement
 from devices import ke2410 # forward bias power supply
 from devices import ke2450 # interpad bias power supply
@@ -56,18 +55,18 @@ class test08_interpad_res(measurement):
 
         self._initialise()
         self.forward_pow_supply_address = 24    # gpib address of the forward bias power supply
-        self.interpad_pow_supply_address = 0    # gpib address of the interpad bias power supply
-        self.volt_meter_address = 23            # gpib address of the multimeter
+        self.interpad_pow_supply_address = 18   # gpib address of the interpad bias power supply
         self.switch_address = 'COM3'            # serial port of switch card
 
         self.forward_bias_lim_cur = 0.0005           # compliance in [A]
         self.interpad_bias_lim_cur = 0.0005
         self.lim_vol = 500                           # compliance in [V]
 
-        self.bias_volt_list = [50, 100, 200, 300]
-        self.interpad_volt_list = [0, 1, 2, 3, 4, 5]
+        # self.bias_volt_list = [50, 100, 150, 200]
+        self.bias_volt_list = [-50, -100, -150, -200]
+        self.interpad_volt_list = range(1, 11, 1)
 
-        self.delay_vol = 1              # delay between setting voltage and executing measurement in [s]
+        self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
 
 
 
@@ -86,11 +85,9 @@ class test08_interpad_res(measurement):
         ## Set up the interpad bias power supply
         interpad_pow_supply = ke2450(self.interpad_pow_supply_address)
         interpad_pow_supply.reset()
-        interpad_pow_supply.set_source('voltage')
-        interpad_pow_supply.set_sense('current')
-        interpad_pow_supply.set_current_limit(self.interpad_bias_lim_cur)
         interpad_pow_supply.set_voltage(0)
-        interpad_pow_supply.set_terminal('rear')
+        interpad_pow_supply.set_terminal('front')
+        interpad_pow_supply.setup_voltage_source()
         interpad_pow_supply.set_output_on()
 
         ## Check settings
@@ -105,7 +102,7 @@ class test08_interpad_res(measurement):
             'Power Supply current limit:      %8.2E A' % lim_cur,
             'Voltage Delay:                   %8.2f s' % self.delay_vol,
             '\n\n',
-            'Interpad Voltage [V]\tInterpad Current Mean [A]\tInterpad Current Error [A]\tForward Bias Voltage\tForward Bias Current[A]\t'
+            'Bias Voltage[V]\tInterpad Voltage [V]\tInterpad Current Mean [A]\tInterpad Current Error [A]\tResistance [Ohm]\tChi2 of Fit [-]\tTotal Current [A]\t'
         ]
 
         ## Print Info
@@ -125,31 +122,37 @@ class test08_interpad_res(measurement):
                 forward_pow_supply.ramp_voltage(vbias)
                 time.sleep(self.delay_vol)
 
+                v = []
                 i = []
                 di = []
-                for v in self.interpad_volt_list:
-                    interpad_pow_supply.ramp_voltage(v)
-                    time.sleep(0.1)
+                for vinter in self.interpad_volt_list:
+                    interpad_pow_supply.ramp_voltage(vinter)
+                    time.sleep(0.5)
 
+                    vol = interpad_pow_supply.read_voltage()
                     cur_tot = forward_pow_supply.read_current()
 
-                    measurements = np.array([interpad_pow_supply.read_current() for _ in range(5)])
+                    measurements = np.array([interpad_pow_supply.read_current() for _ in range(3)])
+                    v.append(vol)
                     i.append(np.mean(measurements))
                     di.append(np.std(measurements))
 
                 ## Calculate resistance
-                popt, pcov = opt.curve_fit(linef, self.interpad_volt_list, i, sigma=di)
-                r = popt[0]
-                dr = np.sqrt(pcov[0, 0])
+                x = np.array(v)
+                y = np.array(i)
+                dy = np.array(di)
+                p = np.polyfit(x, y, 1, w=1/dy)
+                chi2 = np.sum(((np.polyval(p, x) - y)/dy)**2)
+
+                r = 1./p[0]
+                r2 = (x[-1] - x[1])/(y[-1] - y[1])
 
                 ## Write output
-                k = 0
-                for v in self.interpad_volt_list:
-                    line = [vbias, v, i[k], di[k], r, dr, cur_tot]
-                    k += 1
+                for k in range(len(self.interpad_volt_list)):
+                    line = [vbias, v[k], i[k], di[k], r, r2, chi2, cur_tot]
                     out.append(line)
 
-                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}".format(*line))
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.4E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}".format(*line))
 
         except KeyboardInterrupt:
             interpad_pow_supply.ramp_voltage(0)
@@ -169,7 +172,7 @@ class test08_interpad_res(measurement):
 
         ## Save and print
         self.logging.info("\n")
-        self.save_list(out, "iv.dat", fmt="%.5E", header="\n".join(hd))
+        self.save_list(out, "iv_inter.dat", fmt="%.5E", header="\n".join(hd))
 
 
     def finalise(self):

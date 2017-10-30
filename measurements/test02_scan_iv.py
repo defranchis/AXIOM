@@ -177,6 +177,7 @@ class test02_scan_iv(measurement):
         pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
+        volt_meter.reset()
 
         ## Save and print
         self.logging.info("\n")

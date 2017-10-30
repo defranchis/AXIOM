@@ -36,11 +36,11 @@ class test10_floating_cells(measurement):
         self.volt_meter_address = 18
 
         self.lim_cur = 0.0005
-        self.lim_vol = 1000
+        self.lim_vol = 100
 
-        self.bias_voltage = 100
+        self.bias_voltage = -100
         self.bias_duration = 100
-        self.monitor_duration =  200
+        self.monitor_duration = 200
 
 
 
@@ -59,9 +59,9 @@ class test10_floating_cells(measurement):
         ## Set up volt meter
         volt_meter = ke2450(self.volt_meter_address)
         volt_meter.reset()
-        volt_meter.set_source('current')
-        volt_meter.set_sense('voltage')
         volt_meter.set_voltage(0)
+        volt_meter.set_terminal('front')
+        volt_meter.setup_current_source()
         volt_meter.set_output_on()
 
         ## Check settings
@@ -74,7 +74,6 @@ class test10_floating_cells(measurement):
             'Measurement Settings:',
             'Power supply voltage limit:      %8.2E V' % lim_vol,
             'Power supply current limit:      %8.2E A' % lim_cur,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol,
             '\n\n',
             'Nominal Bias Voltage [V]\tMeasured Bias Voltage [V]\tTime [s]\tFloating voltage [V]\tFloating Voltage Erro [V]\tTotal Current[A]\t'
         ]
@@ -82,10 +81,10 @@ class test10_floating_cells(measurement):
         ## Print Info
         for line in hd[1:-2]:
             self.logging.info(line)
-            self.logging.info("\t")
-            self.logging.info("\t")
-            self.logging.info(hd[-1])
-            self.logging.info("-" * int(1.2 * len(hd[-1])))
+        self.logging.info("\t")
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
@@ -109,7 +108,7 @@ class test10_floating_cells(measurement):
             v = means
             dv = errs
 
-            line = [v, vol, t, v, dv, cur_tot]
+            line = [self.bias_voltage, vol, t, v, dv, cur_tot]
             out.append(line)
             self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
