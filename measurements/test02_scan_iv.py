@@ -17,9 +17,9 @@ import logging
 import numpy as np
 from measurement import measurement
 from devices import ke2410 # power supply
-from devices import ke6487 # volt meter
+from devices import ke6487 # ampere meter
+from devices import ke6517 # alternative ampere meter
 from devices import switchcard # switch
-
 
 
 class test02_scan_iv(measurement):
@@ -63,7 +63,8 @@ class test02_scan_iv(measurement):
         pow_supply.set_output_on()
 
         ## Set up volt meter
-        volt_meter = ke6487(self.volt_meter_address)
+        #volt_meter = ke6487(self.volt_meter_address)
+        volt_meter = ke6517(self.volt_meter_address)
         volt_meter.reset()
         volt_meter.setup_ammeter()
         volt_meter.set_nplc(2)
