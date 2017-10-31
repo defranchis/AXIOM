@@ -11,7 +11,7 @@ def lcr_series_equ(f, z, phi):
     c_s = -1 / (2 * np.pi * f * x_s)
     l_s = x_s / (2 * np.pi * f)
     D = r_s/x_s
-    
+
     return r_s, c_s, l_s, D
 
 
@@ -22,7 +22,7 @@ def lcr_parallel_equ(f, z, phi):
     r_p = 1/g_p
     c_p = -b_p / (2 * np.pi * f)
     l_p = 1 / (2 * np.pi * f * b_p)  * (-1)
-    D = g_p/b_p 
+    D = g_p/b_p
 
     return r_p, c_p, l_p, D
 
@@ -58,7 +58,7 @@ def lcr_open_short_load_cor(z_x, z_open, z_short, z_load, z_std):
 	Z_x 	... measured DUT impedance
 	z_open 	... measured open impedance
 	z_short ... measured short impedance
-	z_load 	... measured impedance of the load device 
+	z_load 	... measured impedance of the load device
 	z_std   ... true value of the load device
 	"""
 
@@ -110,7 +110,7 @@ def add_coloring_to_emit_windows(fn):
         FOREGROUND_RED       = 0x0004 # text color contains red.
         FOREGROUND_INTENSITY = 0x0008 # text color is intensified.
         FOREGROUND_WHITE     = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED
-        
+
         # winbase.h
         STD_INPUT_HANDLE     = -10
         STD_OUTPUT_HANDLE    = -11
@@ -135,11 +135,11 @@ def add_coloring_to_emit_windows(fn):
         BACKGROUND_MAGENTA   = 0x0050
         BACKGROUND_YELLOW    = 0x0060
         BACKGROUND_GREY      = 0x0070
-        BACKGROUND_INTENSITY = 0x0080 # background color is intensified.     
+        BACKGROUND_INTENSITY = 0x0080 # background color is intensified.
 
         levelno = args[1].levelno
         if(levelno >= 50):
-            color = BACKGROUND_YELLOW | FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY 
+            color = BACKGROUND_YELLOW | FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY
         elif(levelno >= 40):
             color = FOREGROUND_RED | FOREGROUND_INTENSITY
         elif(levelno >= 30):
@@ -165,7 +165,7 @@ def add_coloring_to_emit_ansi(fn):
     # add methods we need to the class
     def new(*args):
         levelno = args[1].levelno
-        
+
         if(levelno >= 50):
             color = '\x1b[31m' # red
         elif(levelno >= 40):
@@ -173,13 +173,13 @@ def add_coloring_to_emit_ansi(fn):
         elif(levelno >= 30):
             color = '\x1b[33m' # yellow
         elif(levelno >= 20):
-            color = '\x1b[0m' # green 
+            color = '\x1b[0m' # green
         elif(levelno >= 10):
             color = '\x1b[35m' # pink
         else:
             color = '\x1b[0m' # normal
-        args[1].msg = color + args[1].msg +  '\x1b[0m' 
+        args[1].msg = color + args[1].msg +  '\x1b[0m'
 
         return fn(*args)
-    
+
     return new
