@@ -92,10 +92,10 @@ class ke6517(device):
             self.logging.info("Setting up device for current measurements. Setting range %E, nplc %d and %d digits resolution." % (rang, nplc, dig))
         self.ctrl.write(":SENS:FUNC 'CURR'")
         self.ctrl.write(":SENS:CURR:RANG:AUTO ON")
-        self.ctrl.write(":SENS:CURR:RANG:AUTO:LLIM 1E-8)
-        self.ctrl.write(":SENS:CURR:RANG:AUTO:ULIM 1E-4)
+        self.ctrl.write(":SENS:CURR:RANG:AUTO:LLIM 1E-8")
+        self.ctrl.write(":SENS:CURR:RANG:AUTO:ULIM 1E-4")
         self.ctrl.write(":SENS:FUNC:NPLC 1")
-        self.ctrl.write(":SYST:ZCH OFF")
+        self.ctrl.write(":SYST:ZCH ON")
         return 0
 
 
@@ -104,5 +104,9 @@ class ke6517(device):
     # ---------------------------------
 
     def read_current(self):
+        self.ctrl.write(":SYST:ZCH OFF")
         val = self.ctrl.query("READ?")
-        return float(val)
+        self.ctrl.write(":SYST:ZCH ON")
+        # The ecelctrometer returns three values in a unicode string, separated
+        # by a comma. The measured current is the first value.
+        return float(val.split(",")[0])

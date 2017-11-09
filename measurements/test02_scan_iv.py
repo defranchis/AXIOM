@@ -34,15 +34,15 @@ class test02_scan_iv(measurement):
         self.logging.info("\t")
 
         self._initialise()
-        self.pow_supply_address = 24    # gpib address of the power supply
-        self.volt_meter_address = 23    # gpib address of the multi meter
-        self.switch_address = 'COM3'    # serial port of switch card
+        self.pow_supply_address = 18    # gpib address of the power supply
+        self.volt_meter_address = 15    # gpib address of the multi meter
+        self.switch_address = 'COM4'    # serial port of switch card
 
-        self.lim_cur = 0.0001           # compliance in [A]
-        self.lim_vol = 100              # compliance in [V]
+        self.lim_cur = 0.01             # compliance in [A]
+        self.lim_vol = 1000             # compliance in [V]
 
-        self.cell_list = np.loadtxt('config/channels128_from_schematics_sorted.txt', dtype=int)
-        self.volt_list = [-10]
+        self.cell_list = np.loadtxt('config/Probe_card_IFX_8in.txt', dtype=int)[:,1]
+        self.volt_list = [0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -40, -50]
 
         self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
         self.delay_ch = 0.3             # delay between setting channel and executing measurement in [s]
@@ -59,7 +59,7 @@ class test02_scan_iv(measurement):
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
         pow_supply.set_terminal('rear')
-        pow_supply.set_interlock_on()
+        #pow_supply.set_interlock_on()
         pow_supply.set_output_on()
 
         ## Set up volt meter
@@ -151,7 +151,7 @@ class test02_scan_iv(measurement):
                         di = errs
 
                         ## Flag cell if current too large
-                        if i > 1E-4:
+                        if abs(i) > 1E-5:
                             flag_list[j] = 1
 
                     ## Handle flagged cells
@@ -188,7 +188,7 @@ class test02_scan_iv(measurement):
         self.print_graph(np.array(out)[:, 2], np.array(out)[:, 3], np.array(out)[:, 4], \
             'Channel Nr. [-]', 'Leakage Current [A]',  'IV All Channels ' + self.id, fn="iv_all_channels_%s.png" % self.id)
         if 1:
-            ch = 34
+            ch = 1
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[:, 3], \
                 np.array([val for val in out if (val[2] == ch)])[:, 4], \
