@@ -42,7 +42,7 @@ class test02_scan_iv(measurement):
         self.lim_vol = 1000             # compliance in [V]
 
         self.cell_list = np.loadtxt('config/Probe_card_IFX_8in.txt', dtype=int)[:,1]
-        self.volt_list = [0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -40, -50]
+        self.volt_list = [1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -160, -170, -180, -190, -200, -250, -300, -350, -400, -450, -500, -550, -600, -650, -700, -750, -800, -850, -900, -950, -1000]
 
         self.delay_vol = 5              # delay between setting voltage and executing measurement in [s]
         self.delay_ch = 0.3             # delay between setting channel and executing measurement in [s]
@@ -115,12 +115,16 @@ class test02_scan_iv(measurement):
         out = []
         flag_list = np.zeros(len(self.cell_list))
 
+        compliance_flag = 0
        ## Loop over voltages
         try:
             for v in self.volt_list:
                 pow_supply.ramp_voltage(v)
                 time.sleep(self.delay_vol)
                 time.sleep(0.001)
+                if pow_supply.check_compliance():
+                    self.logging.error("Power supply in compliance, aborting measurement.")
+                    break
 
                 j = 0
                 for c in self.cell_list:
@@ -139,6 +143,11 @@ class test02_scan_iv(measurement):
                         ## Go on with normal measurement
                         switch.open_channel(c)
                         time.sleep(self.delay_ch)
+
+                        if pow_supply.check_compliance():
+                            self.logging.error("Power supply in compliance, aborting measurement.")
+                            compliance_flag = 1
+                            break
 
                         cur_tot = pow_supply.read_current()
                         vol = pow_supply.read_voltage()
@@ -161,6 +170,9 @@ class test02_scan_iv(measurement):
 
                         i = np.nan
                         di = np.nan
+
+                    if compliance_flag == 1:
+                        break
 
                     j += 1
                     line = [v, vol, j, i, di, cur_tot]
