@@ -125,6 +125,7 @@ class ke2450(device):
                 if debug == 1:
                     print self.read_voltage()
             self.ctrl.write(":SOUR:VOLT %d" % val)
+        self.ctrl.write("SENS:FUNC 'CURR'")
         return 0
 
     def ramp_down(self, debug=0):
@@ -194,17 +195,17 @@ class ke2450(device):
             self.logging.info("Choosen property cannot be supplied by this device.")
             return -1
 
-    def set_voltage_limit(self, val, debug=0):
-        if debug == 1:
-            self.logging.info("Setting voltage limit to %.2fV." % val)
-        self.ctrl.write(':SOUR:VOLT:ILIM %f' % val)
-        return self.ctrl.query(":SOUR:VOLT:ILIM:LEV?")
-
     def set_current_limit(self, val, debug=0):
         if debug == 1:
+            self.logging.info("Setting voltage limit to %.2fV." % val)
+        self.ctrl.write(':SOUR:VOLT:ILIM %E' % val)
+        return 0
+
+    def set_voltage_limit(self, val, debug=0):
+        if debug == 1:
             self.logging.info("Setting current limit to %.6fA." % val)
-        self.ctrl.write(':SOUR:CURR:VLIM %f' % val)
-        return self.ctrl.query(":SOUR:CURR:VLIM:LEV?")
+        self.ctrl.write(':SOUR:CURR:VLIM %d' % val)
+        return 0
 
     def set_outout_state(self, state, debug=0):
         if debug == 1:
@@ -218,20 +219,45 @@ class ke2450(device):
         self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)
         return 0
 
+    def setup_voltage_source(self, debug=0):
+        if debug == 1:
+            self.logging.info("Set device up for voltage source and current measurement.")
+        #self.ctrl.write("SOUR:VOLT:PROT PROT20")
+        self.ctrl.write("SENS:FUNC 'CURR'")
+        self.ctrl.write("SENS:CURR:NPLC 1")
+        self.ctrl.write("SENS:CURR:RANG:AUTO ON")
+        self.ctrl.write("SOUR:FUNC VOLT")
+        self.ctrl.write("SOUR:VOLT:RANGE 200")
+        self.ctrl.write("SOUR:VOLT:ILIM 0.0001")
+        return 0
+
+
+    def setup_current_source(self, debug=0):
+        if debug == 1:
+            self.logging.info("Set device up for current source and current measurement.")
+        #self.ctrl.write("SOUR:VOLT:PROT PROT20")
+        self.ctrl.write("SENS:FUNC 'VOLT'")
+        self.ctrl.write("SENS:VOLT:NPLC 1")
+        self.ctrl.write("SENS:VOLT:RANGE 200")
+        self.ctrl.write("SOUR:FUNC CURR")
+        self.ctrl.write("SOUR:CURR:RANGE:AUTO ON")
+        self.ctrl.write("SOUR:CURR:VLIM 200")
+        return 0
 
 
     # Read attribute functions
     # ---------------------------------
 
     def read_voltage(self):
-        # self.ctrl.write(":SENS:FUNC VOLT")
-        #self.ctrl.write(":FORM:ELEM:SENS VOLT")
-        val = self.ctrl.query(":MEAS:VOLT?")
+        self.ctrl.write("SENS:FUNC 'VOLT'")
+        val = self.ctrl.query(":READ?")
+        # val = self.ctrl.query(":MEAS:VOLT?")
         return float(val)
 
     def read_current(self):
-        # self.ctrl.write(":SENS:FUNC CURR")
-        val = self.ctrl.query(":MEAS:CURR?")
+        self.ctrl.write("SENS:FUNC 'CURR'")
+        val = self.ctrl.query(":READ?")
+        # val = self.ctrl.query(":MEAS:CURR?")
         return float(val)
 
     def read_resistance(self):

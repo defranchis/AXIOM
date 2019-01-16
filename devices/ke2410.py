@@ -72,6 +72,23 @@ class ke2410(device):
             self.logging("Check output.")
         return self.ctrl.query("OUTP:STAT?")
 
+    def set_interlock_on(self, debug=0):
+        if debug == 1:
+            self.logging("Set interlock on.")
+        self.ctrl.write(":OUTP:INT:STAT ON")
+        return 0
+
+    def set_interlock_off(self, debug=0):
+        if debug == 1:
+            self.logging("Set interlock off.")
+        self.ctrl.write(":OUTP:INT:STAT OFF")
+        return 0
+
+    def check_output(self, debug=0):
+        if debug == 1:
+            self.logging("Check if interlock tripped.")
+        return self.ctrl.query(":OUTP:INT:TRIP?")
+
     def set_terminal(self, term, debug=0):
         if debug == 1:
             self.logging("Set terminal to %s. Options are [front, rear]." % term)
@@ -155,7 +172,7 @@ class ke2410(device):
 
     def set_current_range(self, val, debug=0):
         if debug == 1:
-            self.logging.info("Setting current range to %.2EA." % val)
+            self.logging.info("Setting current range to %E" % val)
         self.ctrl.write(":SENS:CURR:RANG %E" % val)
         return 0
 

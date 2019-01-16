@@ -115,6 +115,9 @@ class ke6487(device):
             self.logging.info("Setting up device for current measurements. Setting range %E, nplc %d and %d digits resolution." % (rang, nplc, dig))
         self.ctrl.write("FUNC 'CURR'")
         self.ctrl.write("SYST:ZCH OFF")
+        self.ctrl.write(":CURR:RANG:AUTO ON")
+        self.ctrl.write(":CURR:RANG:ULIM 2E-4")
+        self.ctrl.write(":CURR:RANG:LLIM 2E-7")
         return 0
 
     def zero_correction(self):
@@ -136,7 +139,7 @@ class ke6487(device):
     # ---------------------------------
 
     def read_current(self):
-        val = self.ctrl.query("MEAS:CURR?")
+        val = self.ctrl.query("READ?")
         return float(val.split(',')[0][:-1])
 
     def read_resistance(self):

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 
 PATH = '/Users/Home/Cloud/Cernbox/hgcSensorTesting/Software/python/'
+FREQ = 50000
 
 
 def lcr_open_short_load_cor(z_m, z_open, z_short, z_load, z_std):
@@ -15,14 +16,18 @@ def cap_to_impedance(f, c):
     
 
 ## Needle data
-cell65_50kHz      = np.genfromtxt(PATH + 'logs/HPK1104_7Needles/08_20170331_111358/cv.dat')      # 08-> no resistor, decoupling box
+cell65_50kHz      = np.genfromtxt(PATH + 'logs/HPK1104_7Needles/08_20170331_111358/cv.dat') # 08-> no resistor, decoupling box
 cell65_50kHz_open = np.genfromtxt(PATH + 'logs/HPK1104_7Needles/18_20170331_115835/cv.dat') # 18-> no resistor, decoupling box
+
+cv_cell42_22M = np.genfromtxt('/Users/Home/Documents/Code/Works/hgc/hgcSensorAnalysis/basic/sensors/data/hpk1104_cell42/cv_22M/cv.dat', skip_header=1)
+cv_cell42_22M_open = np.genfromtxt('/Users/Home/Documents/Code/Works/hgc/hgcSensorAnalysis/basic/sensors/data/hpk1104_cell42/cv_22M_open/cv.dat', skip_header=1)
 
 dat_geometry = np.genfromtxt(PATH + 'config/geometryHPK6inch128.txt', skip_header=1)
 dat_stdvalues = []
 
-ref = cell65_50kHz[:, 7] - cell65_50kHz_open[:, 7]
-volts = cell65_50kHz[:, 0]
+ref = np.array([val for val in cv_cell42_22M if (val[2] == FREQ)])[1:-1, 8] - np.array([val for val in cv_cell42_22M_open if (val[2] == FREQ)])[1:-1, 8]
+res = np.array([val for val in cv_cell42_22M if (val[2] == FREQ)])[1:-1, 3]
+volts = np.array([val for val in cv_cell42_22M if (val[2] == FREQ)])[1:-1, 0]
 
 for j in range(len(volts)):
     v = volts[j]
@@ -53,16 +58,16 @@ for j in range(len(volts)):
         else:
             print 'Unknown type.'
 
-        cap_per_cm2 = ref[j] * 10**(-12) * 1/1.08437842789322
+        cap_per_cm2 = ref[j] * 1/1.08437842789322
 
-        cap = area * cap_per_cm2
-        res = 0
-        react = cap_to_impedance(50000, cap)
+        c = area * cap_per_cm2
+        r = res[j]
+        x = cap_to_impedance(FREQ, c)
 
-        dat_stdvalues.append([v, nr, typ, area, res, react, cap])
+        dat_stdvalues.append([v, nr, typ, area, r, x, c])
         
-        print '%.2f\t%d\t%1d\t%8.5f\t%4.2E\t%8.5E\t%8.5E' % (v, nr, typ, area, res, react, cap)
-
+        
+        
 hd = 'Standard Values for Load Correction at 50 kHz\n' \
    + 'Extracted from needle measurements of cell 62 at 50 kHz measurement and scaled with area\n' \
    + 'To be used with HPK 6" 128ch sensors as load\n\n' \
@@ -77,7 +82,7 @@ hd = 'Standard Values for Load Correction at 50 kHz\n' \
    + '  - 40 Full Cell 40 micron gap\n' \
    + '  - 60 Full Cell 60 micron gap\n' \
    + '  - 80 Full Cell 80 micron gap\n\n' \
-   + 'Voltage [V] Cell Nr. [-] Type [-] Area [cm2] Resistance [Ohm] Reactance [Ohm] Capacitance [F]\n'
+   + 'Voltage [V] Cell Nr. [-] Type [-] Area [cm2] Resistance [Ohm] Reactance [Ohm] Cp [F]\n'
 
 fmt = '%.2f\t%d\t%1d\t%8.5f\t%4.2E\t%8.5E\t%8.5E'
 np.savetxt(PATH + 'config/valuesStd50kHz.txt', dat_stdvalues, fmt=fmt, delimiter='\t', newline='\n', header=hd, footer='', comments='# ')

@@ -1,118 +1,140 @@
 import math
-import cmath
+from cmath import *
 import numpy as np
 import matplotlib.pyplot as plt
-
+import scipy.optimize as opt
 
 ## Configure
-ID = 'HPK1105'
-freq = 50000
-amp = 0.5
+ID = 'HPK_6in_256_5002'
+FREQ = 50000
+AMP = 0.5
+
+PATH = '/Users/Home/Cloud/Cernbox/hgcSensorTesting/Results/'
+FILE = PATH + '%s/%s_CV.txt' % (ID, ID)
+
+COR_OPEN = PATH + 'HPK_6in_256_Open/HPK_6in_256_Open_CV.txt'
+COR_SHORT = PATH + 'HPK_6in_256_Short/HPK_6in_256_Short_CV.txt'
+COR_LOAD = PATH + 'config/valuesLoad50kHz.txt'
+COR_STD = PATH + 'config/valuesStd50kHz.txt'
+
+
 
 
 ## Definitions
+def lcr_open_cor(c_x, c_open):
+    return c_x - c_open
+
+
+def lcr_open_short_cor(z_x, z_open, z_short):
+    return (z_x-z_short) / (1 - (z_x-z_short) * (1/z_open))
+
+
 def lcr_open_short_load_cor(z_m, z_open, z_short, z_load, z_std):
     return z_std * ((z_short - z_m)*(z_load - z_open))/((z_m - z_open)*(z_short - z_load)) 
 
-def cap_to_impedance(f, c):
-    return (-1)/(2*np.pi*f*c)
+
+def lcr_parallel_equ(f, z, phi):
+    y = 1/z
+    g_p = y * np.cos(phi)
+    b_p = y * np.sin(phi)
+    r_p = 1/g_p
+    c_p = -b_p / (2 * np.pi * f)
+    l_p = 1 / (2 * np.pi * f * b_p)  * (-1)
+    D = g_p/b_p
+
+    return r_p, c_p, l_p, D
 
 
-## Load correction data
-PATH = '/Users/Home/Cloud/Cernbox/hgcSensorTesting/Software/python/'
-FILE = '/Users/Home/Cloud/Cernbox/hgcSensorTesting/Software/python/data/%s/cv/cv.dat' % ID
-dat_msr = np.genfromtxt(FILE) 
+## Load data
+dat_msr = np.genfromtxt(FILE)
+dat_open = np.genfromtxt(COR_OPEN)
+dat_short = np.genfromtxt(COR_SHORT)
+dat_open2 = np.genfromtxt('/Users/Home/Cloud/Cernbox/hgcSensorTesting/Data/SwitchCardMatrixTests/Full matrix_Custom0_noR579/Full matrix_Custom0_noR579_CV.txt')
 
-volts = np.genfromtxt(PATH + 'config/voltagesCV.txt')
-dat_open = np.genfromtxt(PATH + 'config/valuesOpen50kHz.txt')
-dat_short = np.genfromtxt(PATH + 'config/valuesShort50kHz.txt')
-dat_load = np.genfromtxt(PATH + 'config/valuesLoad50kHz.txt')
-dat_std = np.genfromtxt(PATH + 'config/valuesStd50kHz.txt')
+out = []
+volts = []
+for line in dat_msr:
+    v = line[0]
+    if v in volts:
+        pass
+    else:
+        volts.append(v)
 
-r_short = dat_short[:135, 1]
-x_short = dat_short[:135, 2]
 
+#Voltage	#Channel	#Cp  #Error  #Tot. curr.	#Act. vlt.	#Time  	#Temp	#Hum.	#Cs  #Error #Impedance 	#Error #Phase #Error #Cp uncorr.	#Cs uncorr.
 
-x = []
-y1 = []
-y2 = []
-## Corrections
-dat_cor = []
+# for volt in volts:
+#     tmp_msr = np.array([val for val in dat_msr if (val[0] == volt)])
+#     tmp_open = np.array([val for val in dat_open2 if (val[0] == volt)])
+#
+#     r_load = np.array([val for val in tmp_msr if (val[1] == 244)])[0, 11]
+#     phi_load = np.array([val for val in tmp_msr if (val[1] == 244)])[0, 13]
+#
+#     z_load = rect(r_load, phi_load)
+#     z_std = rect(94550, -89.975*2*np.pi/360)
+#
+#     for line in tmp_msr:
+#         v = line[0]
+#         ch = line[1]
+#         v_msr = line[5]
+#         temp = line[7]
+#         hum = line[8]
+#         r = line[11]
+#         r_err = line[12]
+#         phi = line[13]
+#         phi_err = line[14]
+#         tot_curr = line[4]
+#
+#         z = rect(r, phi)
+#         cp = lcr_parallel_equ(FREQ, abs(z), phase(z))[1] * 10**12
+#
+#         r_open = np.array([val for val in tmp_open if (val[1] == ch)])[0, 11]
+#         phi_open = np.array([val for val in tmp_open if (val[1] == ch)])[0, 13]
+#         z_open = rect(r_open, phi_open)
+#
+#         r_short = np.array([val for val in dat_short if (val[1] == ch)])[0, 11]
+#         phi_short = np.array([val for val in dat_short if (val[1] == ch)])[0, 13]
+#         z_short = rect(r_short, phi_short)
+#
+#         z_scor = lcr_open_short_cor(z, z_open, z_short)
+#         cp_scor = lcr_parallel_equ(FREQ, abs(z_scor), phase(z_scor))[1] * 10**12
+#
+#         z_lcor = lcr_open_short_load_cor(z, z_open, z_short, z_load, z_std)
+#         cp_lcor = lcr_parallel_equ(FREQ, abs(z_lcor), phase(z_lcor))[1] * 10**12
+#
+#         out.append([v, ch, cp_lcor, tot_curr, v_msr, temp, hum])
+#
 
-for v in volts:
-    for ch in [33]:#np.array([val for val in dat_msr if (val[0] == v)])[:135, 2]:
-        j = int(ch) - 1
+k = 0 
+col = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5']
+for voltage in [25, 50, 70, 100, 120, 150]:
+    x = np.array([10.6, 16.4, 23.14, 33.65, 56.06, 68.66, 103.91, 223.55])
+    y = []
+    for i in [241, 242, 243, 244, 245, 246, 247, 248]:
+        y.append(np.array([val for val in dat_msr if (val[0] == voltage and val[1] == i)])[0, 15])
         
-        v_msr = np.array([val for val in dat_open if (val[0] == v)])[j, 1]
-        r_msr = np.array([val for val in dat_msr if (val[0] == v)])[j, 3]
-        x_msr = np.array([val for val in dat_msr if (val[0] == v)])[j, 5]
-        c_msr = np.array([val for val in dat_open if (val[0] == v)])[j, 7] * 10**(-12)
-        itot_msr = np.array([val for val in dat_open if (val[0] == v)])[j, 8]
+    yo = []
+    for i in [241, 242, 243, 244, 245, 246, 247, 248]:
+        yo.append(np.array([val for val in dat_open if (val[0] == voltage and val[1] == i)])[0, 15])
+    
+    ys = []
+    for i in [241, 242, 243, 244, 245, 246, 247, 248]:
+        ys.append(np.array([val for val in dat_short if (val[1] == i)])[0, 15])
         
-        r_open = np.array([val for val in dat_open if (val[0] == v)])[j, 3]
-        x_open = np.array([val for val in dat_open if (val[0] == v)])[j, 5]
-        
-        ## If the exact same voltage is available, use it
-        if v in dat_std[:, 0]:
-            r_load = np.array([val for val in dat_load if (val[0] == v)])[j, 3]
-            x_load = np.array([val for val in dat_load if (val[0] == v)])[j, 5]
-            r_std = np.array([val for val in dat_std if (val[0] == v)])[j, 4]
-            x_std = np.array([val for val in dat_std if (val[0] == v)])[j, 5]
-         
-        ## Else look for the closest voltage in std that is also in load 
-        else:
-            idx = np.argmin(np.abs(np.array([val for val in dat_std[:, 0] if val in dat_load[:, 0]]) - v))
-            v_closest = np.array([val for val in dat_std[:, 0] if val in dat_load[:, 0]])[idx]
-            r_load = np.array([val for val in dat_load if (val[0] == v_closest)])[j, 3]
-            x_load = np.array([val for val in dat_load if (val[0] == v_closest)])[j, 5]
-            r_std = np.array([val for val in dat_std if (val[0] == v_closest)])[j, 4]
-            x_std = np.array([val for val in dat_std if (val[0] == v_closest)])[j, 5]
+    plt.plot(x, y, col[k], label='data') 
+    plt.plot(x, yo, 'g', label='open') 
+    plt.plot(x, ys, 'b', label='short') 
+    
+    k += 1
+    
+def func(x, a, b):
+    return 1/(1/x + 1/a) + b
+    
+popt, pcov = opt.curve_fit(func, x, yo)
+plt.plot(x, func(x, popt[0], popt[1]), 'r-', label='fit')
 
-        r_load = np.array([val for val in dat_load if (val[0] == v_std)])[j, 3]
-        x_load = np.array([val for val in dat_load if (val[0] == v_std)])[j, 5]
-        r_std = np.array([val for val in dat_std if (val[0] == v_std)])[j, 4]
-        x_std = np.array([val for val in dat_std if (val[0] == v_std)])[j, 5]    
-        
-        z_msr = r_msr + 1j * x_msr
-        z_open = r_open + 1j * x_open
-        z_short = r_short[j] + 1j * x_short[j]
-        z_load = r_load + 1j * x_load
-        z_std = r_std + 1j * x_std
-
-        z_cor = lcr_open_short_load_cor(z_msr, z_open, z_short, z_load, z_std)
-
-        r_cor = z_cor.real
-        x_cor = z_cor.imag
-        c_cor = cap_to_impedance(freq, x_cor)
-        
-        dat_cor.append([v, v_msr, ch, r_msr, x_msr, c_msr, r_cor, x_cor, c_cor, itot_msr])  
-
-        
-        # if j == 131 or j == 32 or j == 100 or j == 101:
-        #     print '%d\t%.3E\t%.3E\t%.3E' % (v, r_cor, x_cor, c_cor)
-        
-        if j == 32:
-            x.append(v)
-            y1.append(c_cor)
-            y2.append((0.9*10**(-31))/(c_cor**2))
-
-plt.plot(x[3:], y1[3:], 'k', marker='o', ls = ':')
-plt.plot(x[3:], y2[3:], 'r', marker='s', ls = ':')
+print popt
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
 plt.show()
-    
-hd = []
-f = open(FILE, 'r')
-for line in f:
-    if '#' in line:             
-        hd.append(line[2:])
-hd.pop(-2)
-hd.append('Nominal Voltage [V]	 Measured Voltage [V]	Channel [-]	R [kOhm] X [kOhm] C [F] R_cor [kOhm] X_cor [kOhm] C_cor [F]	Total Current [A]\n')
-hd = " ".join(hd)
-
-print hd
-
-fmt = '%d\t\t%.2f\t%d\t%.5E\t%.3E\t%.3E\t%.3E\t%.3E\t%.3E\t%.3E'
-fn = FILE[:-4] + '_corrected' + FILE[-4:]
-
-np.savetxt(fn, dat_cor, fmt=fmt, delimiter='\t', newline='\n', header=hd, footer='', comments='# ')
-    

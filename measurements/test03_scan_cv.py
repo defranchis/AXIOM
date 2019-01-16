@@ -1,14 +1,21 @@
 # ============================================================================
 # File: test03_scan_cv.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
 #   configure and prepare
+#   for each voltage:
+#       set voltage
+#       for each channel:
+#           set voltage
+#           measure voltage, r, x
+#           calculate cp, cs
+#   finish
 #
 # Status:
-#   in progress
+#   works well
 #
 # ============================================================================
 
@@ -26,36 +33,39 @@ from utils import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 class test03_scan_cv(measurement):
     """Measurement of C-V curves for individual cells across the wafer matrix."""
-    
+
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("")
         self.logging.info("------------------------------------------")
         self.logging.info("CV Scan")
         self.logging.info("------------------------------------------")
-        self.logging.info("Measurement of C-V curves for individual cells across the wafer matrix.")
+        self.logging.info(self.__doc__)
         self.logging.info("\t")
 
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
         self.lcr_meter_address = 17     # gpib address of the lcr meter
-        self.switch_address = 'COM3'    # serial port of switch card
-        
+        self.switch_address = 'COM4'    # serial port of switch card
+
         self.lim_cur = 0.0005           # compliance in [A]
         self.lim_vol = 100              # compliance in [V]
         self.cell_list = np.loadtxt('config/channels128_from_schematics_sorted.txt', dtype=int)
-        self.volt_list = [25] #np.loadtxt('config/voltagesTest.txt', dtype=int)
-        
-        self.delay_vol = 20               # delay between setting voltage and executing measurement in [s]
-        self.delay_ch = 0.1              # delay between setting channel and executing measurement in [s]
+        self.volt_list = np.loadtxt('config/voltagesTest.txt', dtype=int)
+
+        self.delay_vol = 30              # delay between setting voltage and executing measurement in [s]
+        self.delay_ch = 0.3              # delay between setting channel and executing measurement in [s]
 
         self.lcr_vol = 0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 50000            # ac voltage frequency in [Hz]
-    
+        self.lcr_freq = 5000             # ac voltage frequency in [Hz]
+
         #self.cor_open = np.loadtxt('config/valuesOpen.txt') # open correction for lcr meter
         #self.cor_short = np.loadtxt('config/valuesShort.txt') # short correction for lcr meter
         #self.cor_load = np.loadtxt('config/valuesLoad.txt') # load correction for lcr meter
-        
+
+        self.flag_list = np.zeros(len(self.cell_list))
+
+
 
     def execute(self):
 
@@ -66,8 +76,8 @@ class test03_scan_cv(measurement):
         pow_supply.set_sense('current')
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
-        pow_supply.set_nplc(2)
         pow_supply.set_terminal('rear')
+        pow_supply.set_interlock_on()
         pow_supply.set_output_on()
 
         ## Set up lcr meter
@@ -95,98 +105,112 @@ class test03_scan_cv(measurement):
         type_msr = switch.get_measurement_type()
         type_disp = switch.get_display_mode()
 
-        ## Print info
-        self.logging.info("Settings:")
-        self.logging.info("Power supply voltage limit:      %8.2E V" % lim_vol)
-        self.logging.info("Power supply current limit:      %8.2E A" % lim_cur)
-        self.logging.info("LCR measurement voltage:         %8.2E V" % lcr_vol)
-        self.logging.info("LCR measurement frequency:       %8.2E Hz" % lcr_freq)
-        self.logging.info("Voltage delay:                   %8.2f s" % self.delay_vol)
-        self.logging.info("Channel delay:                   %8.2f s" % self.delay_ch)
-        self.logging.info("Probecard temperature:           %8.1f C" % temp_pc)
-        self.logging.info("Switchcard temperature:          %8.1f C" % temp_sc)
-        # self.logging.info("Probecard humidity:              %8.1f %" % humd_pc)
-        # self.logging.info("Switchcard humidity:             %8.1f %" % humd_sc)
-        self.logging.info("Switchcard measurement setting:  %s" % type_msr)
-        self.logging.info("Switchcard display setting:      %s" % type_disp)
+        ## Header
+        hd = [
+            'Scan CV\n',
+            'Measurement Settings:',
+            'Power supply voltage limit:      %8.2E V' % lim_vol,
+            'Power supply current limit:      %8.2E A' % lim_cur,
+            'LCR measurement voltage:         %8.2E V' % lcr_vol,
+            'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
+            'Voltage delay:                   %8.2f s' % self.delay_vol,
+            'Channel delay:                   %8.2f s' % self.delay_ch,
+            'Probecard temperature:           %8.1f C' % temp_pc,
+            'Switchcard temperature:          %8.1f C' % temp_sc,
+            # 'Probecard humidity:              %8.1f %' % humd_pc,
+            # 'Switchcard humidity:             %8.1f %' % humd_sc,
+            'Switchcard measurement setting:  %s' % type_msr,
+            'Switchcard display setting:      %s' % type_disp,
+            '\n\n',
+            'Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tC [F]\tTotal Current [A]\n'
+        ]
+
+        ## Print Info
+        for line in hd[1:-2]:
+            self.logging.info(line)
         self.logging.info("\t")
-
-        self.logging.info("\tVoltage [V]\tChannel [-]\tR [kOhm]\tX [kOhm]\tC [pF]\tTotal Current [A]")
-        self.logging.info("\t--------------------------------------------------------------------------")
-
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
-        hd = ' Scan CV\n' \
-           + ' Measurement Settings:\n' \
-           + ' Power supply voltage limit:      %8.2E V\n' % lim_vol \
-           + ' Power supply current limit:      %8.2E A\n' % lim_cur \
-           + ' LCR measurement voltage:         %8.2E V\n' % lcr_vol \
-           + ' LCR measurement frequency:       %8.0E Hz\n' % lcr_freq \
-           + ' Voltage Delay:                   %8.2f s\n' % self.delay_vol \
-           + ' Channel Delay:                   %8.2f s\n' % self.delay_ch \
-           + ' Probecard temperature:           %8.1f C\n' % temp_pc \
-           + ' Switchcard temperature:          %8.1f C\n' % temp_sc \
-           + ' Switchcard measurement setting:  %s\n' % type_msr \
-           + ' Switchcard display setting:      %s\n\n\n' % type_disp \
-           + ' Nominal Voltage [V]\t Measured Voltage [V]\tChannel [-]\tR [kOhm]\tR_Err [kOhm]\tX [kOhm]\tX_Err [kOhm]\tC [pF]\tTotal Current [A]\n'
 
         ## Loop over voltages
         try:
             for v in self.volt_list:
+                switch.short_all()
+                time.sleep(self.delay_ch)
                 pow_supply.ramp_voltage(v)
                 time.sleep(self.delay_vol)
-                time.sleep(0.001)
 
                 j = 0
                 for c in self.cell_list:
 
-                    ## Through away first measurements after voltage change
-                    if j == 0:
+                    ## Only measure unflagged cells
+                    if self.flag_list[j] == 0:
+
+                        ## Through away first measurements after voltage change
+                        if j == 0:
+                            switch.open_channel(c)
+                            for k in range(3):
+                                lcr_meter.execute_measurement()
+                                pow_supply.read_current()
+                                time.sleep(0.001)
+
+                        ## Go on with normal measurement
                         switch.open_channel(c)
-                        for k in range(3):
-                            lcr_meter.execute_measurement()
-                            pow_supply.read_current()
-                            time.sleep(0.001)
+                        time.sleep(self.delay_ch)
 
-                    switch.open_channel(c)
-                    time.sleep(self.delay_ch)
+                        cur_tot = pow_supply.read_current()
+                        vol = pow_supply.read_voltage()
 
-                    cur_tot = pow_supply.read_current()
-                    vol = pow_supply.read_voltage()
+                        measurements = np.array([lcr_meter.execute_measurement() for _ in range(5)])
+                        means = np.mean(measurements, axis=0)
+                        errs = np.std(measurements, axis=0)
+
+                        r, x = means
+                        dr, dx = errs
+
+                        z = np.sqrt(r**2 + x**2)
+                        phi = np.arctan(x/r)
+                        r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
+                        r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+
+                    ## Handle flagged cells
+                    else:
+                        cur_tot = pow_supply.read_current()
+                        vol = pow_supply.read_voltage()
+
+                        r = np.nan
+                        dr = np.nan
+                        x = np.nan
+                        dx = np.nan
+                        c_s = np.nan
+                        c_p = np.nan
 
                     j += 1
-                    tmp1 = []
-                    tmp2 = []
-                    for i in range(3):
-                        r, x = lcr_meter.execute_measurement()
-                        tmp1.append(r)
-                        tmp2.append(x)
-                    r = np.mean(np.array(tmp1))
-                    x = np.mean(np.array(tmp2))
-                    r_err = np.std(np.array(tmp1))
-                    x_err = np.std(np.array(tmp2))
-                
-                    time.sleep(0.001)            
-            
-                    cap = (-10**(12))/(2*np.pi*self.lcr_freq*x)
-                    
-                    out.append([v, vol, j, r, r_err, x, x_err, cap, cur_tot])
-                    self.logging.info("\t%.2f \t%4d\t%.3f \t%.3f \t%.3E \t%.2E" % (vol, j, r/1000., x/1000., cap, cur_tot))
-  
+                    line = [v, vol, j, r, dr, x, dx, c_s, c_p, cur_tot]
+                    out.append(line)
+                    self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5d}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
         except KeyboardInterrupt:
+            switch.short_all()
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
 
 
         ## Close connections
+        switch.reset()
         pow_supply.ramp_voltage(0)
+        time.sleep(15)
+        pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
 
         ## Save and print
         self.logging.info("\n")
-        self.save_list(out, "cv.dat", fmt="%.5E", header=hd)
+        self.save_list(out, "cv.dat", fmt="%.5E", header="\n".join(hd))
         self.print_graph(np.array(out)[:, 2], np.array(out)[:, 8], np.array(out)[:, 8]*0.01, \
             'Channel Nr. [-]', 'Total Current [A]', 'All Channels ' + self.id, fn="cv_total_current_all_channels_%s.png" % self.id)
         self.print_graph(np.array(out)[:, 2], np.array(out)[:, 6], np.array(out)[:, 6]*0.01, \
@@ -196,7 +220,7 @@ class test03_scan_cv(measurement):
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[:, 5], \
                 np.array([val for val in out if (val[2] == ch)])[:, 6], \
-                'Bias Voltage [V]', 'Parallel Capacitance [F]', 'CV ' + self.id, fn="cv_channel_%d_%s.png" % (ch, self.id))   
+                'Bias Voltage [V]', 'Parallel Capacitance [F]', 'CV ' + self.id, fn="cv_channel_%d_%s.png" % (ch, self.id))
             self.print_graph(np.array([val for val in out if (val[2] == ch)])[2:, 1], \
                 np.array([val for val in out if (val[2] == ch)])[2:, 7]**(-2), \
                 np.array([val for val in out if (val[2] == ch)])[2:, 7] * 0.01 * 2 * (np.array([val for val in out if (val[2] == ch)])[2:, 7]*0.01)**(-3), \
@@ -223,6 +247,6 @@ class test03_scan_cv(measurement):
 
         if 0:
             self.save_list(range(0,512,1), "channel_list.txt", fmt='%d', header='')
-    
+
     def finalise(self):
         self._finalise()

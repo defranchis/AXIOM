@@ -1,7 +1,7 @@
 # ============================================================================
 # File: test01_safety_check.py
 # ------------------------------
-# 
+#
 # Notes:
 #
 # Layout:
@@ -24,26 +24,26 @@ from devices import ke2001 # volt meter
 
 class test01_safety_check(measurement):
     """Performs a scan at 10V to check for high currents after alignment."""
-    
+
     def initialise(self):
         self.logging.info("------------------------------------------")
         self.logging.info("Safety Check")
         self.logging.info("------------------------------------------")
         self.logging.info("Performs a scan at 10V to check for high currents after alignment.")
         self.logging.info("\n")
-        
+
         self._initialise()
         self.pow_supply_address = 24    # gpib address of the power supply
         self.volt_meter_address = 18    # gpib address of the multi meter
-        
+
         self.lim_cur = 0.0001           # compliance in [A]
         self.lim_vol = 100              # compliance in [V]
 
         self.cell_list = [1]            # list of cells
-        
+
         self.delay_vol = 2              # delay between setting voltage and executing measurement in [s]
         self.delay_cell = 0.4           # delay between switching cell and executing measurement in [s]
-        
+
         self.logging.info("\n")
         self.logging.info("Settings:")
         self.logging.info("Power supply voltage limit:      %.2f V" % self.lim_vol)
@@ -52,11 +52,11 @@ class test01_safety_check(measurement):
         self.logging.info("Volt meter current limit:        %.6f A" % self.lim_cur)
         self.logging.info("Voltage Delay:                   %.2f s" % self.delay_vol)
         self.logging.info("\n")
-        
-        
+
+
 
     def execute(self):
-        
+
         ## Set up power supply
         pow_supply = ke2410(self.pow_supply_address)
         pow_supply.reset()
@@ -80,7 +80,7 @@ class test01_safety_check(measurement):
         pow_supply.ramp_voltage(v)
         time.sleep(delay_vol)
 
-        cur_tot = pow_supply.read_current() 
+        cur_tot = pow_supply.read_current()
         
         total_current_notice = 1.0 * 10**(-7)
         total_current_warning = 5.0 * 10**(-7)
@@ -111,16 +111,14 @@ class test01_safety_check(measurement):
 
             # Close all channels
             time.sleep(0.01)
-                
+
 
         ## Close connections
         pow_supply.set_output_off()
         pow_supply.reset()
         volt_meter.set_output_off()
         volt_meter.reset()
-    
+
 
     def finalise(self):
         self._finalise()
-
-
