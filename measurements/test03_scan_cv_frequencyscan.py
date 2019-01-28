@@ -51,6 +51,7 @@ class test03_scan_cv_frequencyscan(measurement):
 
         self.lcr_vol = 0.501             # ac voltage amplitude in [mV]
         self.lcr_freq = 5000             # ac voltage frequency in [Hz]
+        self.cv_res = 1e6                # cv parallel resistor in [Ohm]
 
         #self.cor_open = np.loadtxt('config/valuesOpen.txt') # open correction for lcr meter
         #self.cor_short = np.loadtxt('config/valuesShort.txt') # short correction for lcr meter
@@ -84,6 +85,7 @@ class test03_scan_cv_frequencyscan(measurement):
         switch = switchcard(self.switch_address)
         switch.reboot()
         switch.set_measurement_type('CV')
+        switch.set_cv_resistance(self.cv_res)
         switch.set_display_mode('OFF')
 
         ## Check settings
@@ -107,6 +109,7 @@ class test03_scan_cv_frequencyscan(measurement):
             'Power supply current limit:      %8.2E A' % lim_cur,
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
+			'CV resistance:                   %8.2E Ohm' % self.cv_res,
             'Voltage delay:                   %8.2f s' % self.delay_vol,
             'Channel delay:                   %8.2f s' % self.delay_ch,
             'Probecard temperature:           %8.1f C' % temp_pc,

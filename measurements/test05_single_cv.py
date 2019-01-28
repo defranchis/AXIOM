@@ -69,8 +69,6 @@ class test05_single_cv(measurement):
         pow_supply.set_output_on()
         #pow_supply.set_current_range(1E-3, 1)
 
-
-
         ## Set up lcr meter
         lcr_meter = hp4980(self.lcr_meter_address)
         lcr_meter.reset()
