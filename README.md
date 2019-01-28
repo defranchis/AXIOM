@@ -25,8 +25,7 @@ Use 'main.py' to execute measurements. Syntax is 'python main.py [identifier] [t
 Examples
 
 * python main.py test test00_debugging
-* python main.py cell52 test04_single_iv
-* python main.py sensor1008  test03_scan_cv
+* python main.py sensor1008 test03_scan_cv
 
 
 Notes
@@ -40,4 +39,3 @@ Notes
 - [ ] Add GUI
 - [ ] Add ethernet device
 - [ ] Add USB device
-- [ ] Fix autolisting of existing tests
