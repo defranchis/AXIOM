@@ -1,5 +1,5 @@
 # Overview
-Python framework for HGC sensor testing. Software is based on SPIDR python framework for Timepix3. 
+Python framework for ARRAY wafer probing system. Software is loosely based on SPIDR python framework for Timepix3.
 
 
 # Install
@@ -10,13 +10,13 @@ General
 * matplotlib
 * numpy
 
+For serial communication with ARRAY
+* pyserial
+* FTDI drivers
+
 If GPIB communication is to be used
 * pyvisa
 * VISA drivers
-
-If serial communication is to be used
-* pyserial
-* FTDI drivers
 
 
 # Instructions

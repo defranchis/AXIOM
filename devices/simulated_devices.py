@@ -1,7 +1,7 @@
 import time
 
 
-class simulatedPsu(object):
+class simulatedSMU(object):
     def __init__(self, *args, **kwargs):
         self.v = 0
         self.current_limit = 1
@@ -34,7 +34,7 @@ class simulatedPsu(object):
         return self.v
 
 
-class simulatedMultimeter(object):
+class simulatedDMM(object):
     def __init__(self, *args, **kwargs):
         self.v = 0
         self.i = 0
@@ -52,7 +52,7 @@ class simulatedMultimeter(object):
 
 
 if __name__ == '__main__':
-    psu = simulatedPsu()
+    psu = simulatedSMU()
     psu.reset()
     psu.set_source('voltage')
     psu.set_sense('current')
