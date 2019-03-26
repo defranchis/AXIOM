@@ -12,7 +12,7 @@ General
 
 For serial communication with ARRAY
 * pyserial
-* FTDI drivers
+* FTDI drivers (https://www.ftdichip.com/FTDrivers.htm)
 
 If GPIB communication is to be used
 * pyvisa
