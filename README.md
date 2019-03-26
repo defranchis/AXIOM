@@ -45,7 +45,7 @@ Notes
 # Development
 
 To add additional measurements, add or modify a file in the 'measurements'.
-In case of a new class, make sure to reigster it in 'measurements/__init__.py'.
+In case of a new class, make sure to register it in 'measurements/__init__.py'.
 
 Some things to look out for:
 * Before changing the settings in any external instruments (e.g. bias voltage), all channels should shorted to GND. This is a safety procedure as some instruments tend to protect their input via a high impedance shunt to ground. In case of large leakage currents, this could harm the switch card. When switching channels on the switch card, this is done internally. 
