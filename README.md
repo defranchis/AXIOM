@@ -18,7 +18,7 @@ For serial communication with ARRAY
 * pyserial
 * FTDI drivers (https://www.ftdichip.com/FTDrivers.htm)
 
-If GPIB communication is to be used
+If GPIB communication is required
 * pyvisa
 * VISA drivers
 
