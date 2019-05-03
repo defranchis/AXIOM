@@ -190,10 +190,12 @@ def process_file(dat, fOpen, fShort, freq, fInvert, fCor):
                 r_open = np.array([val for val in tmp_open if (val[1] == ch)])[0, 11]
                 phi_open = np.array([val for val in tmp_open if (val[1] == ch)])[0, 13]
                 z_open = rect(r_open, phi_open)
+                
                 z_ocor = lcr_open_cor(z, z_open)
                 cp_ocor = lcr_parallel_equ(freq, abs(z_ocor), phase(z_ocor))[1] * 10**12
                 cs_ocor = lcr_series_equ(freq, abs(z_ocor), phase(z_ocor))[1] * 10**12
-
+                cp_ocor_err = lcr_error_cp(freq, r, r_err, phi, phi_err) * 10**12
+                
                 r_short = np.array(
                     [val for val in dat_short if (val[1] == ch)])[0, 11]
                 phi_short = np.array(
@@ -203,12 +205,14 @@ def process_file(dat, fOpen, fShort, freq, fInvert, fCor):
                 z_scor = lcr_open_short_cor(z, z_open, z_short)
                 cp_scor = lcr_parallel_equ(freq, abs(z_scor), phase(z_scor))[1] * 10**12
                 cp_scor_err = lcr_error_cp(freq, r, r_err, phi, phi_err) * 10**12
-                cs_scor = lcr_series_equ(freq, abs(z_scor), phase(z_scor))[1] * 10**12
-                cs_scor_err = lcr_error_cs(freq, r, r_err, phi, phi_err) * 10**12
 
-                out.append([v_cor, ch, cp_ocor, cp_ocor_err, tot_curr, v_msr, cp, temp, hum, abs(z_scor), phase(z_scor),
+                if (1): # ocor
+                    out.append([v_cor, ch, cp_ocor, cp_ocor_err, tot_curr, v_msr, cp, temp, hum, abs(z_ocor), phase(z_ocor),
                             abs(z), phase(z), abs(z_open), phase(z_open), abs(z_short), phase(z_short)])
-
+                else: # scor
+                    out.append([v_cor, ch, cp_scor, cp_scor_err, tot_curr, v_msr, cp, temp, hum, abs(z_scor), phase(z_scor),
+                            abs(z), phase(z), abs(z_open), phase(z_open), abs(z_short), phase(z_short)])
+                        
     return np.array(out)
 
 
