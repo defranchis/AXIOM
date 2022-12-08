@@ -1,5 +1,5 @@
 import time
-from pyvisa_device import device, device_error
+from devices.pyvisa_device import device, device_error
 
 
 class hp4980(device):

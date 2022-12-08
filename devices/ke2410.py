@@ -1,5 +1,5 @@
-import time
-from pyvisa_device import device, device_error
+import time, sys
+from devices.pyvisa_device import device, device_error
 
 
 class ke2410(device):
@@ -125,42 +125,52 @@ class ke2410(device):
         return 0
 
     def ramp_voltage(self, val, debug=0):
-        now = int(round(self.read_voltage()))
+        now = float(self.read_voltage())
         if debug == 1:
             self.logging.info("Ramping voltage from %.2f V to %.2f V." % (now, val))
-        if now > val:
-            for v in range(now, val, -25):
-                self.ctrl.write(":SOUR:VOLT %d" % v)
-                time.sleep(1)
-                if debug == 1:
-                    print self.read_voltage()
-            self.ctrl.write(":SOUR:VOLT %d" % val)
-        else:
-            for v in range(now, val, +25):
-                self.ctrl.write(":SOUR:VOLT %d" % v)
-                time.sleep(1)
-                if debug == 1:
-                    print self.read_voltage()
-            self.ctrl.write(":SOUR:VOLT %d" % val)
+        ## MARC if now > val:
+        ## MARC     for v in range(now, val, -25):
+        ## MARC         self.ctrl.write(":SOUR:VOLT %f" % v)
+        ## MARC         time.sleep(1)
+        ## MARC         if debug == 1:
+        ## MARC             print(self.read_voltage())
+        ## MARC     self.ctrl.write(":SOUR:VOLT %f" % val)
+        ## MARC else:
+        ## MARC     for v in range(now, val, +25):
+        ## MARC         self.ctrl.write(":SOUR:VOLT %f" % v)
+        ## MARC         time.sleep(1)
+        ## MARC         if debug == 1:
+        ## MARC             print(self.read_voltage())
+        ## MARC     self.ctrl.write(":SOUR:VOLT %f" % val)
+        self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
     def ramp_down(self, debug=0):
         if debug == 1:
-            self.logging.info("Ramping down to 0.00 V.")
+            self.logging.info("Ramping down to 0.00 V. in 3 seconds")
+        time.sleep(3)
         now = int(round(self.read_voltage()))
-        for v in range(now, 0, -25):
+
+
+        for v in range(now, 0, -10 if now > 0 else 10):
+            sys.stdout.write('ramping down to 0 V, currently at {b:4.1f}\r'.format(b=v))
+            sys.stdout.flush()
+            #print('ramping down to 0 V, currently at {b:4.1f}'.format(b=now))
             self.ctrl.write(":SOUR:VOLT %f" % v)
-            time.delay(1)
+            time.sleep(1)
+            if debug == 1:
+                print(self.read_voltage())
+
         self.ctrl.write(":SOUR:VOLT 0")
         return 0
 
     def ramp_up(self, val, debug=0):
         if debug == 1:
             self.logging.info("Ramping up to %.2f V." % val)
-        now = int(round(self.read_voltage()))
-        for v in range(now, val, +25):
-            self.ctrl.write(":SOUR:VOLT %f" % val)
-            time.delay(1)
+        now = float(round(self.read_voltage()))
+        ## don't know why this is necessary for v in range(now, val, +25):
+        ## don't know why this is necessary     self.ctrl.write(":SOUR:VOLT %f" % val)
+        ## don't know why this is necessary     time.delay(1)
         self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
@@ -225,9 +235,9 @@ class ke2410(device):
 
     def set_nplc(self, val, debug=0):
         if debug == 1:
-            self.logging.info("Setting NPLC to %d." % val)
-        self.ctrl.write(":SENSE:CURR:NPLC %d" % val)
-        #self.ctrl.write(":SENSE:VOLT:NPLC %d" % val)
+            self.logging.info("Setting NPLC to %f ." % val)
+        self.ctrl.write(":SENSE:CURR:NPLC %f" % val)
+        #self.ctrl.write(":SENSE:VOLT:NPLC %f" % val)
         return 0
 
     def check_voltage_limit(self, debug=0):

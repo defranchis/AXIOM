@@ -109,7 +109,7 @@ def find_correction_file(fn, open_file, short_file):
             ln = len(sp)
 
         if (ln == 1):
-            print "Something went wrong. Can't find correction files."
+            print("Something went wrong. Can't find correction files.")
             sys.exit()
         else:
             path = ''
@@ -134,11 +134,11 @@ def find_correction_file(fn, open_file, short_file):
     try:
         tmp = np.loadtxt(fOpen, dtype='float', comments='#')
         tmp = np.loadtxt(fShort, dtype='float', comments='#')
-        print "Using corrections from:\n"
-        print fOpen
-        print fShort
+        print( "Using corrections from:\n")
+        print( fOpen)
+        print( fShort)
     except:
-        print "Something went wrong. Can't find correction files."
+        print("Something went wrong. Can't find correction files.")
         sys.exit()
 
     return fOpen, fShort
@@ -176,7 +176,7 @@ def process_file(dat, fOpen, fShort, freq, fInvert, fCor):
                 tot_curr = line[4]
 
                 if (r == 0):
-					r = np.nan
+                    r = np.nan
 
                 if (fInvert):
                     v_cor = np.abs(v)
@@ -309,9 +309,9 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.fExamples:
-        print '\nSome example commands for running this script\n'
-        print ''' ./correct_cv.py -i HPK_6in_135_4002_CV.txt --cor 0 --inv 0 \t\tRead data file and create a copy with name '_corrected.txt'. '''
-        print ''' ./correct_cv.py -i HPK_6in_135_4002_CV.txt --cor 1 --inv 1 --freq 50000 \t\tRead data file, invert voltages and correct capacitance. Use correction fiels from default location. '''
+        print('\nSome example commands for running this script\n')
+        print(''' ./correct_cv.py -i HPK_6in_135_4002_CV.txt --cor 0 --inv 0 \t\tRead data file and create a copy with name '_corrected.txt'. ''')
+        print(''' ./correct_cv.py -i HPK_6in_135_4002_CV.txt --cor 1 --inv 1 --freq 50000 \t\tRead data file, invert voltages and correct capacitance. Use correction fiels from default location. ''')
 
     else:
         hd = read_header(options.input)
