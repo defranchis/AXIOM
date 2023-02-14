@@ -1,4 +1,4 @@
-import visa
+import pyvisa as visa
 import logging
 
 
@@ -28,6 +28,7 @@ class device(object):
 
         ## Set up logger
         self.logging = logging.getLogger('root')
+        self.logging.setLevel(logging.INFO)
         self.logging.info("Initialising device.")
         self.logging.info(self.ctrl.query("*IDN?"))
 
