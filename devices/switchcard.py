@@ -43,7 +43,7 @@ class switchcard(device):
         recv = self.query("SYS.INFO")
         info = [''.join(i).strip() for i in recv]
         self.logging.info(' | '.join(info))
-        print '\t'
+        print('\t')
         self.flush_input()
         self.flush_output()
 
@@ -51,22 +51,22 @@ class switchcard(device):
         return self.query("SYS.INFO")
 
     def print_idn(self):
-        print self.query("SYS.INFO")
+        print(self.query("SYS.INFO"))
         return 0
 
     def print_info(self, debug=0):
         if debug == 1:
             self.logging.info("Displaying information about board, cpu, build and uptime.")
-        print self.query("SYS.BOARD")
-        print self.query("SYS.CPU")
-        print self.query("SYS.BUILD")
-        print self.query("SYS.UPTIME")
+        print(self.query("SYS.BOARD"))
+        print(self.query("SYS.CPU"))
+        print(self.query("SYS.BUILD"))
+        print(self.query("SYS.UPTIME"))
         return 0
 
     def print_help(self, debug=0):
         if debug == 1:
             self.logging.info("Query Help.")
-        print self.query("HELP")
+        print(self.query("HELP"))
         return 0
 
     def reboot(self, debug=0):
