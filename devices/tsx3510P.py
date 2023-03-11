@@ -22,6 +22,10 @@ class tsx3510P(device):
 
     def __init__(self, address):
         device.__init__(self, address=address)
+
+        self.max_current = 4
+        self.max_voltage = 12
+
         self.ctrl.write("*RST")
 
     def get_idn(self):
@@ -55,10 +59,20 @@ class tsx3510P(device):
         self.ctrl.write('OVP %f' % fValue)
 
     def set_voltage(self, fValue, iChannel=-1):
-        self.ctrl.write('V %0.2f' % fValue)
+        if fValue > self.max_voltage:
+            self.logging.warning(f"Maximum voltage is {self.max_voltage} but you try to set {fValue}! Do nothing now.")
+        elif fValue < 0:
+            self.logging.warning(f"You try to set a negative voltage {fValue}, which is not possible! Do nothing now.")
+        else:
+            self.ctrl.write('V %0.2f' % fValue)
 
     def set_current(self, fValue, iChannel=-1):
-        self.ctrl.write('I %0.2f' % fValue)
+        if fValue > self.max_current:
+            self.logging.warning(f"Maximum current is {self.max_current} but you try to set {fValue}! Do nothing now.")
+        elif fValue < 0:
+            self.logging.warning(f"You try to set a negative current {fValue}, which is not possible! Do nothing now.")
+        else:
+            self.ctrl.write('I %0.2f' % fValue)
 
 
 
