@@ -5,6 +5,7 @@ from pyvisa_device import device, device_error
 class tsx3510P(device):
     """
     Aim TTi TSX3510P voltmeter.
+    Manual: http://resources.aimtti.com/manuals/TSX-P_Series_II_Instruction_Manual-Iss1.pdf
 
     Example:
     -------------
@@ -27,6 +28,8 @@ class tsx3510P(device):
         self.max_voltage = 12
 
         self.ctrl.write("*RST")
+
+        self.set_voltageLimit(self.max_voltage)
 
     def get_idn(self):
         return self.ctrl.query("*IDN?")
