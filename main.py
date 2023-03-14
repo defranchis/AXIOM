@@ -3,13 +3,15 @@ import os
 from optparse import OptionParser
 #import measurements.allmeasurements as allmsr
 from measurements.testMD_dummyIVWithSwitch import *
-from measurements.testMD_fullSensorMeasurements import *
+from measurements.testMD_simple_CV import testMD_simple_CV
+from measurements.testMD_simple_IV import testMD_simple_IV
+
 #import testMD_dummyIVWithSwitch
 
 
 def main():
 	usage = "usage: prog [options] id test[(parameter=value parameter2=value)]"
-
+	print("start")
 	parser = OptionParser(usage=usage, version="prog 0.01")
 	parser.add_option("-l", "--list-tests", action="store_true", dest="list_tests", default=False,  help="list all avaliable measurements")
 
@@ -49,12 +51,11 @@ def main():
 		print('this is testname', test_name)
 		try:
 			#test = getattr(measurements, test_name)
-			test = testMD_fullSensorMeasurements
+			msr = testMD_simple_CV(ide = id) #SensorMeasurements
 		except AttributeError:
 			print('Unknown Test.')
 			return 1
 
-		msr = test(ide = id)
 		msr.initialise()
 		msr.execute()
 		msr.finalise()

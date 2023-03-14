@@ -21,6 +21,7 @@ class measurement(object):
     """ Abstract measurement class. """
 
     def __init__(self, ide="", dire=""):
+        print("ID: "+str(ide))
         self.id = ide
         self.base = dire
 
