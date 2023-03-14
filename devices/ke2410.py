@@ -61,7 +61,7 @@ class ke2410(device):
     def set_output_auto(self, ctrl=0, debug=0):
         if debug == 1:
             self.logging("Set output to auto.")
-        if cntr == 1:
+        if ctrl == 1:
             self.ctrl.write(":SOUR:CLE:AUTO ON")
         else:
             self.ctrl.write(":SOUR:CLE:AUTO OFF")
