@@ -101,7 +101,7 @@ class testMD_simple_IV(measurement):
         self.lim_cur_ke2410 = 10e-6  # compliance in [A]
         self.lim_cur_ke6487 = 10e-6    # compliance in [A] for the GCD, this should be 10 nA
 
-        self.volt_list_iv = [-i*10 for i in range(5)]
+        self.volt_list_iv = [-i*10 for i in range(1,80)]
         self.currents_iv  = [0 for i in self.volt_list_iv]
 
         self.nSampling_IV = 30
