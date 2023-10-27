@@ -121,7 +121,7 @@ class ke6487(device):
         return 0
 
     def zero_correction(self):
-        print('Nothing there yet.')
+        print 'Nothing there yet.'
         # SYST:ZCH ON ' Enable zero check.'
         # CURR:RANG 2e-9 ' Select the 2nA range.'
         # INIT ' Trigger reading to be used as zero correction'
@@ -143,7 +143,7 @@ class ke6487(device):
             val = self.ctrl.query("READ?")
             return float(val.split(',')[0][:-1])
         except ValueError:
-            print(val.split(','))
+            print val.split(',')
             return -1
 
     def read_resistance(self):
@@ -151,7 +151,7 @@ class ke6487(device):
             val = self.ctrl.query("READ?")
             return float(val.split(',')[1][:-1])
         except ValueError:
-            print(val.split(','))
+            print val.split(',')
             return -1
 
 

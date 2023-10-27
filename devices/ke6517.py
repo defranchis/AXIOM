@@ -109,5 +109,5 @@ class ke6517(device):
             self.ctrl.write(":SYST:ZCH ON")
             return float(val.split(',')[0][:-4])
         except ValueError:
-            print(val.split(','))
+            print val.split(',')
             return -1

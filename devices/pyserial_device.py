@@ -65,7 +65,7 @@ class device(object):
         self.logging.info("Initialising device.")
 
     def list_ports(self):
-        print(serial.tools.list_ports())
+        print serial.tools.list_ports()
 
     def idn(self):
         return self.ctrl.name
@@ -97,12 +97,12 @@ class device(object):
                 for line in reversed(lines):
                     if line.find('>') != -1:
                         if debug == 1:
-                            print(lines)
+                            print lines
                         return 0
             except:
                 if (time.time() - start > self.timeout):
                     if debug == 1: 
-                        print("Timeout")
+                        print "Timeout"
                     return -1
 
     def query(self, cmd, debug=0):
@@ -117,12 +117,12 @@ class device(object):
                 for line in reversed(lines):
                     if line.find('>') != -1:
                         if debug == 1:
-                            print(lines)
+                            print lines
                         return lines[1:-1]
             except:
                 if (time.time() - start > self.timeout):
                     if debug == 1: 
-                        print("Timeout")
+                        print "Timeout"
                     return -1
 
 

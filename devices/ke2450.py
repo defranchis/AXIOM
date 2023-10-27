@@ -116,14 +116,14 @@ class ke2450(device):
                 self.ctrl.write(":SOUR:VOLT %d" % v)
                 time.sleep(1)
                 if debug == 1:
-                    print(self.read_voltage())
+                    print self.read_voltage()
             self.ctrl.write(":SOUR:VOLT %d" % val)
         else:
             for v in range(now, val, +25):
                 self.ctrl.write(":SOUR:VOLT %d" % v)
                 time.sleep(1)
                 if debug == 1:
-                    print(self.read_voltage())
+                    print self.read_voltage()
             self.ctrl.write(":SOUR:VOLT %d" % val)
         self.ctrl.write("SENS:FUNC 'CURR'")
         return 0

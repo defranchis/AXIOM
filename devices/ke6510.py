@@ -115,7 +115,7 @@ class ke6510(device):
             val = self.ctrl.query("READ?")
             return float(val.split(',')[0][:-1])
         except ValueError:
-            print(val.split(','))
+            print val.split(',')
             return -1
 
     def read_resistance(self):
@@ -123,5 +123,5 @@ class ke6510(device):
             val = self.ctrl.query("READ?")
             return float(val.split(',')[1][:-1])
         except ValueError:
-            print(val.split(','))
+            print val.split(',')
             return -1
