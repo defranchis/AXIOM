@@ -59,9 +59,6 @@ class protocol(object):
                 writer = csv.DictWriter(f, fieldnames=self.fieldnames)
                 writer.writerow(info)
 	
-    def get_metadata(self):
-        self.read_metadata()
-        return self.metadata
 
     def update_pid_config(self, pid):
         self.read_metadata()

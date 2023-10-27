@@ -14,8 +14,6 @@ def main():
 	print("start")
 	parser = OptionParser(usage=usage, version="prog 0.01")
 	parser.add_option("-l", "--list-tests", action="store_true", dest="list_tests", default=False,  help="list all avaliable measurements")
-	parser.add_option("--cv", action="store_true", default=False,  help="Do C/V measurement")
-	parser.add_option("--iv", action="store_true", default=False,  help="Do I/V measurement")
 
 	(options, args) = parser.parse_args()
 
@@ -48,22 +46,12 @@ def main():
 	if len(args) > 1:
 		test_list = args[1:]
 
-	if args.iv and args.cv:
-		print("Can not run C/V and I/V at ones!")
-		return
-	elif args.iv:
-		module = testMD_simple_IV
-	elif args.cv:
-		module = testMD_simple_CV
-	else:
-		print("Must set either `--iv` or `--cv`!")
-		return
 
 	for test_name in test_list:
 		print('this is testname', test_name)
 		try:
 			#test = getattr(measurements, test_name)
-			msr = module(ide = id) #SensorMeasurements
+			msr = testMD_simple_CV(ide = id) #SensorMeasurements
 		except AttributeError:
 			print('Unknown Test.')
 			return 1

@@ -57,10 +57,6 @@ class tsx3510P(device):
     # Set attribute functions
     # ---------------------------------
 
-    def set_output_on(self):
-        self.ctrl.write(f'OP 1')
-    def set_output_off(self):
-        self.ctrl.write(f'OP 0')
 
     def set_voltageLimit(self, fValue, iChannel=-1):
         self.ctrl.write('OVP %f' % fValue)

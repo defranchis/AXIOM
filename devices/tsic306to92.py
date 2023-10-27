@@ -52,7 +52,7 @@ class TSIC306TO92(device):
         plt.subplots_adjust(bottom=0.1)
 
     # This function is called periodically from FuncAnimation
-    def update_figure(self, temperature=None, target_temperature=-20, time_now=None):
+    def update_figure(self, temperature=None, time_now=None):
 
         # Add x and y to lists
         if temperature is None:
@@ -67,8 +67,8 @@ class TSIC306TO92(device):
         self.xss.append(time_now)
 
         # Limit x and y lists to 20 items
-        self.xs = self.xs[-1500:]
-        self.ys = self.ys[-1500:]
+        self.xs = self.xs[-20:]
+        self.ys = self.ys[-20:]
         
         ymin, ymax = min(self.ys), max(self.ys)
         yrange = ymax - ymin
@@ -76,9 +76,7 @@ class TSIC306TO92(device):
         self.ax.set_xlim(self.xs[0], self.xs[-1])
         self.ax.set_ylim(ymin - yrange*0.1, ymax + yrange*0.1)
 
-        self.ax.plot([min(self.xs),max(self.xs)], [target_temperature, target_temperature], linestyle="--", color="black")
-        
-        # Draw x and y lists                          
+        # Draw x and y lists
         self.ax.plot(self.xs, self.ys, color="black")
 
         plt.title(f'Time: {time_now}')

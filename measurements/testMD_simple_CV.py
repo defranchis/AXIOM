@@ -107,7 +107,7 @@ class testMD_simple_CV(measurement):
         self.lim_cur_ke2410 = 10e-6  # compliance in [A]
         self.lim_vol = 10             # compliance in [V]
 
-        self.volt_list_cv = [-i*10 for i in range(1,80)]
+        self.volt_list_cv = [-i*10 for i in range(1,35)]
         self.currents_cv  = [0 for i in self.volt_list_cv]
 
         self.nSampling_CV =  5
