@@ -4,6 +4,10 @@ from optparse import OptionParser
 #import measurements.allmeasurements as allmsr
 from measurements.testMD_dummyIVWithSwitch import *
 from measurements.testMD_fullSensorMeasurements import *
+from measurements.testMD_CRV import *
+from measurements.testMD_fullStrip import *
+
+
 #import testMD_dummyIVWithSwitch
 
 
@@ -49,7 +53,8 @@ def main():
 		print('this is testname', test_name)
 		try:
 			#test = getattr(measurements, test_name)
-			test = testMD_fullSensorMeasurements
+			#test = testMD_fullSensorMeasurements
+			test = testMD_fullStrip
 		except AttributeError:
 			print('Unknown Test.')
 			return 1
