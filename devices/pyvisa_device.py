@@ -1,5 +1,5 @@
 import pyvisa as visa
-from utils import logging
+import logging
 
 
 # Base error class
@@ -20,20 +20,21 @@ class device(object):
     dev = device(address=24)
     """
     
-    def __init__(self, address=24, verbose=3):
+    def __init__(self, address=24):
 
         ## Set up control
         rm = visa.ResourceManager()
         self.ctrl = rm.open_resource('GPIB0::%s::INSTR' % address)
 
-        self.logging = logging.setup_logger(__file__, verbose)
-
+        ## Set up logger
+        self.logging = logging.getLogger('root')
+        self.logging.setLevel(logging.INFO)
         self.logging.info("Initialising device.")
-
         self.logging.info(self.ctrl.query("*IDN?"))
 
+
     def findInstruments(self):
-        return visa.get_instruments_list()
+        return visa.get_instruments_list()    
  
 
  
