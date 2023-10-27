@@ -1,4 +1,4 @@
-import pyvisa
+import visa
 import logging
 
 
@@ -23,7 +23,7 @@ class device(object):
     def __init__(self, address=24):
 
         ## Set up control
-        rm = pyvisa.ResourceManager()
+        rm = visa.ResourceManager()
         self.ctrl = rm.open_resource('GPIB0::%s::INSTR' % address)
 
         ## Set up logger
@@ -33,7 +33,7 @@ class device(object):
 
 
     def findInstruments(self):
-        return pyvisa.get_instruments_list()    
+        return visa.get_instruments_list()    
  
 
  
