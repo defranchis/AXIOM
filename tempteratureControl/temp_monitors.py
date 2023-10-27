@@ -116,7 +116,7 @@ from softcheck.logic import CommunicationTimeout
 from softcheck.pp_commands import PpCom
 import time
 com = Com("serial", 2.1,3)
-com.open("COM9", 9600) #open COMX with 9600 (address not defined)
+com.open("COM5", 9600) #open COMX with 9600 (address not defined)
 pp = PpCom(com)
 
 

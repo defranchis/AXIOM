@@ -3,10 +3,10 @@ import subprocess, signal, time, datetime
 today = datetime.date.today().isoformat()
 
 ## change the sensorName before starting anything!
-sensorName     = 'N4789-12_LR'
-integratedDose = 300 ## in kGy
+sensorName     = '102183'
+integratedDose = 700 ## in kGy
 
-sleepTime = 3600
+sleepTime = 3600*3
 
 cmd = 'testMD_fullSensorMeasurements'
 
@@ -15,7 +15,7 @@ try:
     while True:
         now = datetime.datetime.now()
         dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
-        subprocess.run(['python', '.\main.py', '{n}_p20C_{b}kGy_annealingStep{na}'.format(n=sensorName, b=integratedDose, na=nAnnealing), cmd], check=True)
+        subprocess.run(['python', '.\main.py', '{n}_p0C_{b}kGy_p20CannealingStep{na}'.format(n=sensorName, b=integratedDose, na=nAnnealing), cmd], check=True)
         time.sleep(sleepTime)
         nAnnealing += 1
     

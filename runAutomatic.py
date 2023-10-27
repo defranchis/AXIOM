@@ -1,9 +1,10 @@
 import subprocess, signal
+import time, datetime
 
 ## change the sensorName before starting anything!
-sensorName = 'N4789-12_LR'
+sensorName = '102183'
 
-irradiationSteps = [0, 1, 2, 5, 10, 20, 40, 70, 100, 200, 300, 500, 700, 800]
+irradiationSteps = [0, 1, 2, 5, 10, 20, 40, 70, 100, 200]
 cmd = 'testMD_fullSensorMeasurements'
 
 try:
@@ -31,3 +32,30 @@ except KeyboardInterrupt:
     obelix = subprocess.run(['python', '.\obelixControl.py', 'killObelix'])
     
     #turnEverythingOff
+
+
+integratedDose = irradiationSteps[-1] ## in kGy
+
+sleepTime = 3600*3
+
+
+try:
+    nAnnealing = 1
+    time.sleep(sleepTime)
+    while True:
+        now = datetime.datetime.now()
+        dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
+        subprocess.run(['python', '.\main.py', '{n}_m20C_{b}kGy_annealingStep{na}'.format(n=sensorName, b=integratedDose, na=nAnnealing), cmd], check=True)
+        time.sleep(sleepTime)
+        nAnnealing += 1
+    
+
+## if anything exits with anything other than exit(0), 
+## we end up in the subprocess exception, and everything stops
+
+except subprocess.CalledProcessError as e:
+    print(e) ## print the exception
+
+except KeyboardInterrupt:
+    print('you stopped the program')
+    pass

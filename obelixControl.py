@@ -15,7 +15,7 @@ switch.reset(1)
 switch.get_idn()
 switch.open_all()
 
-pow_supply = ke2410(8) ## address of the power supply to bias the MOS
+pow_supply = ke2410(25) ## address of the power supply to bias the MOS
 pow_supply.reset()
 pow_supply.set_source('voltage')
 pow_supply.set_sense('current')
@@ -32,8 +32,8 @@ def convertkGyToTime(nkGy):
     ## doseRate = 24.26389 ## this is at 19.6 cm
     #doseRate = 13.2465  ## this is at 24.6 cm
     ## used for N4789-12_UL doseRate = 39.1895  ## value taken on november 1st 2021
-    doseRate = 13.2465  ## value taken on november 1st 2021
-    doseRate = doseRate/2. ## FIXME FIXME FIXME
+    doseRate = 14.257  ## value taken on Aug 31st 2023
+    doseRate = doseRate ##
     nSeconds = int(3600./doseRate * nkGy)
     hms = str(datetime.timedelta(seconds=nSeconds))
     hms = [int(i) for i in hms.split(':')]
@@ -431,7 +431,7 @@ if __name__ == '__main__':
 
     #From now on it's the main code
     
-    port = serial.Serial('COM5',baudrate = 9600,timeout=1)
+    port = serial.Serial('COM3',baudrate = 9600,timeout=1)
 
     args = sys.argv
 
@@ -459,7 +459,7 @@ if __name__ == '__main__':
         #inputVoltage = input("Enter the voltage of the tube in kV ") 
         nom_volt = setVoltage(40) #int(inputVoltage))
         #inputCurrent = input("Enter the current of the tube in mA ")
-        nom_curr = setCurrent(25) #int(inputCurrent)) FIXME FIXME FIXME
+        nom_curr = setCurrent(50) #int(inputCurrent))
         validateSetTimerStringRet = None
         ##while(validateSetTimerStringRet == None):
         ##    setTimerString = input("Enter the exposure timer number, the hours, minutes and seconds (use spaces between values) ")
