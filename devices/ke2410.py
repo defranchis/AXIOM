@@ -24,7 +24,7 @@ class ke2410(device):
 
     def __init__(self, address):
         device.__init__(self, address=address)
-        self.ctrl.write("*RST")
+        #self.ctrl.write("*RST")
 
     def print_idn(self, debug=0):
         if debug == 1:
@@ -167,10 +167,18 @@ class ke2410(device):
     def ramp_up(self, val, debug=0):
         if debug == 1:
             self.logging.info("Ramping up to %.2f V." % val)
-        now = float(round(self.read_voltage()))
+        now = int(round(self.read_voltage()))
         ## don't know why this is necessary for v in range(now, val, +25):
         ## don't know why this is necessary     self.ctrl.write(":SOUR:VOLT %f" % val)
         ## don't know why this is necessary     time.delay(1)
+        for v in range(now, int(val), -10 if now > int(val) else 10):
+            sys.stdout.write('ramping to {a} V, currently at {b:4.1f}\r'.format(a=val,b=v))
+            sys.stdout.flush()
+            #print('ramping down to 0 V, currently at {b:4.1f}'.format(b=now))
+            self.ctrl.write(":SOUR:VOLT %f" % v)
+            time.sleep(1)
+            if debug == 1:
+                print(self.read_voltage())
         self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
