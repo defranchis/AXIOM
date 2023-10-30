@@ -50,12 +50,13 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 def init_liveplot():
     plt.ion()
-    fig = plt.figure(figsize=(15,5))
-    ax0 = fig.add_subplot(131)
-    ax1 = fig.add_subplot(132)
-    ax2 = fig.add_subplot(133)
+    fig = plt.figure(figsize=(13,13))
+    ax0 = fig.add_subplot(221)
+    ax1 = fig.add_subplot(222)
+    ax2 = fig.add_subplot(223)
+    ax3 = fig.add_subplot(224)
 
-    return fig, ax0, ax1, ax2
+    return fig, ax0, ax1, ax2, ax3
 
 def mypause(interval):
     backend = plt.rcParams['backend']
@@ -71,6 +72,9 @@ def mypause(interval):
 def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k',pause_time=0.1):
     if line == []:
         #plt.ion()
+        ax.clear()
+        plt.cla()
+
         line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
 
         ax.set_title(identifier)
@@ -111,7 +115,7 @@ class testMD_fullStrip(measurement):
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running all 3 measurements of the silicon!")
+        self.logging.info("Running all 3 measurements of the silicon! :)")
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -119,52 +123,53 @@ class testMD_fullStrip(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
         self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
 
         self.keithley2410_gcddiode_address = 8
-        self.switch_address       = 7   # gpib address of the switch
+        self.switch_address       = 7       # gpib address of the switch
 
         ## LCR meter settings
-        self.lcr_meter_address = 17  # in the SSD lab this is 9
-        self.lcr_vol = 0.250 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 10000            # ac voltage frequency in [Hz]
-        self.cv_res = 1e6                # cv parallel resistor in [Ohm]
+        self.lcr_meter_address = 17         # in the SSD lab this is 9
+        self.lcr_vol = 0.250 #0.501         # ac voltage amplitude in [mV]
+        self.lcr_freq = 10000               # ac voltage frequency in [Hz]
+        self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
         
         self.lcr_vol = 1 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 1E6            # ac voltage frequency in [Hz]       
+        self.lcr_freq = 1E6                 # ac voltage frequency in [Hz]       
 
 
-        self.lim_cur_ke2410 = 1E-4  # compliance in [A]
-        self.lim_cur_ke6487 = 5E-8    # compliance in [A] for the GCD, this should be 10 nA
-        self.lim_vol = 10             # compliance in [V]
+        self.lim_cur_ke2410 = 1E-5          # compliance in [A]
+        self.lim_cur_ke6487 = 5E-8          # compliance in [A] for the GCD, this should be 10 nA
+        self.lim_vol = 10                   # compliance in [V]
 
-        self.volt_list_cv = [i*-50 for i in range(1,10)]
-        #self.currents_cv  = [0 for i in self.volt_list_cv]
-        self.Vmin = 0
-        self.Vmax = 5
-        self.Vstep = .1
-        self.volt_list_iv = np.arange(self.Vmin, self.Vmax + self.Vstep, self.Vstep)
+        '''
+        self.Vmin_cv = -50
+        self.Vmax_cv = -500
+        self.Vstep_cv = -50
+        self.volt_list_cv = np.arange(self.Vmin_cv, self.Vmax_cv + self.Vstep_cv, self.Vstep_cv)
+        '''
         
+        self.Vmin_iv = 0
+        self.Vmax_iv = 5
+        self.Vstep_iv = 0.1
+        self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         
-        #self.volt_list_iv = [i/10-5 for i in range(3)]
-        #self.volt_list_iv = [i/10+.5 for i in range(150)]
-        #self.currents_iv  = [0 for i in self.volt_list_iv]
+        self.Vmin_bias = -25
+        self.Vmax_bias = -400
+        self.Vstep_bias = -25
+        self.volt_list_bias = np.arange(self.Vmin_bias, self.Vmax_bias + self.Vstep_bias, self.Vstep_bias)
 
         self.nSampling_CV =  10
-        self.nSampling_IV = 30
+        self.nSampling_IV = 5 # TODO change to original 30s
 
-        self.biasV = -200
+        #self.biasV = -200
 
-        #self.gcd_diode_bias = 10.
-
-
-        ## might as well get the proper dose
-        #doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
-        #self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
 
         self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
         self.delay_vol_iv = 10     # delay between setting voltage and executing measurement in [s]
+
+        self.delay_initial_iv = 5  # TODO change to original 30s
 
         ## initialize the devices
 
@@ -174,7 +179,6 @@ class testMD_fullStrip(measurement):
 
         self.switch       = ke7001(self.switch_address)
         self.reset_switch()
-        #self.keithley2410_gcddiode = ke2410(self.keithley2410_gcddiode_address)
 
         ## Set up lcr meter
         self.lcr_meter = hp4980(self.lcr_meter_address)
@@ -183,13 +187,9 @@ class testMD_fullStrip(measurement):
         self.lcr_meter.set_frequency(self.lcr_freq)
         self.lcr_meter.set_mode('RX')
 
-        #self.cor_open = np.loadtxt('config/valuesOpen_2023.txt') # open correction for lcr meter
-
         ## Set up volt meter
         self.keithley6487_address = 15
         self.keithley6487 = ke6487(self.keithley6487_address)
-
-        #self.reset_power_supplies()
 
 
     def reset_power_supplies(self):
@@ -341,230 +341,128 @@ class testMD_fullStrip(measurement):
         savefig("logs/"+supertitle+"/IV.png",bbox_inches='tight')
 
 
-
-
-    def doCRVScan(self, channel, ax1, ax2, name=''):  ## don't really know how best to do this ... to be teasted on the setup
-
-
-        self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
-
-        ## Check settings
+    def createHeader(self):
+        # CV
         lim_vol  = self.keithley2410.check_voltage_limit()
         lim_cur  = self.keithley2410.check_current_limit()
         lcr_vol  = float(self.lcr_meter.check_voltage())
         lcr_freq = float(self.lcr_meter.check_frequency())
 
-        ## Header
-        hd = [
-            'Single CRV\n',
-            'Power Supply voltage limit:      %8.2E V' % lim_vol,
-            'Power Supply current limit:      %8.2E A' % float(lim_cur),
-            'LCR measurement voltage:         %8.2E V' % lcr_vol,
-            'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
-            '\n\n',
-            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
-        ]
-
-        ## Print Info
-        for line in hd[1:-2]:
-            self.logging.info(line)
-        self.logging.info("\t")
-        self.logging.info("\t")
-        self.logging.info(hd[-1])
-        self.logging.info("-" * int(1.2 * len(hd[-1])))
-
-        ## Prepare
-        out = []
-
-        ## for plotting
-        tmp_id_title = 'CRV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p',' +').replace('_',' ')
-        tmp_id_y_1C2     = r'$\frac{1}{C^2}$'
-        tmp_id_y_R     = r'$R$'
-        tmp_id_y_C     = r'$C$'
-        color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
-        tmp_x, tmp_y = [], []
-        tmp_y2 = []
-        tmp_y3 = []
-        line0 = []
-        line1 = []
-        line2 = []
-
-        c_baseline = 0. ## this will be the baseline of the first 10 voltages
-        rolling_avg = []
-
-        try:
-
-            ## Loop over voltages
-            for iv, v in enumerate(self.volt_list_cv):
-                self.keithley2410.ramp_voltage(v)
-                time.sleep(self.delay_vol_cv)
-
-                cur_tot = self.keithley2410.read_current()
-                vol = self.keithley2410.read_voltage()
-
-                measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
-                means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
-
-                r, x = means
-                dr, dx = errs
-
-                z = np.sqrt(r**2 + x**2)
-                phi = np.arctan(x/r)
-                r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
-                r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
-
-                line = [v, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
-                out.append(line)
-                #self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
-                self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
-
-                tmp_x.append(v)
-                tmp_y.append(1/abs(c_s)**2)
-                tmp_y2.append(r)
-                tmp_y3.append(c_p)
-
-                ## update the live plotting
-                #line0 = live_plotter(tmp_x, tmp_y, ax1, line0, identifier=r"$1/C^2$ curve", yaxis_title=tmp_id_y_1C2, color=color)
-                line1 = live_plotter(tmp_x, tmp_y2, ax2, line1, identifier="Resistance", yaxis_title=tmp_id_y_R, color=color)
-                line2 = live_plotter(tmp_x, tmp_y3, ax1, line2, identifier="C-V curve", yaxis_title=tmp_id_y_C, color=color)
-
-
-
-                
-
-        except BaseException as e: #KeyboardInterrupt:
-            self.logging.info('EXCEPTION RAISED:', e)
-            self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
-            self.logging.error(e)
-            pass
-
-        ## Save and print
-        fname_out = '_'.join(['cv', self.id, name]) + '.dat'
-        self.logging.info("\n")
-        self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
-
-        return out
-
-
-## end of CV scan
-
-    def doIVScan(self, channel, ax, name=''):
-
-        self.switch.close_channel(channel)
-
-        self.keithley2410.set_output_on()
-        self.keithley2410_ramp.set_output_on()
-        #self.keithley2410_gcddiode.set_output_on()
-
-        ## Check settings
+        # IV
         ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
         ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
-
-        ## Check settings
         ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
         ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
 
         ## Header
         hd = [
-            'Single IV\n',
+            '\n\n',
+            'CV Sweep\n',
+            'Measurement Settings:',
+            'Power Supply voltage limit:      %8.2E V' % lim_vol,
+            'Power Supply current limit:      %8.2E A' % float(lim_cur),
+            'LCR measurement voltage:         %8.2E V' % lcr_vol,
+            'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
+            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
+            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]',
+            '\n\n',
+            'IV Sweep\n',
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
-            '\n\n',
-            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
+            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t',
+            '\n\n'
         ]
 
-        ## Print Info
-        for line in hd[1:-2]:
-            self.logging.info(line)
-        self.logging.info("\t")
-        self.logging.info("\t")
-        self.logging.info(hd[-1])
-        self.logging.info("-" * int(1.2 * len(hd[-1])))
+        return(hd)
 
-        ## Prepare
-        out = []
 
-        ## for plotting
-        tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
-        tmp_id_y     = 'current'
-        color = 'g'
-        tmp_x, tmp_y = [], []
-        line0 = []
 
-        ## bias the ke6487 to -10 V
+
+    def doCRVScan(self, biasV, channel):  ## don't really know how best to do this ... to be teasted on the setup
+
+        self.switch.close_channel(channel)
+        self.keithley2410.set_output_on()
+        self.keithley2410.ramp_up(biasV)
+        time.sleep(self.delay_vol_cv)
+
+        cur_tot = self.keithley2410.read_current()
+        vol = self.keithley2410.read_voltage()
+
+        measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
+        means = np.mean(measurements, axis=0)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+
+        r, x = means
+        dr, dx = errs
+
+        z = np.sqrt(r**2 + x**2)
+        phi = np.arctan(x/r)
+        r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
+        r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+
+        line = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
         
-        ## now new!! self.keithley6487.ramp_voltage(-1*self.gcd_diode_bias)
-        ## now new!! time.sleep(self.delay_vol_iv)
-        #self.keithley2410_gcddiode.ramp_voltage(1*self.gcd_diode_bias)
+        self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
+        return (line)
+        ## end of CV scan
 
 
+
+
+
+
+    def setupIVScan(self, biasV, channel):
+
+        self.switch.close_channel(channel)
+        self.keithley2410.set_output_on()
+        self.keithley2410_ramp.set_output_on()
+        self.keithley2410.ramp_up(biasV)
+
+        time.sleep(self.delay_initial_iv)
+        self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
+        
     
 
 
-        fname_out = '_'.join(['iv', self.id, name]) + '.dat'
-
-        try:
-            self.keithley2410.ramp_up(self.biasV)
-            time.sleep(30)
-            ## Loop over voltages
-            for iv,v in enumerate(self.volt_list_iv):
-                #if v < cutOffVoltage:
-                    #break
-
-                self.keithley2410_ramp.ramp_voltage(v)
-                if iv == 0:
-                    time.sleep(30-self.delay_vol_iv)
-                time.sleep(self.delay_vol_iv)
-
-                cur_tot = self.keithley2410_ramp.read_current()
-                vol = self.keithley2410_ramp.read_voltage()
-
-                measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
-                means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
-
-                i = means
-                di = errs
-
-                #if i < minCurrent:
-                    #minCurrent = i
-
-                line = [v, vol, i, di, cur_tot]
-                out.append(line)
-                self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
-
-                tmp_x.append(v)
-                tmp_y.append(means)
 
 
-                ## update the live plotting
-                line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
-                if i > self.lim_cur_ke6487:
-                    self.logging.info('reached compliance in the keithley6487')
-                    self.reset_power_supplies()
-                    break
+
+    def doIVScan(self, biasV, measV):
+        self.keithley2410_ramp.ramp_voltage(measV)
+        if measV == 0:
+            time.sleep(self.delay_initial_iv-self.delay_vol_iv)
+        time.sleep(self.delay_vol_iv)
+
+        cur_tot = self.keithley2410_ramp.read_current()
+        vol = self.keithley2410_ramp.read_voltage()
+
+        measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
+        means = np.mean(measurements, axis=0)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
 
 
-        except BaseException as e: #KeyboardInterrupt:
-            self.logging.info('EXCEPTION RAISED:', e)
-            self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
-            self.logging.error(e)
-            pass
+        line = [biasV, vol, means, errs, cur_tot]
+        self.logging.info("{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
-        #self.reset_power_supplies() 
-
-        ## Save and print
-        self.logging.info("\n")
-        self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
+        if means > self.lim_cur_ke6487:
+            self.logging.info('reached compliance in the keithley6487')
+            raise Exception("Reached compliance in the keithley6487")
         
-        return out
+        return(line)
+
+
+    def retrieveR(self, V, I):
+
+        # That 3 is making linear regression from 3V to 5V
+        index_3V = min(range(len(V)), key=lambda i: abs(V[i]-3))
+        G, Iq = np.polyfit(V[index_3V:], I[index_3V:], 1)
+        return (1/G, Iq)
+        
 
 
     def execute(self):
@@ -573,54 +471,142 @@ class testMD_fullStrip(measurement):
         ## =========================================
         self.reset_power_supplies()
         self.reset_switch()
+        
 
-        fig, ax0, ax1,ax2 = init_liveplot()
- 
+        # Create files
+        name = "Test_name"
+        fname_out_CV = '_'.join(['cv', self.id, name]) + '.dat'
+        fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
+        fname_out_RV = '_'.join(['rv', self.id, name]) + '.dat'
+
+
+        # Create plots
+        fig, ax0, ax1, ax2, ax3 = init_liveplot()
         plots = {}
 
-        ## starting the measurements
-        plots_cv_moshalf = self.doCRVScan(1, ax0, ax1, name='MOShalf')
-        plots["cv_moshalf"] = plots_cv_moshalf
-        self.reset_power_supplies()
-        self.reset_switch()
 
-        plots_iv_gcd = self.doIVScan(3, ax2, name='GCD')
-        plots["iv_gcd"] = plots_iv_gcd
-        
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
+        # CV stuff
 
-        
-        
-        """
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
-        
-        plots_cv_mos2000 =self.doCVScan(3, ax1, name='MOS2000')
-        plots["cv_mos2000"] = plots_cv_mos2000
-        
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
-        
-        plots_iv_gcd = self.doIVScan(9, ax2, name='GCD')
-        plots["iv_gcd"] = plots_iv_gcd
-        
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
+        #tmp_id_title = 'CRV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p',' +').replace('_',' ')
+        #tmp_id_y_1C2     = r'$\frac{1}{C^2}$'
+        tmp_id_y_R     = r'$R$'
+        tmp_id_y_C     = r'$C$'
+        color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
 
-        #except BaseException as e:
-        #print('EXCEPTION RAISED:', e)
-        #self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
-        #self.logging.error(e)
-        """
+
+        # IV stuff
+
+        tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
+        tmp_id_y     = 'current'
+        color = 'g'
+
+        biasVs = []
+        Rs_LCR = []
+        Cs_LCR = []
+        Vs_amp = []
+        Is_amp = []
+
+        line0 = []
+        line1 = []
+        line2 = []
+        line3 = []
+
+        outCV = []
+        outRV = []
+        outIV_oneBias = []
+
+
+        ## Print header
+        hd = self.createHeader()
+        for line in hd:
+            self.logging.info(line)
         
+
+        try:
+
+            for v in self.volt_list_bias:
+                
+                self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")    
+
+                lineCV = self.doCRVScan(v, 1)
+                outCV.append(lineCV)
+                # Recall that lineCV = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                biasVs.append(lineCV[0])
+                Rs_LCR.append(lineCV[3])
+                Cs_LCR.append(lineCV[8])                
+                line0 = live_plotter(biasVs, Rs_LCR, ax0, line0, identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
+                line1 = live_plotter(biasVs, Cs_LCR, ax1, line1, identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
+                
+
+                self.reset_switch()
+                
+                self.setupIVScan(v, 3)  #, 9)
+
+                line3 = []
+                Vs_amp = []
+                Is_amp = []
+
+                for measV in self.volt_list_iv:
+                    lineIV = self.doIVScan(v, measV)
+                    outIV_oneBias.append(lineIV)
+                    # Recall that lineIV = [biasV, vol, means, errs, cur_tot]
+                    Vs_amp.append(lineIV[1])
+                    Is_amp.append(lineIV[2])
+                    line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
+                
+                fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
+                self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hd))
+
+                [Rs_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
+                outRV.append(Rs_amp)
+                line2 = live_plotter(biasVs, outRV, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
+        
+        except BaseException as e: #KeyboardInterrupt:
+            self.logging.info('EXCEPTION RAISED:', e)
+            self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
+            self.logging.error(e)
+            pass
+        
+
+        ## Close connections
+        self.reset_power_supplies()
+        self.reset_switch()
+        
+        ## Save
+        #TODO program ths so that is saves the plots in the right directory 
+        plots["CV_LCR"] = outCV 
+        plots["IV_Amp"] = outRV
         self.savePlots(plots)
+
+        self.save_list(outCV, fname_out_CV, fmt="%.5E", header="\n".join(hd))
+        self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hd))
+        
 
 
     def finalise(self):
         self._finalise()
+
+
+
+
+
+
+
+
+
+    '''
+    def save_list(self, out, fn="out.dat", info="Saving output to file %s", fmt="%d", header='# Header'):
+        np.savetxt('%s/%s' % (self.rdir, fn), np.array(out), fmt, delimiter='\t',  header=header)
+        self.logging.info(info % self.rdir+'/'+fn)
+        return 0
+    '''
+
+    '''
+        for line in hd[1:-2]:
+            self.logging.info(line)
+        self.logging.info("\t")
+        self.logging.info("\t")
+        self.logging.info(hd[-1])
+        self.logging.info("-" * int(1.2 * len(hd[-1])))
+    '''
 
