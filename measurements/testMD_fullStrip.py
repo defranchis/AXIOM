@@ -140,7 +140,7 @@ class testMD_fullStrip(measurement):
 
 
         self.lim_cur_ke2410 = 1E-5          # compliance in [A]
-        self.lim_cur_ke6487 = 5E-8          # compliance in [A] for the GCD, this should be 10 nA
+        self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
         self.lim_vol = 10                   # compliance in [V]
 
         '''
@@ -151,17 +151,17 @@ class testMD_fullStrip(measurement):
         '''
         
         self.Vmin_iv = 0
-        self.Vmax_iv = 5
-        self.Vstep_iv = 0.1
+        self.Vmax_iv = 10
+        self.Vstep_iv = 1
         self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         
-        self.Vmin_bias = -25
-        self.Vmax_bias = -400
-        self.Vstep_bias = -25
+        self.Vmin_bias = -100
+        self.Vmax_bias = -1000
+        self.Vstep_bias = -100
         self.volt_list_bias = np.arange(self.Vmin_bias, self.Vmax_bias + self.Vstep_bias, self.Vstep_bias)
 
         self.nSampling_CV =  10
-        self.nSampling_IV = 5 # TODO change to original 30s
+        self.nSampling_IV = 30 # TODO change to original 30s
 
         #self.biasV = -200
 
@@ -169,7 +169,7 @@ class testMD_fullStrip(measurement):
         self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
         self.delay_vol_iv = 10     # delay between setting voltage and executing measurement in [s]
 
-        self.delay_initial_iv = 5  # TODO change to original 30s
+        self.delay_initial_iv = 30  # TODO change to original 30s
 
         ## initialize the devices
 
@@ -246,7 +246,14 @@ class testMD_fullStrip(measurement):
         self.switch.reset(1)
         self.switch.get_idn()
         self.switch.open_all()
- 
+    
+    def saveSinglePlot(self, fig, ax, name):
+        extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        #fig.savefig(name, bbox_inches=extent)
+        fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
+        return 0
+    
+
     def savePlots(self, dic):
         ### Save and print
         for name,val in dic.items():
@@ -318,8 +325,8 @@ class testMD_fullStrip(measurement):
 
         fig, ax10 = subplots(1, 1, figsize=(15, 10))  #subplots(1, 2, figsize=(15, 10))
 
-        fig.suptitle("IV Measurement for interstrip", fontsize=24)
-
+        fig.suptitle("Measurement for interstrip properties", fontsize=24)
+        fig.tight_layout()
 
         ax10.plot(v,i)
         ax10.plot(v,i,'x')
@@ -355,8 +362,7 @@ class testMD_fullStrip(measurement):
         ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
 
         ## Header
-        hd = [
-            '\n\n',
+        hdCV = [
             'CV Sweep\n',
             'Measurement Settings:',
             'Power Supply voltage limit:      %8.2E V' % lim_vol,
@@ -364,8 +370,10 @@ class testMD_fullStrip(measurement):
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
             'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
-            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]',
-            '\n\n',
+            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
+        ]
+
+        hdIV = [
             'IV Sweep\n',
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
@@ -373,11 +381,21 @@ class testMD_fullStrip(measurement):
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
-            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t',
-            '\n\n'
+            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
 
-        return(hd)
+        hdRV = [
+            'RV Sweep\n',
+            'Measurement Settings:',
+            'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
+            'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
+            'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
+            'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
+            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
+        ]
+
+        return(hdCV, hdIV, hdRV)
 
 
 
@@ -413,22 +431,17 @@ class testMD_fullStrip(measurement):
 
 
 
-
-
-
     def setupIVScan(self, biasV, channel):
 
         self.switch.close_channel(channel)
         self.keithley2410.set_output_on()
         self.keithley2410_ramp.set_output_on()
         self.keithley2410.ramp_up(biasV)
+        self.keithley2410_ramp.ramp_voltage(0)
 
         time.sleep(self.delay_initial_iv)
         self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
         
-    
-
-
 
 
 
@@ -517,8 +530,8 @@ class testMD_fullStrip(measurement):
 
 
         ## Print header
-        hd = self.createHeader()
-        for line in hd:
+        [hdCV, hdIV, hdRV] = self.createHeader()
+        for line in hdCV:
             self.logging.info(line)
         
 
@@ -545,6 +558,7 @@ class testMD_fullStrip(measurement):
                 line3 = []
                 Vs_amp = []
                 Is_amp = []
+                Rs_amp = []
 
                 for measV in self.volt_list_iv:
                     lineIV = self.doIVScan(v, measV)
@@ -554,18 +568,28 @@ class testMD_fullStrip(measurement):
                     Is_amp.append(lineIV[2])
                     line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
                 
+                
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
-                self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hd))
+                self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
+                self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
 
-                [Rs_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
-                outRV.append(Rs_amp)
-                line2 = live_plotter(biasVs, outRV, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
+                [R_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
+                outRV.append([biasVs, R_amp])
+                Rs_amp.append(R_amp)
+                line2 = live_plotter(biasVs, Rs_amp, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
         
         except BaseException as e: #KeyboardInterrupt:
             self.logging.info('EXCEPTION RAISED:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
             pass
+
+
+        # Save plots
+
+        self.saveSinglePlot(fig, ax1,"cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax0,"rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
         
 
         ## Close connections
@@ -573,13 +597,16 @@ class testMD_fullStrip(measurement):
         self.reset_switch()
         
         ## Save
+        '''
         #TODO program ths so that is saves the plots in the right directory 
         plots["CV_LCR"] = outCV 
         plots["IV_Amp"] = outRV
         self.savePlots(plots)
+        '''
 
-        self.save_list(outCV, fname_out_CV, fmt="%.5E", header="\n".join(hd))
-        self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hd))
+        self.save_list(outCV, fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
+        print(Rs_amp)
+        #self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
         
 
 
