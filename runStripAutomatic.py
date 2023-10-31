@@ -12,8 +12,8 @@ try:
     for istep, step in enumerate(irradiationSteps[:-1]):
 
         ## this will run the pre-irradiation measurements
-        if not istep and not step:
-            subprocess.run(['python', '.\main.py', 'Strip_{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd], check=True)
+        # if not istep and not step:
+        #     subprocess.run(['python', '.\main.py', 'Strip_{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd], check=True)
     
         targetDose = irradiationSteps[istep+1]
         ## then first run the obelix irradiation step, followed by the measurements
