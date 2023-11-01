@@ -37,7 +37,7 @@ class ke2410(device):
 
     def reset(self, debug=0):
         if debug == 1:
-            self.logging.info("Reseting device.""")
+            self.logging.info("Reseting device.")
         self.ctrl.write("*RST")
         return 0
 
