@@ -155,16 +155,18 @@ class testMD_fullStrip(measurement):
         self.Vstep_iv = 1
         self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         
-        self.Vmin_bias = -100
-        self.Vmax_bias = -1000
-        self.Vstep_bias = -100
-        self.volt_list_bias = np.arange(self.Vmin_bias, self.Vmax_bias + self.Vstep_bias, self.Vstep_bias)
+        self.Vmin_bias_CV = -100
+        self.Vmax_bias_CV = -1000
+        self.Vstep_bias_CV = -25
+        self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
+
+        self.Vmin_bias_IV = -100
+        self.Vmax_bias_IV = -1000
+        self.Vstep_bias_IV = -50
+        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV)
 
         self.nSampling_CV =  10
         self.nSampling_IV = 30 # TODO change to original 30s
-
-        #self.biasV = -200
-
 
         self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
         self.delay_vol_iv = 10     # delay between setting voltage and executing measurement in [s]
@@ -204,6 +206,7 @@ class testMD_fullStrip(measurement):
         self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
         self.keithley2410_ramp.set_voltage(0)
         self.keithley2410_ramp.set_terminal('rear')
+        time.sleep(3)
         # MARC keithley2410.set_interlock_on()
         self.keithley2410_ramp.set_output_off()
         time.sleep(1)
@@ -217,6 +220,7 @@ class testMD_fullStrip(measurement):
         self.keithley2410.set_current_limit(self.lim_cur_ke2410)
         self.keithley2410.set_voltage(0)
         self.keithley2410.set_terminal('rear')
+        time.sleep(3)
         # MARC keithley2410.set_interlock_on()
         self.keithley2410.set_output_off()
         time.sleep(1)
@@ -401,11 +405,13 @@ class testMD_fullStrip(measurement):
 
 
 
-    def doCRVScan(self, biasV, channel):  ## don't really know how best to do this ... to be teasted on the setup
+    def CRVpoint(self, biasV, channel):  ## don't really know how best to do this ... to be teasted on the setup
 
         self.switch.close_channel(channel)
         self.keithley2410.set_output_on()
         self.keithley2410.ramp_up(biasV)
+        self.keithley2410_ramp.set_output_on()
+        self.keithley2410_ramp.ramp_up(0)
         time.sleep(self.delay_vol_cv)
 
         cur_tot = self.keithley2410.read_current()
@@ -423,7 +429,7 @@ class testMD_fullStrip(measurement):
         r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
 
-        line = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
+        line = [biasV, vol, self.lcr_freq, r_p, dr, x, dx, c_s, c_p, cur_tot]
         
         self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
@@ -432,21 +438,9 @@ class testMD_fullStrip(measurement):
 
 
 
-    def setupIVScan(self, biasV, channel):
-
-        self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
-        self.keithley2410_ramp.set_output_on()
-        self.keithley2410.ramp_up(biasV)
-        self.keithley2410_ramp.ramp_voltage(0)
-
-        time.sleep(self.delay_initial_iv)
-        self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
-        
 
 
-
-    def doIVScan(self, biasV, measV):
+    def IVpoint(self, biasV, measV):
         self.keithley2410_ramp.ramp_voltage(measV)
         if measV == 0:
             time.sleep(self.delay_initial_iv-self.delay_vol_iv)
@@ -479,70 +473,36 @@ class testMD_fullStrip(measurement):
         
 
 
-    def execute(self):
 
-        ## reset all the stuff first
-        ## =========================================
-        self.reset_power_supplies()
-        self.reset_switch()
-        
 
-        # Create files
-        name = "Test_name"
+
+
+    def CVscan(self, name, fig, ax0, ax1, hdCV):
+
+        self.logging.info('\n\nSTARTING CV SCAN...\n\n')
         fname_out_CV = '_'.join(['cv', self.id, name]) + '.dat'
-        fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
-        fname_out_RV = '_'.join(['rv', self.id, name]) + '.dat'
-
-
-        # Create plots
-        fig, ax0, ax1, ax2, ax3 = init_liveplot()
-        plots = {}
-
-
-        # CV stuff
-
-        #tmp_id_title = 'CRV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p',' +').replace('_',' ')
-        #tmp_id_y_1C2     = r'$\frac{1}{C^2}$'
-        tmp_id_y_R     = r'$R$'
-        tmp_id_y_C     = r'$C$'
-        color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
-
-
-        # IV stuff
-
-        tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
-        tmp_id_y     = 'current'
-        color = 'g'
-
         biasVs = []
         Rs_LCR = []
         Cs_LCR = []
-        Vs_amp = []
-        Is_amp = []
-
         line0 = []
         line1 = []
-        line2 = []
-        line3 = []
-
         outCV = []
-        outRV = []
-        outIV_oneBias = []
+        color = 'b'
+        tmp_id_y_R     = r'$R$'
+        tmp_id_y_C     = r'$C$'
 
 
-        ## Print header
-        [hdCV, hdIV, hdRV] = self.createHeader()
-        for line in hdCV:
-            self.logging.info(line)
-        
+        self.reset_power_supplies()
+        self.reset_switch()
 
-        try:
 
-            for v in self.volt_list_bias:
+         # Do CV Scan
+        try:            
+            self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")    
                 
-                self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")    
-
-                lineCV = self.doCRVScan(v, 1)
+            for v in self.volt_list_bias_CV:
+                
+                lineCV = self.CRVpoint(v, 1)
                 outCV.append(lineCV)
                 # Recall that lineCV = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
                 biasVs.append(lineCV[0])
@@ -550,93 +510,124 @@ class testMD_fullStrip(measurement):
                 Cs_LCR.append(lineCV[8])                
                 line0 = live_plotter(biasVs, Rs_LCR, ax0, line0, identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
                 line1 = live_plotter(biasVs, Cs_LCR, ax1, line1, identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
-                
 
-                self.reset_switch()
+        except BaseException as e: #KeyboardInterrupt:
+            self.logging.info('EXCEPTION RAISED IN CV SCAN:', e)
+            self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
+            self.logging.error(e)
+            pass
+
+        self.reset_power_supplies()
+        self.reset_switch()
+
+        self.saveSinglePlot(fig, ax1,"cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax0,"rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
+
+        self.save_list(outCV, fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
+
+        self.logging.info('\n\n CV SCAN FINISHED\n\n')
+
+
+
+
+    def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
+
+        self.logging.info('\n\nSTARTING IV SCAN...\n\n')
+        self.reset_power_supplies()
+        self.reset_switch()
+        fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
+        fname_out_RV = '_'.join(['rv', self.id, name]) + '.dat'
+        tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
+        tmp_id_y_R     = r'$R$'
+        tmp_id_y     = 'current'
+
+        biasVs = []
+        line2 = []
+        outRV = []
+        Rs_amp = []
+        
+
+        try:
+            # Do IV Scan
+            self.switch.close_channel(3)
+            self.keithley2410.set_output_on()
+            self.keithley2410_ramp.set_output_on()
+            self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
+            
+            
+
+            for v in self.volt_list_bias_IV:
                 
-                self.setupIVScan(v, 3)  #, 9)
+                self.keithley2410.ramp_up(v)
+                self.keithley2410_ramp.ramp_voltage(0)
+                time.sleep(self.delay_initial_iv)
 
                 line3 = []
                 Vs_amp = []
                 Is_amp = []
-                Rs_amp = []
+                outIV_oneBias = []
+                
 
                 for measV in self.volt_list_iv:
-                    lineIV = self.doIVScan(v, measV)
+                    lineIV = self.IVpoint(v, measV)
                     outIV_oneBias.append(lineIV)
                     # Recall that lineIV = [biasV, vol, means, errs, cur_tot]
                     Vs_amp.append(lineIV[1])
                     Is_amp.append(lineIV[2])
                     line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
-                
-                
+            
                 self.keithley2410_ramp.ramp_down_slow()
                 time.sleep(self.delay_vol_iv)
+                biasVs.append(v)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
                 self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
                 self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
 
                 [R_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
-                outRV.append([biasVs, R_amp])
+                outRV.append([v, R_amp])
                 Rs_amp.append(R_amp)
+            
                 line2 = live_plotter(biasVs, Rs_amp, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
         
         except BaseException as e: #KeyboardInterrupt:
-            self.logging.info('EXCEPTION RAISED:', e)
+            self.logging.info('EXCEPTION RAISED IN IV SCAN:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
             pass
 
-
-        # Save plots
-
-        self.saveSinglePlot(fig, ax1,"cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax0,"rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
-        
-
-        ## Close connections
         self.reset_power_supplies()
         self.reset_switch()
         
         ## Save
-        '''
-        #TODO program ths so that is saves the plots in the right directory 
-        plots["CV_LCR"] = outCV 
-        plots["IV_Amp"] = outRV
-        self.savePlots(plots)
-        '''
+        self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
+        self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
 
-        self.save_list(outCV, fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
-        print(Rs_amp)
-        #self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
+        self.logging.info('\n\n IV SCAN FINISHED\n\n')
+
+
+
+
+
+
+
+
+
+    def execute(self):
+
+        # Name of files
+        name = "Test_name"
+
+        # Create plots
+        fig, ax0, ax1, ax2, ax3 = init_liveplot()
+
+        ## Print header
+        [hdCV, hdIV, hdRV] = self.createHeader()
+        for line in hdCV:
+            self.logging.info(line)
+
+        self.CVscan(name, fig, ax0, ax1, hdCV)
+        self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
-
 
     def finalise(self):
         self._finalise()
-
-
-
-
-
-
-
-
-
-    '''
-    def save_list(self, out, fn="out.dat", info="Saving output to file %s", fmt="%d", header='# Header'):
-        np.savetxt('%s/%s' % (self.rdir, fn), np.array(out), fmt, delimiter='\t',  header=header)
-        self.logging.info(info % self.rdir+'/'+fn)
-        return 0
-    '''
-
-    '''
-        for line in hd[1:-2]:
-            self.logging.info(line)
-        self.logging.info("\t")
-        self.logging.info("\t")
-        self.logging.info(hd[-1])
-        self.logging.info("-" * int(1.2 * len(hd[-1])))
-    '''
-
