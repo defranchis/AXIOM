@@ -209,7 +209,7 @@ class testMD_fullStrip(measurement):
         time.sleep(1)
         
 
-        self.keithley2410_ramp.ramp_down()
+        self.keithley2410_ramp.ramp_down_slow()
         self.keithley2410_ramp.set_output_off()
         self.keithley2410_ramp.reset()
         self.keithley2410_ramp.set_source('voltage')
@@ -569,6 +569,8 @@ class testMD_fullStrip(measurement):
                     line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
                 
                 
+                self.keithley2410_ramp.ramp_down_slow()
+                time.sleep(self.delay_vol_iv)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
                 self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
                 self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))

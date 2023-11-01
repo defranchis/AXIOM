@@ -164,6 +164,26 @@ class ke2410(device):
         self.ctrl.write(":SOUR:VOLT 0")
         return 0
 
+
+    def ramp_down_slow(self, debug=0):
+        if debug == 1:
+            self.logging.info("Ramping down to 0.00 V. in 3 seconds")
+        time.sleep(3)
+        now = int(round(self.read_voltage()))
+
+
+        for v in range(now, 0, -1 if now > 0 else 1):
+            sys.stdout.write('ramping down to 0 V, currently at {b:4.1f}\r'.format(b=v))
+            sys.stdout.flush()
+            #print('ramping down to 0 V, currently at {b:4.1f}'.format(b=now))
+            self.ctrl.write(":SOUR:VOLT %f" % v)
+            time.sleep(5)
+            if debug == 1:
+                print(self.read_voltage())
+
+        self.ctrl.write(":SOUR:VOLT 0")
+        return 0
+
     def ramp_up(self, val, debug=0):
         if debug == 1:
             self.logging.info("Ramping up to %.2f V." % val)
