@@ -155,12 +155,12 @@ class testMD_fullStrip(measurement):
         self.Vstep_iv = 1
         self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         
-        self.Vmin_bias_CV = -100
+        self.Vmin_bias_CV = -50
         self.Vmax_bias_CV = -1000
-        self.Vstep_bias_CV = -25
+        self.Vstep_bias_CV = -50
         self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
 
-        self.Vmin_bias_IV = -100
+        self.Vmin_bias_IV = -50
         self.Vmax_bias_IV = -1000
         self.Vstep_bias_IV = -50
         self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV)
@@ -443,8 +443,8 @@ class testMD_fullStrip(measurement):
     def IVpoint(self, biasV, measV):
         self.keithley2410_ramp.ramp_voltage(measV)
         if measV == 0:
-            time.sleep(self.delay_initial_iv-self.delay_vol_iv)
-        time.sleep(self.delay_vol_iv)
+            time.sleep(self.delay_initial_iv)
+        else: time.sleep(self.delay_vol_iv)
 
         cur_tot = self.keithley2410_ramp.read_current()
         vol = self.keithley2410_ramp.read_voltage()
