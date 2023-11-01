@@ -196,6 +196,19 @@ class testMD_fullStrip(measurement):
 
         ## Reset power supply for CV measurement
 
+        self.keithley2410_ramp.ramp_down_slow()
+        self.keithley2410_ramp.set_output_off()
+        self.keithley2410_ramp.reset()
+        self.keithley2410_ramp.set_source('voltage')
+        self.keithley2410_ramp.set_sense('current')
+        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
+        self.keithley2410_ramp.set_voltage(0)
+        self.keithley2410_ramp.set_terminal('rear')
+        # MARC keithley2410.set_interlock_on()
+        self.keithley2410_ramp.set_output_off()
+        time.sleep(1)
+
+
         self.keithley2410.ramp_down()
         self.keithley2410.set_output_off()
         self.keithley2410.reset()
@@ -208,18 +221,6 @@ class testMD_fullStrip(measurement):
         self.keithley2410.set_output_off()
         time.sleep(1)
         
-
-        self.keithley2410_ramp.ramp_down_slow()
-        self.keithley2410_ramp.set_output_off()
-        self.keithley2410_ramp.reset()
-        self.keithley2410_ramp.set_source('voltage')
-        self.keithley2410_ramp.set_sense('current')
-        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_ramp.set_voltage(0)
-        self.keithley2410_ramp.set_terminal('rear')
-        # MARC keithley2410.set_interlock_on()
-        self.keithley2410_ramp.set_output_off()
-        time.sleep(1)
 
         ## Reset power supply of the second keithley which biases the gcd diode
         #self.keithley2410_gcddiode.ramp_voltage(0)
