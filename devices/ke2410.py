@@ -162,6 +162,7 @@ class ke2410(device):
                 print(self.read_voltage())
 
         self.ctrl.write(":SOUR:VOLT 0")
+        time.sleep(3)
         return 0
 
 
@@ -182,6 +183,7 @@ class ke2410(device):
                 print(self.read_voltage())
 
         self.ctrl.write(":SOUR:VOLT 0")
+        time.sleep(5)
         return 0
 
     def ramp_up(self, val, debug=0):
