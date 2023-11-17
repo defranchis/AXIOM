@@ -2,9 +2,9 @@ import subprocess, signal
 import time, datetime
 
 ## change the sensorName before starting anything!
-sensorName = '413'
+sensorName = '419'
 
-irradiationSteps = [0, 1, 2, 5, 10, 20, 40, 70, 100, 200]
+irradiationSteps = [0,15,30,70,100,200]
 
 cmd = 'testMD_fullStrip'
 
@@ -12,8 +12,8 @@ try:
     for istep, step in enumerate(irradiationSteps[:-1]):
 
         ## this will run the pre-irradiation measurements
-        # if not istep and not step:
-        #     subprocess.run(['python', '.\main.py', 'Strip_{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd], check=True)
+        # istep and not step:
+        #    subprocess.run(['python', '.\main.py', 'Strip_{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd], check=True)
     
         targetDose = irradiationSteps[istep+1]
         ## then first run the obelix irradiation step, followed by the measurements
