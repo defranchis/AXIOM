@@ -163,7 +163,7 @@ class testMD_fullStrip(measurement):
         self.Vmin_bias_IV = -200
         self.Vmax_bias_IV = -900
         self.Vstep_bias_IV = -100
-        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350,-500])
+        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
         
         #self.volt_list_bias_IV = [-350]
 
