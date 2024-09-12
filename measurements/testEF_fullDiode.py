@@ -93,7 +93,7 @@ class testMD_fullStrip(measurement):
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running 2 CV scans :)")
+        self.logging.info("Running 3 CV scans :)")
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -118,12 +118,15 @@ class testMD_fullStrip(measurement):
         #self.lim_vol = 10                   # compliance in [V]
 
         v_min = -20
-        v_max = -120
-        step = -2
+        v_max = -900
+        step = -10
         self.volt_list_CV = [round(v,1) for v in np.arange(v_min, v_max + step, step)]
+        #self.volt_list_CV = np.zeros(100) #TO REMOVE
 
         self.nSampling_CV = 10
-        self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
+        self.delay_vol_cv = 5    # delay between setting voltage and executing measurement in [s]
+        #self.delay_vol_cv = 0 # TO REMOVE
+
 
         ## initialize the devices
 
@@ -231,7 +234,7 @@ class testMD_fullStrip(measurement):
         r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
 
-        line = [biasV, vol, self.lcr_freq, r_p, dr, x, dx, c_s, c_p, cur_tot]
+        line = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
         
         self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
