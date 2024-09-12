@@ -8,3 +8,7 @@ analysis/*
 data/*
 logs/*
 misc/*
+plotter/plots
+temperatureLogs
+tempteratureControl/old_temperatureLogs
+logs_annealing/output
