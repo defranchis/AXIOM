@@ -153,17 +153,22 @@ class testMD_fullStrip(measurement):
         self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
 
-        
-        self.Vmin_bias_CV = -100
-        self.Vmax_bias_CV = -900
+        '''
+        self.Vmin_bias_CV = -50  if '120um' in self.id else -100
+        self.Vmax_bias_CV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
         self.Vstep_bias_CV = -50
         self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
-
+        '''
+        self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
-        self.Vmin_bias_IV = -200
-        self.Vmax_bias_IV = -900
-        self.Vstep_bias_IV = -100
+        '''
+        self.Vmin_bias_IV = -100 if '120um' in self.id else -200
+        self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+        self.Vstep_bias_IV = -50 if '120um' in self.id else -100
         self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
+        '''
+        
+        self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
         #self.volt_list_bias_IV = [-350]
 
