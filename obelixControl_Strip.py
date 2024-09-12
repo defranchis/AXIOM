@@ -6,6 +6,7 @@ from time import gmtime, strftime
 import re
 from obelixWarnings import generalWarnings
 
+dose_rate_factor = 1.
 
 def convertkGyToTime(nkGy):
     ## the dose rate anne is 24.26389 kGy per hour
@@ -15,12 +16,21 @@ def convertkGyToTime(nkGy):
     ## doseRate = 24.26389 ## this is at 19.6 cm
     #doseRate = 13.2465  ## this is at 24.6 cm
     ## used for N4789-12_UL doseRate = 39.1895  ## value taken on november 1st 2021
-    doseRate = 14.257  ## value taken on Aug 31st 2023
-    doseRate = doseRate ##
+    doseRate = 24.63  ## value taken on Aug 29th 2024
+    doseRate /= dose_rate_factor
+    #doseRate = 24.2638945125 ##
     nSeconds = int(3600./doseRate * nkGy)
+    
+    nminutes, seconds = divmod(nSeconds, 60)
+    nhours, nminutes = divmod(nminutes, 60)
+    return nhours, nminutes, seconds
+    '''
     hms = str(datetime.timedelta(seconds=nSeconds))
+    print(hms)
     hms = [int(i) for i in hms.split(':')]
+
     return hms[0], hms[1], hms[2]
+    '''
 
 # def getCalibratedVoltage(target):
 #     ## y = k*x +d 
@@ -421,7 +431,7 @@ if __name__ == '__main__':
         #inputVoltage = input("Enter the voltage of the tube in kV ") 
         nom_volt = setVoltage(40) #int(inputVoltage))
         #inputCurrent = input("Enter the current of the tube in mA ")
-        nom_curr = setCurrent(50) #int(inputCurrent))
+        nom_curr = setCurrent(int(50/dose_rate_factor)) #int(inputCurrent))
         validateSetTimerStringRet = None
         ##while(validateSetTimerStringRet == None):
         ##    setTimerString = input("Enter the exposure timer number, the hours, minutes and seconds (use spaces between values) ")
@@ -451,8 +461,9 @@ if __name__ == '__main__':
                 pass
             time.sleep(1)
     
-    except: #Exception as e:
+    except Exception as e:
         print('OBELIX: EXCEPTION RAISED!!!')
+        print(e)
         port.write('CS:3\r'.encode())
         port.write('HV:0\r'.encode())
         print('exiting after keyboard interrupt')
