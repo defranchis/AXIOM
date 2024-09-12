@@ -131,9 +131,9 @@ line2 = []
 line3 = []
 line4 = []
 fig = plt.figure(figsize=(10,5))
-ax = fig.add_subplot(111)
-ax2 = fig.add_subplot(111)
-ax3 = fig.add_subplot(111)
+#ax = fig.add_subplot(111)
+#ax2 = fig.add_subplot(111)
+#ax3 = fig.add_subplot(111)
 ax4 = fig.add_subplot(111)
 pt1000_connected = True
 try:
@@ -184,7 +184,7 @@ if len(sys.argv) > 1:
 
 initialTimeSec = time.time()
 today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-logfile = open('temperatureLogs/temperatureLog-{today}.dat'.format(today=today), 'w')#, buffering=1)
+logfile = open('../temperatureLogs/temperatureLog_{today}.dat'.format(today=today), 'w+')#, buffering=1)
 logfile.write('\t\t\tpt1000 - external - setpoint - internal\n')
 logfile.flush()
 while (True):
@@ -204,7 +204,7 @@ while (True):
         setpoint_temp /= 100
 
         if not i%20:
-            logfile.write('{n}:\t{pt:.2f}\t{ex:.2f}\t{sp:.2f}\t{it:.2f}\n'.format(n=now, pt=pt1000_temp,ex=external_temp,sp=setpoint_temp,it=internal_temp))
+            logfile.write('{n}\t{pt:.2f}\t{ex:.2f}\t{sp:.2f}\t{it:.2f}\n'.format(n=now, pt=pt1000_temp,ex=external_temp,sp=setpoint_temp,it=internal_temp))
             logfile.flush()
         
         
@@ -231,9 +231,9 @@ while (True):
             y3 = y3[1:]
             y4 = np.concatenate((y4,np.array([pt1000_temp])))
             y4 = y4[1:]
-        line = live_plotter(x,y,ax,line,pause_time=pause_time,title='Thermal Monitors',whichSignal='internal')
-        line2 = live_plotter(x,y2,ax2,line2,pause_time=pause_time,title='Thermal Monitors',whichSignal='external')
-        line3 = live_plotter(x,y3,ax3,line3,pause_time=pause_time,title='Thermal Monitors',whichSignal='setpoint')
+        #line = live_plotter(x,y,ax,line,pause_time=pause_time,title='Thermal Monitors',whichSignal='internal')
+        #line2 = live_plotter(x,y2,ax2,line2,pause_time=pause_time,title='Thermal Monitors',whichSignal='external')
+        #line3 = live_plotter(x,y3,ax3,line3,pause_time=pause_time,title='Thermal Monitors',whichSignal='setpoint')
         line4 = live_plotter(x,y4,ax4,line4,pause_time=pause_time,title='Thermal Monitors',whichSignal='pt_1000')
         mypause(1)
         i+=2   

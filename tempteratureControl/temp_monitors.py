@@ -116,7 +116,7 @@ from softcheck.logic import CommunicationTimeout
 from softcheck.pp_commands import PpCom
 import time
 com = Com("serial", 2.1,3)
-com.open("COM7", 9600) #open COMX with 9600 (address not defined)
+com.open("COM6", 9600) #open COMX with 9600 (address not defined)
 pp = PpCom(com)
 
 
@@ -131,10 +131,10 @@ line2 = []
 line3 = []
 line4 = []
 fig = plt.figure(figsize=(10,5))
-ax = fig.add_subplot(111)
-ax2 = fig.add_subplot(111)
-ax3 = fig.add_subplot(111)
-ax4 = fig.add_subplot(111)
+ax = fig.add_subplot(221)
+ax2 = fig.add_subplot(222)
+ax3 = fig.add_subplot(223)
+ax4 = fig.add_subplot(224)
 pt1000_connected = True
 try:
     multimeter = ke2001(16)
