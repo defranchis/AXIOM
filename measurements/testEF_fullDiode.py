@@ -43,6 +43,8 @@ from devices.hp4980 import * # switch
 
 import mpld3
 
+import yaml
+
 ## load plotting functions
 #from utils.liveplotting import *
 
@@ -72,7 +74,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
         ax.set_xlabel('bias voltage [V]')
         plt.show()
         figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
+        # figManager.window.showMaximized()
 
     line.set_xdata(x_vec)
     line.set_ydata(y_vec)
@@ -88,8 +90,17 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class testMD_fullStrip(measurement):
     """Measurement of a dummy I-V curve. """
+    
+    def __init__(self, ide, config_path):
+        super().__init__(ide)
+        self.config_path = config_path
 
     def initialise(self):
+
+        with open(self.config_path, 'r') as file:
+            config = yaml.safe_load(file)
+
+        print(config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -109,7 +120,8 @@ class testMD_fullStrip(measurement):
         #self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
         
         self.lcr_vol = 0.5 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 1e4    # ac voltage frequency in [Hz]
+        # self.lcr_freq = 1e4    # ac voltage frequency in [Hz]
+        self.lcr_freq = config['frequency']
         self.lcr_mode = 'RX'
         self.approx_open_corr = 50e-12
 
@@ -117,15 +129,30 @@ class testMD_fullStrip(measurement):
         self.lim_cur_ke2410 = 1E-4          # compliance in [A]
         #self.lim_vol = 10                   # compliance in [V]
 
-        v_min = -20
-        v_max = -900
-        step = -10
-        self.volt_list_CV = [round(v,1) for v in np.arange(v_min, v_max + step, step)]
-        #self.volt_list_CV = np.zeros(100) #TO REMOVE
+        voltage_config = config['voltage_settings']
+        open_short_correction = voltage_config.get('open_short_correction', False)
 
-        self.nSampling_CV = 10
-        self.delay_vol_cv = 5    # delay between setting voltage and executing measurement in [s]
-        #self.delay_vol_cv = 0 # TO REMOVE
+        if open_short_correction:
+            correction_count = voltage_config.get('correction_count', 100)
+            self.volt_list_CV = np.zeros(correction_count)
+        else:
+            v_min = voltage_config['range']['v_min']
+            v_max = voltage_config['range']['v_max']
+            step = voltage_config['range']['step']
+            self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
+
+        # v_min = -20
+        # v_max = -900
+        # step = -10
+        # self.volt_list_CV = [round(v,1) for v in np.arange(v_min, v_max + step, step)]
+        # self.volt_list_CV = np.zeros(100) #TO REMOVE
+            
+        self.nSampling_CV = voltage_config['range'].get('nSampling', 10)
+        self.delay_vol_cv = voltage_config.get('delay', 5)
+
+        # self.nSampling_CV = 10
+        # self.delay_vol_cv = 5    # delay between setting voltage and executing measurement in [s]
+        # self.delay_vol_cv = 0 # TO REMOVE
 
 
         ## initialize the devices
