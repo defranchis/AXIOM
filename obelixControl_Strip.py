@@ -5,6 +5,8 @@ import os
 from time import gmtime, strftime
 import re
 from obelixWarnings import generalWarnings
+import yaml
+import io
 
 dose_rate_factor = 1.
 
@@ -16,7 +18,8 @@ def convertkGyToTime(nkGy):
     ## doseRate = 24.26389 ## this is at 19.6 cm
     #doseRate = 13.2465  ## this is at 24.6 cm
     ## used for N4789-12_UL doseRate = 39.1895  ## value taken on november 1st 2021
-    doseRate = 24.63  ## value taken on Aug 29th 2024
+    # doseRate = 24.63  ## value taken on Aug 29th 2024
+    doseRate = 13.12 ## value at 15cm (125mm on the tube)
     doseRate /= dose_rate_factor
     #doseRate = 24.2638945125 ##
     nSeconds = int(3600./doseRate * nkGy)
@@ -42,19 +45,19 @@ def convertkGyToTime(nkGy):
     
 
 def convertToBinary(word):
-    word = word[1:];
-    word = word[:len(word)-1];
-    binary= bin(int(word));
-    binary = binary[2:].zfill(8);            #delete 0b at the beginning of the binarySR4 string and fill with zeros
+    word = word[1:]
+    word = word[:len(word)-1]
+    binary= bin(int(word))
+    binary = binary[2:].zfill(8)           #delete 0b at the beginning of the binarySR4 string and fill with zeros
     return binary
 
 
 def statusRead4():    #status window 3 and 4
-    string = 'SR:04\r';    
+    string = 'SR:04\r'
     port.readlines()
-    port.write( string.encode() );
-    #answerSR4 = "*0000000064";
-    answerSR4 = port.readline(12);
+    port.write( string.encode() )
+    #answerSR4 = "*0000000064"
+    answerSR4 = port.readline(12)
     binarySR4 = convertToBinary(answerSR4)
     #answerSR4 = answerSR4[1:];
     #answerSR4 = answerSR4[:len(answerSR4)-1];
@@ -164,22 +167,22 @@ def testVoltage(int_voltage_kV):
 
 
 def nominalVoltage():
-    port.readlines()
-    port.write( 'VN\r'.encode() );    #Request nominal current
+    port.reset_input_buffer()
+    port.write('VN\r'.encode())    #Request nominal current
     #answerVN = "*0000032000";
-    answerVN = port.readline(12);
-    answerVN = int(answerVN[1:]);    #Delete * in the front of the answer
-    return int(answerVN/1000);
+    answerVN = port.readline(12)
+    answerVN = int(answerVN[1:])    #Delete * in the front of the answer
+    return int(answerVN/1000)
 
 
 def actualVoltage():
     port.readlines()
-    port.write( 'VA\r'.encode() );    #Request actual current
+    port.write( 'VA\r'.encode() )    #Request actual current
     #answerVA = "*0000032000";
     #print('this is readlines', port.readlines())
-    answerVA = port.readline(12);
-    answerVA = int(answerVA[1:]);    #Delete * in the front of the answer
-    return int(answerVA/1000);
+    answerVA = port.readline(12)
+    answerVA = int(answerVA[1:])    #Delete * in the front of the answer
+    return int(answerVA/1000)
 
 def setVoltage(int_voltage_kV):
     if(testVoltage(int_voltage_kV) == False):
@@ -187,19 +190,20 @@ def setVoltage(int_voltage_kV):
         exit(1)
     #print string;
     port.readlines()
-    string = 'SV:%02d\r' % int_voltage_kV;    #Produce right formatted command
-    port.write( string.encode() );    #Write string to port
+    string = 'SV:%02d\r' % int_voltage_kV    #Produce right formatted command
+    port.write( string.encode() )    #Write string to port
     port.readlines()
-    counter = 1;
+    counter = 1
     while(True):
-        answerVN = nominalVoltage();
+        answerVN = nominalVoltage()
+        print(answerVN)
         if(float(int_voltage_kV) == float(answerVN)):
-            break;
+            break
         if(counter == 3):            #After 3 unsuccesful requests the function will end 
-            print ("Could not set or receive the nominal voltage\n");
+            print ("Could not set or receive the nominal voltage\n")
             exit(1)
-        counter = counter + 1;
-    counter = 1;
+        counter = counter + 1
+    counter = 1
     ##while(True):
     ##    answerVA = actualVoltage();
     ##    if(float(1000*int_voltage_kV) == float(answerVA)):
@@ -210,7 +214,7 @@ def setVoltage(int_voltage_kV):
     ##        #return False;
     ##    counter = counter + 1;
     ##print (">> Actual voltage has reached {0}kV.").format(int_voltage_kV);
-    return answerVN;
+    return answerVN
 
 def turnHVOn():
     port.readlines()
@@ -346,7 +350,7 @@ def setExposureTimer(n,hours,minutes,seconds):
     #if not exposureTimerOn(n):
     string = 'TP:%1d,%02d,%02d,%02d\r' % (n,hours,minutes,seconds);
     
-    port.write(string.encode());
+    port.write(string.encode())
     time.sleep(1)
     port.write(('TN:%1d\r' %n).encode())
     time.sleep(1)
@@ -359,7 +363,7 @@ def setExposureTimer(n,hours,minutes,seconds):
     while(True):
         answerNET = nominalExposureTimer(n)
         if exposureTimerSetpointValue == int(answerNET):
-            break;
+            break
         if counter == 5:
             print('Could not set or receive the nominal timer \n')
             exit(5)
@@ -368,7 +372,7 @@ def setExposureTimer(n,hours,minutes,seconds):
     while(True):
         answerAET = actualExposureTimer(n)
         if exposureTimerSetpointValue == int(answerAET):
-            break;
+            break
         if counter == 5:
             print('Could not set or receive the actual timer \n')
             exit(6)
@@ -404,8 +408,8 @@ if __name__ == '__main__':
 
     #From now on it's the main code
     
-    port = serial.Serial('COM3',baudrate = 9600,timeout=1)
 
+    port = serial.Serial('COM3',baudrate = 9600,timeout=1)
     args = sys.argv
 
     if args[-1] == 'killObelix':
@@ -426,12 +430,11 @@ if __name__ == '__main__':
     if len(args) > 3:
         _overrideUserInput = args[3]
     
-    
     try:
         #inputVoltage = input("Enter the voltage of the tube in kV ") 
         nom_volt = setVoltage(40) #int(inputVoltage))
         #inputCurrent = input("Enter the current of the tube in mA ")
-        nom_curr = setCurrent(int(50/dose_rate_factor)) #int(inputCurrent))
+        nom_curr = setCurrent(int(50./dose_rate_factor)) #int(inputCurrent))
         validateSetTimerStringRet = None
         ##while(validateSetTimerStringRet == None):
         ##    setTimerString = input("Enter the exposure timer number, the hours, minutes and seconds (use spaces between values) ")

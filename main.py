@@ -5,9 +5,10 @@ from optparse import OptionParser
 from measurements.testMD_dummyIVWithSwitch import *
 from measurements.testMD_fullSensorMeasurements import *
 from measurements.testMD_CRV import *
-from measurements.testMD_fullStrip import *
-from measurements.testEF_fullDiode import *
+#from measurements.testMD_fullStrip import *
+# from measurements.testEF_fullDiode import *
 from measurements.testMD_DiodeStrip import *
+# from measurements.testMD_DiodeGR import *
 
 
 #import testMD_dummyIVWithSwitch
@@ -18,6 +19,7 @@ def main():
 
 	parser = OptionParser(usage=usage, version="prog 0.01")
 	parser.add_option("-l", "--list-tests", action="store_true", dest="list_tests", default=False,  help="list all avaliable measurements")
+	parser.add_option("-c", "--config", dest="config_file", default=None, help="Path to the YAML configuration file")
 
 	(options, args) = parser.parse_args()
 
@@ -50,18 +52,22 @@ def main():
 	if len(args) > 1:
 		test_list = args[1:]
 
+	config_path = options.config_file
 
 	for test_name in test_list:
 		print('this is testname', test_name)
 		try:
 			#test = getattr(measurements, test_name)
-			#test = testMD_fullSensorMeasurements
+			# test = testMD_fullSensorMeasurements
 			test = testMD_fullStrip
 		except AttributeError:
 			print('Unknown Test.')
 			return 1
+		
 
-		msr = test(ide = id)
+		msr = test(ide = id, config_path=config_path)
+		#msr = test(ide = id)
+		print(msr)
 		msr.initialise()
 		msr.execute()
 		msr.finalise()
