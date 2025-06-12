@@ -41,7 +41,7 @@ from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10
 from devices.ke7001 import * # switch
 from devices.hp4980 import * # switch
 
-import mpld3
+#import mpld3
 
 import yaml
 
@@ -84,7 +84,8 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
         ax.set_xlabel('voltage')
         plt.show()
         figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
+        #figManager.window.showMaximized()
+        # figManager.window.state('zoomed')
 
     line.set_xdata(x_vec)
     line.set_ydata(y_vec)
@@ -170,7 +171,12 @@ class testMD_fullStrip(measurement):
         
         # self.volt_list_bias_IV = [-350]
 
-        self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
+        self.Vmin = voltage_config['Vmin']
+        self.Vmax = voltage_config['Vmax']
+        self.Vstep = voltage_config['Vstep']
+
+        # self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
+        self.volt_list_bias_IV = np.arange(self.Vmax, self.Vmin + self.Vstep, self.Vstep) if not '_0kGy' in self.id else voltage_config['volt_list_test']
         # self.volt_list_bias_IV = [-350, -400]
 
 
@@ -181,7 +187,7 @@ class testMD_fullStrip(measurement):
         #self.delay_initial_iv = 30  # TODO change to original 30s
 
         #MD to remove!
-        self.nSampling_IV = 100
+        self.nSampling_IV = 30
         self.delay_vol_iv = 10
         self.delay_ramp_iv = 1
     
@@ -191,30 +197,32 @@ class testMD_fullStrip(measurement):
         ## initialize the devices
 
         self.keithley2410 = ke2410(self.keithley2410_address)
-        self.keithley2410_ramp = ke2410(self.keithley2410_ramp_address)
+        # self.keithley2410_ramp = ke2410(self.keithley2410_ramp_address)
 
 
         ## Set up volt meter
         self.keithley6487_address = 15
         self.keithley6487 = ke6487(self.keithley6487_address)
+        self.keithley6487_address2 = 23
+        self.keithley6487_2 = ke6487(self.keithley6487_address2)
 
 
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
 
-        self.keithley2410_ramp.ramp_down_slow()
-        self.keithley2410_ramp.set_output_off()
-        self.keithley2410_ramp.reset()
-        self.keithley2410_ramp.set_source('voltage')
-        self.keithley2410_ramp.set_sense('current')
-        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_ramp.set_voltage(0)
-        self.keithley2410_ramp.set_terminal('rear')
-        time.sleep(3)
+        # self.keithley2410_ramp.ramp_down_slow()
+        # self.keithley2410_ramp.set_output_off()
+        # self.keithley2410_ramp.reset()
+        # self.keithley2410_ramp.set_source('voltage')
+        # self.keithley2410_ramp.set_sense('current')
+        # self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
+        # self.keithley2410_ramp.set_voltage(0)
+        # self.keithley2410_ramp.set_terminal('rear')
+        # time.sleep(3)
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410_ramp.set_output_off()
-        time.sleep(1)
+        # self.keithley2410_ramp.set_output_off()
+        # time.sleep(1)
 
 
         self.keithley2410.ramp_down()
@@ -235,6 +243,11 @@ class testMD_fullStrip(measurement):
         self.keithley6487.reset()
         self.keithley6487.setup_ammeter()
         self.keithley6487.set_nplc(2)
+
+        self.keithley6487_2.ramp_down()
+        self.keithley6487_2.reset()
+        self.keithley6487_2.setup_ammeter()
+        self.keithley6487_2.set_nplc(2)
         # self.keithley6487.set_range(self.lim_cur_ke6487)
 
     
@@ -249,14 +262,21 @@ class testMD_fullStrip(measurement):
         # IV
         ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
         ke6487_lim_cur = -999 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
-        ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
-        ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
+        # ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
+        # ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
+        ke2410_lim_vol  = self.keithley2410.check_voltage_limit()
+        ke2410_lim_cur  = self.keithley2410.check_current_limit()
+
+        ke6487_lim_vol_2 = -999. #self.keithley6487.check_voltage_limit()
+        ke6487_lim_cur_2 = -999 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
 
         hdIV = [
             'IV m\n',
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
+            'Ke6487 second voltage limit:      %8.2E V' % ke6487_lim_vol_2,
+            'Ke6487 second current limit:      %8.2E A' % ke6487_lim_cur_2,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
@@ -269,6 +289,8 @@ class testMD_fullStrip(measurement):
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
+            'Ke6487 2 voltage limit:      %8.2E V' % ke6487_lim_vol_2,
+            'Ke6487 2 current limit:      %8.2E A' % ke6487_lim_cur_2,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
@@ -279,23 +301,29 @@ class testMD_fullStrip(measurement):
 
 
 
-    def IVpoint(self, biasV, measV):
-        self.keithley2410_ramp.ramp_voltage(measV)
+    # def IVpoint(self, biasV, measV):
+    def IVpoint(self, biasV):
+        # self.keithley2410_ramp.ramp_voltage(measV)
         time.sleep(self.delay_ramp_iv)
 
         cur_tot = self.keithley2410.read_current()
         vol = self.keithley2410.read_voltage()
-        cur_totSmall = self.keithley2410_ramp.read_current()
-        volSmall = self.keithley2410_ramp.read_voltage()
+        # cur_totSmall = self.keithley2410_ramp.read_current()
+        # volSmall = self.keithley2410_ramp.read_voltage()
 
         measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
+        measurements_2 = np.array([self.keithley6487_2.read_current() for _ in range(self.nSampling_IV)])
         #measurements = measurements[2*self.nSampling_IV:]
         means = np.mean(measurements, axis=0)
         errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
+        means_2 = np.mean(measurements_2, axis=0)
+        errs_2 = np.std(measurements_2, axis=0)/math.sqrt(self.nSampling_IV)
 
         #TODO V bias set, V bias measured, I bias, V ramp set, V ramp meas, I ramp, I amm, err I amm
-        line = [biasV, vol, cur_tot, measV, volSmall, means, errs, cur_totSmall]
-        self.logging.info("{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}".format(*line))
+        # line = [biasV, vol, cur_tot, measV, volSmall, means, errs, means_2, errs_2, cur_totSmall]
+        # line = [biasV, vol, cur_tot, biasV, biasV, means, errs, means_2, errs_2]
+        line = [biasV, vol, cur_tot, means, errs, means_2, errs_2]
+        self.logging.info("{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}".format(*line))
 
         # if means > self.lim_cur_ke6487:
         #     self.logging.info('reached compliance in the keithley6487')
@@ -328,6 +356,8 @@ class testMD_fullStrip(measurement):
         line2 = []
         outRV = []
         Rs_amp = []
+        I_diode = []
+        I_GR = []
         
 
         try:
@@ -335,49 +365,61 @@ class testMD_fullStrip(measurement):
             self.keithley2410.set_output_on()
         
             #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
+            # self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\t Total Current [A]\t Diode pad Current [A]')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
             start_time = time.time()
+            data_save = []
 
             for v in self.volt_list_bias_IV:
         
                 self.keithley2410.ramp_up(v)
                 time.sleep(self.delay_ramp_iv)
-                self.keithley2410_ramp.set_output_on()
-                time.sleep(self.delay_vol_iv)
+                # self.keithley2410_ramp.set_output_on()
+                #time.sleep(self.delay_vol_iv)
 
                 line3 = []
                 Vs_amp = []
                 Is_amp = []
+                Is_amp2 = []
                 outIV_oneBias = []
                 
 
-                for measV in self.volt_list_iv:
-                    lineIV = self.IVpoint(v, measV)
-                    outIV_oneBias.append(lineIV)
-                    # Recall that lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs]
-                    Vs_amp.append(lineIV[4])
-                    Is_amp.append(lineIV[5])
-                    line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
+                # for measV in self.volt_list_iv:
+                # lineIV = self.IVpoint(v, measV)
+                lineIV = self.IVpoint(v)
+                outIV_oneBias.append(lineIV)
+                data_save.append(lineIV)
+                # Recall that lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs]
+                Vs_amp.append(lineIV[1])
+                Is_amp.append(lineIV[3])
+                Is_amp2.append(lineIV[5])
+                # line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
             
-                self.keithley2410_ramp.ramp_down_slow()
+                # self.keithley2410_ramp.ramp_down_slow()
                 time.sleep(self.delay_ramp_iv)
-                self.keithley2410_ramp.set_output_off()
+                # self.keithley2410_ramp.set_output_off()
 
                 biasVs.append(v)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
-                self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
-                self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
+                # self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
+                # self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
 
-                [R_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
-                outRV.append([v, R_amp])
-                Rs_amp.append(R_amp)
+                # [R_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
+                # outRV.append([v, R_amp])
+                # Rs_amp.append(R_amp)
                 #print(Rs_amp)
+                I_GR.append(Is_amp2)
+                I_diode.append(Is_amp)
             
-                line2 = live_plotter(biasVs, Rs_amp, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
-                self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
+                # line2 = live_plotter(biasVs, Rs_amp, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
+                line2 = live_plotter(biasVs, I_GR, ax2, line2, identifier="IV Curve GR", yaxis_title=tmp_id_y, color='g')
+                line3 = live_plotter(biasVs, I_diode, ax3, line3, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='g')
+                # self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
 
-            self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
+            # self.save_list(data_save, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
+            # self.saveSinglePlot(fig, ax2,"iv_{a}_{b}_GR.png".format(a=self.id, b=name))
+            # self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_pad.png".format(a=self.id, b=name))
 
             elapsed_time = time.time() - start_time
             hours, rem = divmod(elapsed_time, 3600)
@@ -392,6 +434,11 @@ class testMD_fullStrip(measurement):
             pass
 
         self.reset_power_supplies()
+
+        self.save_list(data_save, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
+        self.saveSinglePlot(fig, ax2,"iv_{a}_{b}_GR.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_pad.png".format(a=self.id, b=name))
+
         
         ## Save
         # self.saveSinglePlot(fig, ax2,"rv_{a}_{b}_{c}.png".format(a=self.id, b=name,c=v))
