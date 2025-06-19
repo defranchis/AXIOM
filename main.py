@@ -1,17 +1,32 @@
 import os
-#import measurements
+import measurements
 from optparse import OptionParser
-#import measurements.allmeasurements as allmsr
-from measurements.testMD_dummyIVWithSwitch import *
-from measurements.testMD_fullSensorMeasurements import *
-from measurements.testMD_CRV import *
-#from measurements.testMD_fullStrip import *
-# from measurements.testEF_fullDiode import *
-#from measurements.testMD_DiodeStrip import *
-from measurements.testMD_DiodeGR import *
+# #import measurements.allmeasurements as allmsr
+# from measurements.testMD_dummyIVWithSwitch import *
+# from measurements.testMD_fullSensorMeasurements import *
+# from measurements.testMD_CRV import *
+# #from measurements.testMD_fullStrip import *
+# # from measurements.testEF_fullDiode import *
+# #from measurements.testMD_DiodeStrip import *
+# from measurements.testMD_DiodeGR import *
 
 
 #import testMD_dummyIVWithSwitch
+
+# ------------------------------------------------------------------------------
+# main()
+#
+# Entry point for running measurement scripts in the ARRAY wafer probing system.
+# Parses command-line arguments to:
+# - List available measurement scripts from the 'measurements' folder
+# - Run a specified measurement on a device identified by a user-defined ID
+# - Optionally load a YAML configuration file
+#
+# Executes the selected measurement by calling its initialise(), execute(), 
+# and finalise() methods. Results are stored in the 'logs' directory under the 
+# provided identifier.
+# ------------------------------------------------------------------------------
+
 
 
 def main():
