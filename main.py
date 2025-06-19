@@ -7,8 +7,8 @@ from measurements.testMD_fullSensorMeasurements import *
 from measurements.testMD_CRV import *
 #from measurements.testMD_fullStrip import *
 # from measurements.testEF_fullDiode import *
-from measurements.testMD_DiodeStrip import *
-# from measurements.testMD_DiodeGR import *
+#from measurements.testMD_DiodeStrip import *
+from measurements.testMD_DiodeGR import *
 
 
 #import testMD_dummyIVWithSwitch

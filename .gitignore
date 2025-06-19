@@ -12,3 +12,4 @@ plotter/plots
 temperatureLogs
 tempteratureControl/old_temperatureLogs
 logs_annealing/output
+annealing-studies-plotter/*

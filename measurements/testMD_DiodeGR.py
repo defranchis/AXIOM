@@ -174,6 +174,7 @@ class testMD_fullStrip(measurement):
         self.Vmin = voltage_config['Vmin']
         self.Vmax = voltage_config['Vmax']
         self.Vstep = voltage_config['Vstep']
+        print(self.Vmin)
 
         # self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
         self.volt_list_bias_IV = np.arange(self.Vmax, self.Vmin + self.Vstep, self.Vstep) if not '_0kGy' in self.id else voltage_config['volt_list_test']

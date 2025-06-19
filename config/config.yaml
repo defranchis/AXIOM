@@ -1,0 +1,13 @@
+sensorName: 'N4791_3' # this is the right name, but we ran with 200333_B
+irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
+#dose_rate: 12.79
+frequency: 1000
+voltage_settings:
+ open_short_correction: false
+ correction_count: 5
+ range:
+  v_min: -20
+  v_max: -900
+  step: -10
+  nSampling: 10
+ delay: 5

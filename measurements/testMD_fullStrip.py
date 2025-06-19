@@ -139,36 +139,36 @@ class testMD_fullStrip(measurement):
         self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
         
         self.lcr_vol = 0.5 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = [1e4, 1e5, 1e6]     # ac voltage frequency in [Hz]
+        self.lcr_freq = [1e2, 1e3, 1e4]     # ac voltage frequency in [Hz]
 
 
         self.lim_cur_ke2410 = 1E-4          # compliance in [A]
-        self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
+        #self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
         self.lim_vol = 10                   # compliance in [V]
 
         
-        self.Vmin_iv = -1
-        self.Vmax_iv = 1
-        self.Vstep_iv = .2
+        self.Vmin_iv = -.5
+        self.Vmax_iv = .5
+        self.Vstep_iv = .1
         self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
 
-        '''
+        
         self.Vmin_bias_CV = -50  if '120um' in self.id else -100
         self.Vmax_bias_CV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
         self.Vstep_bias_CV = -50
         self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
-        '''
-        self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
-        '''
+        #self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
+        
+        
         self.Vmin_bias_IV = -100 if '120um' in self.id else -200
         self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
         self.Vstep_bias_IV = -50 if '120um' in self.id else -100
         self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
-        '''
         
-        self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
+        
+        #self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
         #self.volt_list_bias_IV = [-350]
 
@@ -179,7 +179,7 @@ class testMD_fullStrip(measurement):
         self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
         self.delay_vol_iv = 30      # delay between setting voltage and executing measurement in [s]
 
-        self.delay_initial_iv = 30  # TODO change to original 30s
+        self.delay_step_iv = 3  # TODO change to original 30s
         #self.delay_step_iv = 60
         #self.discharge_voltage = 10
 
@@ -252,7 +252,7 @@ class testMD_fullStrip(measurement):
         self.keithley6487.reset()
         self.keithley6487.setup_ammeter()
         self.keithley6487.set_nplc(2)
-        self.keithley6487.set_range(self.lim_cur_ke6487)
+        #self.keithley6487.set_range(self.lim_cur_ke6487)
 
     def reset_switch(self):
 
@@ -371,7 +371,7 @@ class testMD_fullStrip(measurement):
 
         # IV
         ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
-        ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
+        #ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
         ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
         ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
 
@@ -391,7 +391,7 @@ class testMD_fullStrip(measurement):
             'IV Sweep\n',
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
+            #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
@@ -403,7 +403,7 @@ class testMD_fullStrip(measurement):
             'RV Sweep\n',
             'Measurement Settings:',
             'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
+            #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
@@ -443,7 +443,7 @@ class testMD_fullStrip(measurement):
         r_s, c_s, l_s, D = lcr_series_equ(freq, z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(freq, z, phi)
 
-        line = [biasV, vol, freq, r_p, dr, x, dx, c_s, c_p, cur_tot]
+        line = [biasV, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
         
         self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
@@ -456,7 +456,7 @@ class testMD_fullStrip(measurement):
 
     def IVpoint(self, biasV, measV):
         self.keithley2410_ramp.ramp_voltage(measV)
-        time.sleep(self.delay_vol_iv)
+        time.sleep(self.delay_step_iv)
 
         cur_tot = self.keithley2410.read_current()
         vol = self.keithley2410.read_voltage()
@@ -472,9 +472,9 @@ class testMD_fullStrip(measurement):
         line = [biasV, vol, cur_tot, measV, volSmall, means, errs, cur_totSmall]
         self.logging.info("{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}".format(*line))
 
-        if means > self.lim_cur_ke6487:
-            self.logging.info('reached compliance in the keithley6487')
-            raise Exception("Reached compliance in the keithley6487")
+        #if means > self.lim_cur_ke6487:
+        #    self.logging.info('reached compliance in the keithley6487')
+        #    raise Exception("Reached compliance in the keithley6487")
         
         return(line)
 
@@ -660,7 +660,7 @@ class testMD_fullStrip(measurement):
                     line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
             
                 self.keithley2410_ramp.ramp_down_slow()
-                time.sleep(self.delay_vol_iv)
+                time.sleep(self.delay_step_iv)
                 self.keithley2410_ramp.set_output_off()
                 biasVs.append(v)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
