@@ -11,12 +11,11 @@ from obelixWarnings import generalWarnings
 # ---------------------------------------------------------------
 # This file is no longer used or maintained.
 #
-# Status: Deprecated as of YYYY-MM-DD
 # Original Purpose: initial setup for obelix control
 # Reason for Deprecation: replaced by more specific implementations
 # Replaced By: obelixControl.py or obelixControl_Strip.py
 # DO NOT modify or depend on this file.
-# Consider removing it after full integraiton, test and refactor of obelix code
+# Consider removing it after full integration, test and refactor of obelix code
 # ================================================================
 
 

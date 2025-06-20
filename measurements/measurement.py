@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib
 from utils.tools import add_coloring_to_emit_ansi, add_coloring_to_emit_windows
-
+ 
 
 def mkdir(d):
     if not os.path.exists(d):
