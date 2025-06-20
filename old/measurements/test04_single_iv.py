@@ -19,16 +19,13 @@
 import time
 import logging
 import numpy as np
-from measurements import measurement
-#from devices import ke2410 # power supply
-#from devices import ke7001 # switch
-from devices.ke2410 import * # power supply
-from devices.ke7001 import * # switch
+from measurement import measurement
+from devices import ke2410 # power supply
+from devices import ke6487 # volt meter
 
-from utils.liveplotting import *
 
-class testMD_dummyIVWithSwitch(measurement):
-    """Measurement of a dummy I-V curve. """
+class test04_single_iv(measurement):
+    """Measurement of I-V curve for a single cell."""
 
     def initialise(self):
         self.logging.info("\t")
@@ -39,32 +36,20 @@ class testMD_dummyIVWithSwitch(measurement):
         self.logging.info("\t")
 
         self._initialise()
-        self.pow_supply_address = 25  # gpib address of the power supply
-        self.switch_address = 7       # gpib address of the switch
+        self.pow_supply_address = 24    # gpib address of the power supply
+        self.volt_meter_address = 23    # gpib address of the multi meter
 
+        self.lim_cur = 0.0001            # compliance in [A]
+        self.lim_vol = 1000             # compliance in [V]
 
-        self.close_channnel = 1
+        self.cell_list = np.loadtxt('config/channels128_from_schematics_sorted.txt', dtype=int)
+        self.volt_list = [-10]
 
-        self.lim_cur = 0.0002         # compliance in [A]
-        self.lim_vol = 10             # compliance in [V]
-
-        self.volt_list = [-10., -3, -0.5, 0.5, 2.5, 4.] + [4+10.*i for i in range(10)]
-        self.currents  = [0 for i in self.volt_list]
-
-        self.delay_vol = 1            # delay between setting voltage and executing measurement in [s]
+        self.delay_vol = 10              # delay between setting voltage and executing measurement in [s]
 
 
 
     def execute(self):
-
-        ## Set up the switch
-        switch = ke7001(self.switch_address)
-        switch.reset(1)
-        switch.get_idn()
-        switch.open_all()
-
-        switch.close_channel(1)
-
 
         ## Set up power supply
         pow_supply = ke2410(self.pow_supply_address)
@@ -74,8 +59,14 @@ class testMD_dummyIVWithSwitch(measurement):
         pow_supply.set_current_limit(self.lim_cur)
         pow_supply.set_voltage(0)
         pow_supply.set_terminal('rear')
-        # MARC pow_supply.set_interlock_on()
+        pow_supply.set_interlock_on()
         pow_supply.set_output_on()
+
+        ## Set up volt meter
+        volt_meter = ke6487(self.volt_meter_address)
+        volt_meter.reset()
+        volt_meter.setup_ammeter()
+        volt_meter.set_nplc(2)
 
         ## Check settings
         lim_vol = pow_supply.check_voltage_limit()
@@ -102,34 +93,23 @@ class testMD_dummyIVWithSwitch(measurement):
 
         ## Prepare
         out = []
-        
-        x_vec = self.volt_list
-        y_vec = self.currents
-
-        ax0, ax1, ax2 = init_liveplot()
-
-        line0, line1, line2 = [], [], []
 
         ## Loop over voltages
         try:
-            tmp_x, tmp_y = [], []
-            for _iv,v in enumerate(self.volt_list):
-                print('ramping to v: ', v)
-                pow_supply.ramp_voltage(v,1)
+            for v in self.volt_list:
+                pow_supply.ramp_voltage(v)
                 time.sleep(self.delay_vol)
 
                 if "{: <5.2E}".format(abs(pow_supply.read_current())) == "{: <5.2E}".format(abs(self.lim_cur)):
-                    print("Compliance " + "{: <5.2E}".format(self.lim_cur) + "A reached")
+                    print "Compliance " + "{: <5.2E}".format(self.lim_cur) + "A reached"
                     break
 
                 cur_tot = pow_supply.read_current()
                 vol = pow_supply.read_voltage()
 
-                measurements = np.array([pow_supply.read_current() for _ in range(5)])
+                measurements = np.array([volt_meter.read_current() for _ in range(5)])
                 means = np.mean(measurements, axis=0)
                 errs = np.std(measurements, axis=0)
-
-                self.currents[_iv] = means
 
                 I = means
                 dI = errs
@@ -138,13 +118,6 @@ class testMD_dummyIVWithSwitch(measurement):
                 out.append(line)
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
-                tmp_x.append(v)
-                tmp_y.append(means)
-                #line1 = live_plotter(tmp_x, tmp_y, line1, identifier='measurement 1')
-
-                line0 = live_plotter(tmp_x, tmp_y, ax0, line0, identifier='measurement 1')
-                line1 = live_plotter(tmp_x, tmp_y, ax1, line1, identifier='measurement 2', color='cyan')
-
         except KeyboardInterrupt:
             pow_supply.ramp_voltage(0)
             self.logging.error("Keyboard interrupt. Ramping down voltage and shutting down.")
@@ -152,13 +125,11 @@ class testMD_dummyIVWithSwitch(measurement):
 
         ## Close connections
         pow_supply.ramp_voltage(0)
-        #time.sleep(15)
-        time.sleep(5)
+        time.sleep(15)
         pow_supply.set_interlock_off()
         pow_supply.set_output_off()
         pow_supply.reset()
-        switch.open_all()
-        switch.reset()
+        volt_meter.reset()
 
 
         ## Save and print

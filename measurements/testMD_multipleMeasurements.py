@@ -19,7 +19,7 @@
 import time
 import logging
 import numpy as np
-from measurements.measurement import measurement
+from measurements import measurement
 
 from devices.ke2410 import * # power supply
 from devices.ke7001 import * # switch

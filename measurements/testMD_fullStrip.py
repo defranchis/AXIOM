@@ -34,7 +34,7 @@ plt.style.use('ggplot')
 import time, math, os
 import logging
 import numpy as np
-from measurements.measurement import measurement
+from measurements import measurement
 
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
