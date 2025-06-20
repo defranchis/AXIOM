@@ -1,7 +1,3 @@
-
-
-
-
 import time, math, os
 import logging
 import numpy as np
@@ -16,6 +12,7 @@ import mpld3
 #from utils.liveplotting import *
 
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+
 
 def getCorrection(lcr_meter,freq):
     lcr_meter.set_frequency(freq)
