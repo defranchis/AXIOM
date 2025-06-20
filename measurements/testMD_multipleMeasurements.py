@@ -30,7 +30,6 @@ import mpld3
 from utils.liveplotting import *
 
 class testMD_multipleMeasurements(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def initialise(self):
         self.logging.info("\t")

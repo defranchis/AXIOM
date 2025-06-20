@@ -88,8 +88,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
     return line
 
 
-class testMD_fullDiode(measurement): 
-    """Measurement of a dummy I-V curve. """
+class testEF_fullDiode(measurement): 
     
     def __init__(self, ide, config_path):
         super().__init__(ide)
@@ -169,9 +168,6 @@ class testMD_fullDiode(measurement):
         self.lcr_meter.set_mode(self.lcr_mode)
         self.lcr_meter.set_frequency(self.lcr_freq)
 
-
-
-
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
@@ -189,7 +185,6 @@ class testMD_fullDiode(measurement):
         self.keithley2410.set_output_off()
         time.sleep(1)
         
-
     def reset_switch(self):
 
         ## Set up the switch
@@ -203,7 +198,6 @@ class testMD_fullDiode(measurement):
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
-
     def savePlots(self, dic):
         ### Save and print
         for name,val in dic.items():
@@ -213,7 +207,6 @@ class testMD_fullDiode(measurement):
                              'Bias Voltage [V]', '1/C^2 [1/F^2]',  '1/C2 ' + self.id + ' ' + name, fn="1c2v_{a}_{b}.png".format(a=self.id, b=name))
             self.print_graph(np.array(val)[:, 1], np.array(val)[:, 9], np.array(val)[:, 9]*0.01, \
                              'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
-
 
     def createHeader(self):
         # CV
@@ -236,9 +229,6 @@ class testMD_fullDiode(measurement):
 
 
         return(hdCV)
-
-
-
 
     def CVpoint(self, biasV): 
 
@@ -267,8 +257,6 @@ class testMD_fullDiode(measurement):
 
         return (line)
         ## end of CV scan
-
-
 
     def CVscan(self, name, fig, ax0, hdCV, shortGR=False, groundGR=False):
 
@@ -331,8 +319,6 @@ class testMD_fullDiode(measurement):
 
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
-
-
     def execute(self):
 
         # Name of files
@@ -349,9 +335,6 @@ class testMD_fullDiode(measurement):
         self.CVscan(name, fig, ax0, hdCV)
         self.CVscan(name, fig, ax1, hdCV, shortGR=True)
         self.CVscan(name, fig, ax2, hdCV, groundGR=True)
-
-
-        
 
     def finalise(self):
         self._finalise()

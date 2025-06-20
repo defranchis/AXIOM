@@ -34,7 +34,6 @@ plt.style.use('ggplot')
 import time, math, os
 import logging
 import numpy as np
-# from measurements.measurement import measurement
 from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
@@ -104,7 +103,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 
 class testMD_DiodeGR(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def __init__(self, ide, config_path):
         super().__init__(ide)
@@ -200,7 +198,6 @@ class testMD_DiodeGR(measurement):
         self.keithley6487_address2 = 23
         self.keithley6487_2 = ke6487(self.keithley6487_address2)
 
-
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
@@ -244,14 +241,11 @@ class testMD_DiodeGR(measurement):
         self.keithley6487_2.set_nplc(2)
         # self.keithley6487.set_range(self.lim_cur_ke6487)
 
-    
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
-
-
     def createHeader(self):
         # IV
         ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
@@ -292,11 +286,8 @@ class testMD_DiodeGR(measurement):
         ]
 
         return(hdIV, hdRV)
-
-
-
-    # def IVpoint(self, biasV, measV):
-    def IVpoint(self, biasV):
+   
+    def IVpoint(self, biasV): # def IVpoint(self, biasV, measV):
         # self.keithley2410_ramp.ramp_voltage(measV)
         time.sleep(self.delay_ramp_iv)
 
@@ -324,7 +315,6 @@ class testMD_DiodeGR(measurement):
         #     raise Exception("Reached compliance in the keithley6487")
         
         return(line)
-
 
     def retrieveR(self, V, I):
 
@@ -438,7 +428,6 @@ class testMD_DiodeGR(measurement):
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
 
-
     def execute(self):
 
         # Name of files
@@ -457,6 +446,5 @@ class testMD_DiodeGR(measurement):
         # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
-
     def finalise(self):
         self._finalise()

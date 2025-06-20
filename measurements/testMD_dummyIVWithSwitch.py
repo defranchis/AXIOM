@@ -28,7 +28,6 @@ from devices.ke7001 import * # switch
 from utils.liveplotting import *
 
 class testMD_dummyIVWithSwitch(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def initialise(self):
         self.logging.info("\t")
@@ -52,8 +51,6 @@ class testMD_dummyIVWithSwitch(measurement):
         self.currents  = [0 for i in self.volt_list]
 
         self.delay_vol = 1            # delay between setting voltage and executing measurement in [s]
-
-
 
     def execute(self):
 
@@ -173,7 +170,6 @@ class testMD_dummyIVWithSwitch(measurement):
         self.print_graph(np.array(out)[:, 1], np.array(out)[:, 4], np.array(out)[:, 4]*0.01, \
                          'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id, fn="iv_total_current_%s.png" % self.id)
         self.logging.info("\n")
-
 
     def finalise(self):
         self._finalise()

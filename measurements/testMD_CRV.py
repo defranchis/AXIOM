@@ -104,8 +104,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
     return line
 
 
-class testMD_CVR(measurement):
-    """Measurement of a dummy I-V curve. """
+class testMD_CRV(measurement):
 
     def initialise(self):
 
@@ -199,7 +198,6 @@ class testMD_CVR(measurement):
         self.keithley6487 = ke6487(self.keithley6487_address)
 
         #self.reset_power_supplies()
-
 
     def reset_power_supplies(self):
 
@@ -315,7 +313,6 @@ class testMD_CVR(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-
     def newMarkdownIV(self):
         reportFile = open("logs/"+self.id+"/IV_report.md", "w", encoding="utf-8")
 
@@ -348,11 +345,6 @@ class testMD_CVR(measurement):
         reportFile.write(text)
         reportFile.close()
 
-
-
-
-
-
     def newPlotIV(self, v, i):
 
         supertitle = self.id 
@@ -383,9 +375,6 @@ class testMD_CVR(measurement):
 
 
         savefig("logs/"+supertitle+"/IV.png",bbox_inches='tight')
-
-
-
 
     def doCRVScan(self, channel, ax1, ax2, ax3, name=''):  ## don't really know how best to do this ... to be teasted on the setup
 
@@ -516,9 +505,6 @@ class testMD_CVR(measurement):
         self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
 
         return out
-
-
-## end of CV scan
 
     def doIVScan(self, channel, ax, name=''):
 
@@ -681,7 +667,6 @@ class testMD_CVR(measurement):
         
         return out
 
-
     def execute(self):
 
         ## reset all the stuff first
@@ -733,7 +718,6 @@ class testMD_CVR(measurement):
         """
         
         self.savePlots(plots)
-
 
     def finalise(self):
         self._finalise()

@@ -110,7 +110,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 
 class testMD_DiodeStrip(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def __init__(self, ide, config_path):
         super().__init__(ide)
@@ -199,7 +198,6 @@ class testMD_DiodeStrip(measurement):
         self.keithley6487_address = 15
         self.keithley6487 = ke6487(self.keithley6487_address)
 
-
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
@@ -238,14 +236,11 @@ class testMD_DiodeStrip(measurement):
         self.keithley6487.set_nplc(2)
         # self.keithley6487.set_range(self.lim_cur_ke6487)
 
-    
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
-
-
     def createHeader(self):
         # IV
         ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
@@ -278,8 +273,6 @@ class testMD_DiodeStrip(measurement):
 
         return(hdIV, hdRV)
 
-
-
     def IVpoint(self, biasV, measV):
         self.keithley2410_ramp.ramp_voltage(measV)
         time.sleep(self.delay_ramp_iv)
@@ -304,7 +297,6 @@ class testMD_DiodeStrip(measurement):
         
         return(line)
 
-
     def retrieveR(self, V, I):
 
         #index_3V = min(range(len(V)), key=lambda i: abs(V[i]-3))
@@ -312,8 +304,6 @@ class testMD_DiodeStrip(measurement):
         G, Iq = np.polyfit(V, I, 1)
         return (1/G, Iq)
         
-
-
     def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')

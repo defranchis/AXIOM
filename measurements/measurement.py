@@ -58,8 +58,6 @@ class measurement(object):
         fileHandler.setFormatter(logFormatter)
         self.logging.addHandler(fileHandler)
 
-
-
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())
 

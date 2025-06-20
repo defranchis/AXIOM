@@ -114,7 +114,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 
 class testMD_fullStrip(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def initialise(self):
 
@@ -202,7 +201,6 @@ class testMD_fullStrip(measurement):
         self.keithley6487_address = 15
         self.keithley6487 = ke6487(self.keithley6487_address)
 
-
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
@@ -267,7 +265,6 @@ class testMD_fullStrip(measurement):
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
-
     def savePlots(self, dic):
         ### Save and print
         for name,val in dic.items():
@@ -291,7 +288,6 @@ class testMD_fullStrip(measurement):
                                  'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_zoom_{a}_{b}.png".format(a=self.id, b=name))
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
-
 
     def newMarkdownIV(self):
         reportFile = open("logs/"+self.id+"/IV_report.md", "w", encoding="utf-8")

@@ -85,7 +85,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 
 class testMD_fullSensorMeasurements(measurement):
-    """Measurement of a dummy I-V curve. """
 
     def initialise(self):
         self.logging.info("\t")
@@ -158,7 +157,6 @@ class testMD_fullSensorMeasurements(measurement):
         self.keithley6487 = ke6487(self.keithley6487_address)
 
         #self.reset_power_supplies()
-
 
     def reset_power_supplies(self):
 
@@ -234,7 +232,6 @@ class testMD_fullSensorMeasurements(measurement):
 
         return ref_cap
         
-
     def savePlots(self, dic):
         ### Save and print
         for name,val in dic.items():
@@ -373,9 +370,7 @@ class testMD_fullSensorMeasurements(measurement):
         self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
 
         return out
-
-
-## end of CV scan
+        ## end of CV scan
 
     def doIVScan(self, channel, ax, name=''):
 
@@ -530,7 +525,6 @@ class testMD_fullSensorMeasurements(measurement):
         
         return out
 
-
     def execute(self):
 
         ## reset all the stuff first
@@ -570,7 +564,6 @@ class testMD_fullSensorMeasurements(measurement):
         #self.logging.error(e)
 
         self.savePlots(plots)
-
 
     def finalise(self):
         self._finalise()
