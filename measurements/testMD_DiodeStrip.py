@@ -109,7 +109,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
     return line
 
 
-class testMD_fullStrip(measurement):
+class testMD_DiodeStrip(measurement):
     """Measurement of a dummy I-V curve. """
 
     def __init__(self, ide, config_path):
