@@ -1,4 +1,4 @@
-# import test00_debugging
+# from .test00_debugging       import test00_debugging
 # from test01_safety_check          import test01_safety_check
 # from test02_scan_iv               import test02_scan_iv
 # from test03_scan_cv               import test03_scan_cv
@@ -14,4 +14,7 @@
 # from test15_lcr_freq_sweep        import test15_lcr_freq_sweep
 # from testMD_dummyIVWithSwitch     import testMD_dummyIVWithSwitch
 # from testMD_fullStrip             import testMD_fullStrip
+from .measurement import measurement
+from .testMD_DiodeGR import testMD_DiodeGR
+
 

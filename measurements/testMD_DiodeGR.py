@@ -34,20 +34,13 @@ plt.style.use('ggplot')
 import time, math, os
 import logging
 import numpy as np
-from measurements.measurement import measurement
-
+# from measurements.measurement import measurement
+from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
 from devices.hp4980 import * # switch
-
-#import mpld3
-
 import yaml
-
-## load plotting functions
-#from utils.liveplotting import *
-
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 def init_liveplot():
@@ -339,8 +332,6 @@ class testMD_DiodeGR(measurement):
         #G, Iq = np.polyfit(V[index_3V:], I[index_3V:], 1)
         G, Iq = np.polyfit(V, I, 1)
         return (1/G, Iq)
-        
-
 
     def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
 
@@ -446,13 +437,6 @@ class testMD_DiodeGR(measurement):
         # self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
-
-
-
-
-
-
-
 
 
     def execute(self):

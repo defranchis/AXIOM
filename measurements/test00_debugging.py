@@ -17,9 +17,9 @@ import sys
 import time
 import logging
 import numpy as np
-from measurement import measurement
-from devices import ke2410 # power supply
+from measurements import measurement
 from devices import ke2450 # volt meter
+from devices import ke2410 # power supply
 from devices import hp4980 # lcr meter
 from devices import switchcard # switch
 
