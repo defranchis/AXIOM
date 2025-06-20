@@ -12,5 +12,5 @@ from test09_interpad_cap          import test09_interpad_cap
 from test10_floating_cells        import test10_floating_cells
 from test13_scan_cv_overnight     import test13_scan_cv_overnight
 from test15_lcr_freq_sweep        import test15_lcr_freq_sweep
-from testMD_dummyIVWithSwitch     import testMD_dummyIVWithSwitch
+from measurements.testMD_dummyIVWithSwitch     import testMD_dummyIVWithSwitch
 from testMD_fullStrip             import testMD_fullStrip

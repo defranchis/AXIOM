@@ -1,21 +1,3 @@
-# ============================================================================
-# File: test04_single_iv.py
-# ------------------------------
-#
-# Notes:
-#
-# Layout:
-#   configure and prepare
-#   for each voltage:
-#       set voltage
-#       measure voltage, current, total current
-#   finish
-#
-# Status:
-#   works well
-#
-# ============================================================================
-
 import time
 import logging
 import numpy as np

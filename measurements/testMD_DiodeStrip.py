@@ -1,25 +1,6 @@
-# ============================================================================
-# File: testMD_fullSensorMeasurements.py
-# ------------------------------
-#
-# Notes:
-#
-# Layout:
-#   configure and prepare
-#   for each voltage:
-#       set voltage
-#       measure voltage, current, total current
-#   finish
-#
-# Status:
-#   under debvelopment
-#
-# ============================================================================
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib
-
-
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import MultipleLocator
 from matplotlib.cm import coolwarm, ScalarMappable
@@ -27,28 +8,22 @@ from matplotlib import gridspec
 from matplotlib.pyplot import axhline, subplots, show, hist, figure, setp, colorbar, plot, cm, title, xlabel, ylabel, grid, legend, savefig, axes, pcolormesh, close
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator, MaxNLocator
 import matplotlib.colors as colors
-
-
 plt.style.use('ggplot')
-
 import time, math, os
 import logging
 import numpy as np
+import mpld3
+import yaml
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+
+# Module structure import
 from measurements import measurement
 
+# Specific device imports for this configuration
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
 from devices.hp4980 import * # switch
-
-import mpld3
-
-import yaml
-
-## load plotting functions
-#from utils.liveplotting import *
-
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 def init_liveplot():
     plt.ion()

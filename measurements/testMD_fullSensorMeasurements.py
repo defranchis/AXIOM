@@ -1,41 +1,22 @@
-# ============================================================================
-# File: testMD_fullSensorMeasurements.py
-# ------------------------------
-#
-# Notes:
-#
-# Layout:
-#   configure and prepare
-#   for each voltage:
-#       set voltage
-#       measure voltage, current, total current
-#   finish
-#
-# Status:
-#   under debvelopment
-#
-# ============================================================================
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib
 plt.style.use('ggplot')
-
 import time, math, os
 import logging
 import numpy as np
+import mpld3
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+
+# Module structure import
 from measurements import measurement
 
+# Specific device imports for this configuration
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
 from devices.hp4980 import * # switch
 
-import mpld3
-
-## load plotting functions
-#from utils.liveplotting import *
-
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 def init_liveplot():
     plt.ion()
