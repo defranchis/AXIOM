@@ -18,6 +18,17 @@ from optparse import OptionParser
 # ------------------------------------------------------------------------------
 
 
+def list_tests():
+	test_names = []
+	for attr in dir(measurements):
+		obj = getattr(measurements, attr)
+		if callable(obj) and hasattr(obj, 'initialise') and hasattr(obj, 'execute') and hasattr(obj, 'finalise'):
+			test_names.append(attr)
+	print("Available measurements:")
+	for name in test_names:
+		print(f"  {name}")
+	return
+
 def main():
 	# This sets up the CLI commands, receives potential parameters and sets config paths, if provided. 
 	usage = "usage: prog [options] id test[(parameter=value parameter2=value)]"
@@ -30,38 +41,26 @@ def main():
 		parser.error("You have to give an identifier. Try '-h' to get more info.")
 
 	if options.list_tests:
-		def list_tests():
-			test_names = []
-			for attr in dir(measurements):
-				obj = getattr(measurements, attr)
-				if callable(obj) and hasattr(obj, 'initialise') and hasattr(obj, 'execute') and hasattr(obj, 'finalise'):
-					test_names.append(attr)
-			print("Available measurements:")
-			for name in test_names:
-				print(f"  {name}")
-
 		list_tests()
-		return
+		return 0
 
 	# The argument at [0] is now the identifier that is specified for this test session. 
 	id = args[0]
-
 	test_list = []
 	if len(args) > 1:
 		test_list = args[1:] 
-
 	config_path = options.config_file
-
 
 	for test_name in test_list:
 		print('this is testname', test_name)
 		try:
 			test = getattr(measurements, test_name)
 		except AttributeError:
-			print('Unknown Test.')
+			print('Unknown Test: ', test_name)
+			list_tests()
+
 			return 1
 		
-
 		msr = test(ide = id, config_path=config_path)
 		print(msr)
 		msr.initialise()

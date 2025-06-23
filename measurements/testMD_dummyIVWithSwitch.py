@@ -11,6 +11,10 @@ from utils.liveplotting import *
 
 class testMD_dummyIVWithSwitch(measurement):
 
+    def __init__(self, ide, config_path):
+        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
+        self.config_path = config_path # this config path is NOT required and can be left empty for this specific measurement. 
+        
     def initialise(self):
         self.logging.info("\t")
         self.logging.info("------------------------------------------")

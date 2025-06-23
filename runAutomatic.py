@@ -7,10 +7,12 @@ sensorName = '102183'
 irradiationSteps = [0, 1, 2, 5, 10, 20, 40, 70, 100, 200]
 cmd = 'testMD_fullSensorMeasurements'
 
-try:
-    for istep, step in enumerate(irradiationSteps[:-1]):
 
-        ## this will run the pre-irradiation measurements
+# This script is used to run a series of measurements on a sensor after each irradiation step.
+try:
+    for istep, step in enumerate(irradiationSteps[:-1]): 
+
+        ## this will run the pre-irradiation measurements (so istep == 0 and step == 0)
         if not istep and not step:
             subprocess.run(['python', '.\main.py', '{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd], check=True)
     
@@ -29,16 +31,15 @@ except subprocess.CalledProcessError as e:
     ## write an email to matteo
 
 except KeyboardInterrupt:
-    obelix = subprocess.run(['python', '.\obelixControl.py', 'killObelix'])
-    
+    obelix = subprocess.run(['python', '.\obelixControl.py', 'killObelix'])   
     #turnEverythingOff
 
 
-integratedDose = irradiationSteps[-1] ## in kGy
-
+integratedDose = irradiationSteps[-1] ## in kGy, this is the last / highest irradiation dose
 sleepTime = 3600*3
 
-
+# this block is used to run the annealing measurements after the irradiation steps
+# it will run the measurements every 3 hours, until you stop it with a keyboard interrupt
 try:
     nAnnealing = 1
     time.sleep(sleepTime)
@@ -52,7 +53,6 @@ try:
 
 ## if anything exits with anything other than exit(0), 
 ## we end up in the subprocess exception, and everything stops
-
 except subprocess.CalledProcessError as e:
     print(e) ## print the exception
 
