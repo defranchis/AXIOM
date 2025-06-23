@@ -89,7 +89,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-
+## TODO this should probably be refactored due to the amount of internally defined functions
 class testMD_fullStrip(measurement):
 
     def __init__(self, ide, config_path):
@@ -302,11 +302,6 @@ class testMD_fullStrip(measurement):
         reportFile.write(text)
         reportFile.close()
 
-
-
-
-
-
     def newPlotIV(self, v, i):
 
         supertitle = self.id 
@@ -337,7 +332,6 @@ class testMD_fullStrip(measurement):
 
 
         savefig("logs/"+supertitle+"/IV.png",bbox_inches='tight')
-
 
     def createHeader(self):
         # CV
@@ -389,9 +383,6 @@ class testMD_fullStrip(measurement):
 
         return(hdCV, hdIV, hdRV)
 
-
-
-
     def CRVpoint(self, biasV, freq, channel):  ## don't really know how best to do this ... to be teasted on the setup
 
         self.switch.close_channel(channel)
@@ -427,10 +418,6 @@ class testMD_fullStrip(measurement):
         return (line)
         ## end of CV scan
 
-
-
-
-
     def IVpoint(self, biasV, measV):
         self.keithley2410_ramp.ramp_voltage(measV)
         time.sleep(self.delay_step_iv)
@@ -455,7 +442,6 @@ class testMD_fullStrip(measurement):
         
         return(line)
 
-
     def retrieveR(self, V, I):
 
         # That 3 is making linear regression from 3V to 5V
@@ -463,12 +449,6 @@ class testMD_fullStrip(measurement):
         #G, Iq = np.polyfit(V[index_3V:], I[index_3V:], 1)
         G, Iq = np.polyfit(V, I, 1)
         return (1/G, Iq)
-        
-
-
-
-
-
 
     def CVscan(self, name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV):
 
@@ -570,9 +550,6 @@ class testMD_fullStrip(measurement):
 
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
-
-
-
     def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
@@ -669,14 +646,6 @@ class testMD_fullStrip(measurement):
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
 
-
-
-
-
-
-
-
-
     def execute(self):
 
         # Name of files
@@ -692,7 +661,6 @@ class testMD_fullStrip(measurement):
 
         self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
-        
-
+   
     def finalise(self):
         self._finalise()

@@ -83,7 +83,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-
 class testMD_DiodeStrip(measurement):
 
     def __init__(self, ide, config_path):
@@ -365,14 +364,6 @@ class testMD_DiodeStrip(measurement):
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
 
-
-
-
-
-
-
-
-
     def execute(self):
 
         # Name of files
@@ -391,6 +382,5 @@ class testMD_DiodeStrip(measurement):
         # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
-
     def finalise(self):
         self._finalise()

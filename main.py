@@ -51,6 +51,7 @@ def main():
 		test_list = args[1:] 
 	config_path = options.config_file
 
+	# Iterate through the provided tests and execute them.
 	for test_name in test_list:
 		print('this is testname', test_name)
 		try:
