@@ -53,7 +53,6 @@ def main():
 	config_path = options.config_file
 
 
-
 	for test_name in test_list:
 		print('this is testname', test_name)
 		try:

@@ -87,7 +87,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 class testMD_DiodeGR(measurement):
 
     def __init__(self, ide, config_path):
-        super().__init__(ide)
+        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
         self.config_path = config_path
 
     def initialise(self):

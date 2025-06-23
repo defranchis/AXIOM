@@ -25,7 +25,6 @@ from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10
 from devices.ke7001 import * # switch
 from devices.hp4980 import * # switch
 
-
 def init_liveplot():
     plt.ion()
     fig = plt.figure(figsize=(15,5))
@@ -83,6 +82,12 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 
 class testMD_CRV(measurement):
+
+
+    def __init__(self, ide, config_path):
+        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
+        self.config_path = config_path # this config path is NOT required and can be left empty for this specific measurement. 
+
 
     def initialise(self):
 
