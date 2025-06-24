@@ -22,7 +22,8 @@ from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
+# from devices.hp4980 import * # LCR meter
+from devices.agilent_4263b import * # LCR meter
 
 
 # Global plotter functions TODO: move all auxiliary helper functions that are used accross measurement setups to the utils module
@@ -137,7 +138,7 @@ class testEF_fullDiode(measurement):
         self.reset_switch()
 
         ## Set up lcr meter
-        self.lcr_meter = hp4980(self.lcr_meter_address)
+        self.lcr_meter = agilent_4263b(self.lcr_meter_address)
         self.lcr_meter.reset()
         self.lcr_meter.set_voltage(self.lcr_vol)
         self.lcr_meter.set_mode(self.lcr_mode)

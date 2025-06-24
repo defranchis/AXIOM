@@ -93,7 +93,7 @@ class agilent_4263b(device):
                         'X': 'IMAG',
                         'Q': 'Q',
                         'Z': 'MLIN',
-                        'thd' : 'PHAS',
+                        'thd' : 'PHAS'
                         }
         
         # Split the measurement info two parts for the relevant commands
