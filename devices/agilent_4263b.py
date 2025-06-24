@@ -29,13 +29,6 @@ class agilent_4263b(device):
     # # Configuration functions
     # # ---------------------------------
 
-
-    # def execute_measurement(self, debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Fetching data.")
-    #     vals = self.ctrl.query("FETC?").split(",")
-    #     return float(vals[0]), float(vals[1])
-
     # RST can remain the same since it uses the IEEE 488.2 standard, like the keithley devices
     def reset(self, debug=0):  #USED
         if debug == 1:
@@ -135,13 +128,6 @@ class agilent_4263b(device):
             self.logging("Current frequency setting is %f Hz." % frequency)
         return frequency
 
-
-    # def execute_measurement(self, debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Fetching data.")
-    #     vals = self.ctrl.query("FETC?").split(",")
-    #     return float(vals[0]), float(vals[1])
-
     def execute_measurement(self, debug=0):
         """ Fetches the measurement data from the device.
             Format of query response is, <status>,<data1> ,<data2>,<val1>,<val2>
@@ -159,34 +145,9 @@ class agilent_4263b(device):
         return float(vals[1]), float(vals[2])
 
 
-    def getMeasurement(self, **instructions):
-        """ Get the measurement set
-        """
-        self.logging.info(1, "Yor are in agilent_4263b.getMeasurement")
-        self.logging.info(3, "instructions = " + str(instructions))
-        self.ctrl.write(":INIT:CONT OFF")
-        self.ctrl.write("INIT")
-        time.sleep(2)
 
-
-        # Query the measurement and parse the response
-        response = self.ctrl.query("FETCH?").strip()
-        parts = response.split(',')
-
-        # Extract status and measurement data
-        status = int(parts[0])
-        data1 = float(parts[1])
-        data2 = float(parts[2])
-
-        # Optionally extract comparator results if present
-        comp1 = int(parts[3]) if len(parts) > 3 else None
-        comp2 = int(parts[4]) if len(parts) > 4 else None
-
-        data = data1  # For compatibility with existing return value
-
-        # You may want to return more info, e.g.:
-        # return {"status": status, "data1": data1, "data2": data2, "comp1": comp1, "comp2": comp2}
-        return float(data)
+# ---------------------------- OLD FUNCTIONS FROM PREVIOUS IMPLEMENTATION ----------------------------
+# ----------------------------------------------------------------------------------------------------
 
 
 
@@ -249,8 +210,6 @@ class agilent_4263b(device):
         self.ctrl.write("SENS:FIMP:APER " + lcr_measurement_time)
 
 
-
-
     def setMeasurement(self, **instructions):
         """ setMeasurement"""
         self.logging.info(1, "Yor are in agilent_4263b.setMeasurement")
@@ -279,6 +238,7 @@ class agilent_4263b(device):
         self.ctrl.write(f':CALC2:FORM {VALID_form[calc2]}')
 
 
+    #TODO: this function was used by other setup, unkown if the hp4980 did this automatically, or if not used in test setup.
     def setOnOff(self, status, **instructions):
         """ Enable DC BIAS
         """
