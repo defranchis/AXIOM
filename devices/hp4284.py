@@ -2,6 +2,8 @@ import time
 import lcr_meter
 
 
+# DEPRECATED AND TO BE REMOVED
+
 class hp4284A(lcr_meter):
     """ 
     Keysight 4284A lcr meter.

@@ -24,6 +24,50 @@ class agilent_4263b(device):
         device.__init__(self, address=address)
         self.ctrl.write("*RST") 
         
+## ----------- TO BE IMPLEMENTED: -----------
+
+    # def reset(self, debug=0):  #USED
+    #     if debug == 1:
+    #         self.logging("Reseting device.")
+    #     self.ctrl.write("*RST")
+    #     return 0        
+
+    # # Configuration functions
+    # # ---------------------------------
+
+    # def set_voltage(self, val, debug=0):  #USED
+    #     if debug == 1:
+    #         self.logging("Setting voltage to %f V." % val)
+    #     self.ctrl.write("VOLT %fV" % val)
+    #     return 0
+
+    # def set_frequency(self, val, debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Setting frequency to %s Hz." % val)
+    #     self.ctrl.write("FREQ %sHZ" % val)
+    #     return 0
+
+    # def set_mode(self, mode='CSRS', debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Setting measurement mode to %s. Options are ['CSRS', 'CPRP', 'ZTD']." % mode)
+    #     self.ctrl.write("FUNC:IMP %s" % mode)
+    #     return 0
+    
+    # def check_voltage(self, debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Checking voltage setting.")
+    #     return float(self.ctrl.query("VOLT?"))
+
+    # def check_frequency(self, debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Checking frequency setting.")
+    #     return float(self.ctrl.query("FREQ?"))
+
+    # def execute_measurement(self, debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Fetching data.")
+    #     vals = self.ctrl.query("FETC?").split(",")
+    #     return float(vals[0]), float(vals[1])
 
 
     def selfCalibration(self, **instructions):
