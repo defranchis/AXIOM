@@ -29,15 +29,6 @@ class agilent_4263b(device):
     # # Configuration functions
     # # ---------------------------------
 
-    # def check_voltage(self, debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Checking voltage setting.")
-    #     return float(self.ctrl.query("VOLT?"))
-
-    # def check_frequency(self, debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Checking frequency setting.")
-    #     return float(self.ctrl.query("FREQ?"))
 
     # def execute_measurement(self, debug=0): #USED
     #     if debug == 1:
@@ -52,13 +43,12 @@ class agilent_4263b(device):
         self.ctrl.write("*RST")
         return 0        
     
-    #TODO check if this really sets the amplitude, or DC biasing voltage.
     def set_voltage(self, val, debug=0):
-        """ Set the voltage amplitude for AC source (?)
+        """ Sets the test signal level : page 184 of the 4263B manual
         """
         if debug == 1:
             self.logging("Setting voltage to %f V." % val)
-        self.ctrl.write(f'SOUR:VOLT:AMPL {val}')
+        self.ctrl.write(f'SOUR:VOLT {val}')
         return 0
 
     def set_frequency(self, val, debug=0):
@@ -78,8 +68,8 @@ class agilent_4263b(device):
             self.logging("Setting measurement mode to %s. Options are ['RX', 'CSRS', 'CPRP', 'ZTD']." % mode)
 
         # this maps the (previously used) commands from the keysight E4980 to the agilent 4263b formatting
-        # refer to E4980 manual: https://www.keysight.com/us/en/assets/9018-05655/user-manuals/9018-05655.pdf
-        # and the 4263b  manual: https://www.keysight.com/us/en/assets/9018-01378/user-manuals/9018-01378.pdf
+        # refer to E4980 manual page 353: https://www.keysight.com/us/en/assets/9018-05655/user-manuals/9018-05655.pdf
+        # and the 4263b  manual page 167: https://www.keysight.com/us/en/assets/9018-01378/user-manuals/9018-01378.pdf
         MODE_MAP = {
             'RX': 'R-X',
             'CSRS': 'Cs-Rs',
@@ -92,7 +82,6 @@ class agilent_4263b(device):
             lcr_measurement = mode
 
         # Set the correct measurement mode and formatting for the Agilent 4263B
-        # Again, CHECK PAGE -- 133 -- of https://www.keysight.com/us/en/assets/9018-01378/user-manuals/9018-01378.pdf
         VALID_prefix = {'Cp-D': 'FADM',
                         'R-X': 'FIMP',
                         'Cs-Rs': 'FIMP',
@@ -119,12 +108,85 @@ class agilent_4263b(device):
         calc1 = lcr_measurement[:pivot]
         calc2 = lcr_measurement[pivot+1:]
 
+        # example command formatting on page 133 of the 4263B manual
         self.ctrl.write(f":SENS:FUNC '" + VALID_prefix[lcr_measurement] + "'")
         self.ctrl.write(f':CALC1:FORM {VALID_form[calc1]}')
         self.ctrl.write(f':CALC2:FORM {VALID_form[calc2]}')
 
         return 0
     
+    def check_voltage(self, debug=0):
+        """ Queries the test signal level : page 184 of the 4263B manual
+        """
+        if debug == 1:
+            self.logging("Checking voltage setting.")
+        voltage = float(self.ctrl.query("SOUR:VOLT?"))
+        if debug == 1:
+            self.logging("Current voltage setting is %f V." % voltage)
+        return voltage
+    
+    def check_frequency(self, debug=0):
+        """ Queries the frequency for normal measurement.
+        """
+        if debug == 1:
+            self.logging("Checking frequency setting.")
+        frequency = float(self.ctrl.query("SOUR:FREQ?"))
+        if debug == 1:
+            self.logging("Current frequency setting is %f Hz." % frequency)
+        return frequency
+
+
+    # def execute_measurement(self, debug=0): #USED
+    #     if debug == 1:
+    #         self.logging("Fetching data.")
+    #     vals = self.ctrl.query("FETC?").split(",")
+    #     return float(vals[0]), float(vals[1])
+
+    def execute_measurement(self, debug=0):
+        """ Fetches the measurement data from the device.
+            Format of query response is, <status>,<data1> ,<data2>,<val1>,<val2>
+        """
+        if debug == 1:
+            self.logging("Fetching measurement data.")
+        self.ctrl.write(":INIT:CONT OFF")
+        self.ctrl.write("INIT")
+        time.sleep(2)
+        vals = self.ctrl.query("FETC?").split(',')
+        if debug == 1:
+            self.logging("Measurement data fetched: " + str(vals))
+        if vals[0] != '0':
+            self.logging.error(f"Measurement fetch error: status={vals[0]} (1=Overload, 2=No contact)")
+        return float(vals[1]), float(vals[2])
+
+
+    def getMeasurement(self, **instructions):
+        """ Get the measurement set
+        """
+        self.logging.info(1, "Yor are in agilent_4263b.getMeasurement")
+        self.logging.info(3, "instructions = " + str(instructions))
+        self.ctrl.write(":INIT:CONT OFF")
+        self.ctrl.write("INIT")
+        time.sleep(2)
+
+
+        # Query the measurement and parse the response
+        response = self.ctrl.query("FETCH?").strip()
+        parts = response.split(',')
+
+        # Extract status and measurement data
+        status = int(parts[0])
+        data1 = float(parts[1])
+        data2 = float(parts[2])
+
+        # Optionally extract comparator results if present
+        comp1 = int(parts[3]) if len(parts) > 3 else None
+        comp2 = int(parts[4]) if len(parts) > 4 else None
+
+        data = data1  # For compatibility with existing return value
+
+        # You may want to return more info, e.g.:
+        # return {"status": status, "data1": data1, "data2": data2, "comp1": comp1, "comp2": comp2}
+        return float(data)
 
 
 
@@ -146,7 +208,7 @@ class agilent_4263b(device):
         self.ctrl.write(":INIT:CONT OFF")
         self.ctrl.write("INIT")
         time.sleep(2)
-        data = str(self.ctrl.query("FETCH?").split(',')[1][0:])
+        data = self.ctrl.query("FETCH?").split(',')
         return float(data)
 
 

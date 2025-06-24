@@ -62,19 +62,23 @@ class hp4980(device):
     # Configuration functions
     # ---------------------------------
 
-    def set_voltage(self, val, debug=0):  #USED
+    # Sets the voltage level for the measurement signal. 
+    # If the signal is set by:CURRent[:LEVel], the query command returns error No. 230
+    def set_voltage(self, val, debug=0):  
         if debug == 1:
             self.logging("Setting voltage to %f V." % val)
         self.ctrl.write("VOLT %fV" % val)
         return 0
 
-    def set_frequency(self, val, debug=0): #USED
+    # Sets the frequency for normal measurement.
+    def set_frequency(self, val, debug=0): 
         if debug == 1:
             self.logging("Setting frequency to %s Hz." % val)
         self.ctrl.write("FREQ %sHZ" % val)
         return 0
 
-    def set_mode(self, mode='CSRS', debug=0): #USED
+    # Selects the measurement function.
+    def set_mode(self, mode='CSRS', debug=0): 
         if debug == 1:
             self.logging("Setting measurement mode to %s. Options are ['CSRS', 'CPRP', 'ZTD']." % mode)
         self.ctrl.write("FUNC:IMP %s" % mode)
@@ -123,12 +127,14 @@ class hp4980(device):
         self.ctrl.write(":AMPL:ALC %d" % mode)
         return 0
 
-    def check_voltage(self, debug=0): #USED
+    # Queries the voltage level for the measurement signal.
+    def check_voltage(self, debug=0):
         if debug == 1:
             self.logging("Checking voltage setting.")
         return float(self.ctrl.query("VOLT?"))
 
-    def check_frequency(self, debug=0): #USED
+    # Queries the frequency for normal measurement.
+    def check_frequency(self, debug=0):
         if debug == 1:
             self.logging("Checking frequency setting.")
         return float(self.ctrl.query("FREQ?"))
@@ -256,7 +262,8 @@ class hp4980(device):
         self.ctrl.write("TRIG:IMM")
         return 0
 
-    def execute_measurement(self, debug=0): #USED
+    # Returns a complex measurement result (R-X format) after correction. 
+    def execute_measurement(self, debug=0): 
         if debug == 1:
             self.logging("Fetching data.")
         vals = self.ctrl.query("FETC?").split(",")
