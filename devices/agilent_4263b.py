@@ -128,6 +128,7 @@ class agilent_4263b(device):
             self.logging("Current frequency setting is %f Hz." % frequency)
         return frequency
 
+    #TODO: ensure the logging error is not printed for status 0
     def execute_measurement(self, debug=0):
         """ Fetches the measurement data from the device.
             Format of query response is, <status>,<data1> ,<data2>,<val1>,<val2>
