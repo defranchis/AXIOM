@@ -24,35 +24,11 @@ class agilent_4263b(device):
         device.__init__(self, address=address)
         self.ctrl.write("*RST") 
         
-## ----------- TO BE IMPLEMENTED: -----------
-
-    # def reset(self, debug=0):  #USED
-    #     if debug == 1:
-    #         self.logging("Reseting device.")
-    #     self.ctrl.write("*RST")
-    #     return 0        
+## ----------- TO BE IMPLEMENTED: -----------    
 
     # # Configuration functions
     # # ---------------------------------
 
-    # def set_voltage(self, val, debug=0):  #USED
-    #     if debug == 1:
-    #         self.logging("Setting voltage to %f V." % val)
-    #     self.ctrl.write("VOLT %fV" % val)
-    #     return 0
-
-    # def set_frequency(self, val, debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Setting frequency to %s Hz." % val)
-    #     self.ctrl.write("FREQ %sHZ" % val)
-    #     return 0
-
-    # def set_mode(self, mode='CSRS', debug=0): #USED
-    #     if debug == 1:
-    #         self.logging("Setting measurement mode to %s. Options are ['CSRS', 'CPRP', 'ZTD']." % mode)
-    #     self.ctrl.write("FUNC:IMP %s" % mode)
-    #     return 0
-    
     # def check_voltage(self, debug=0): #USED
     #     if debug == 1:
     #         self.logging("Checking voltage setting.")
@@ -68,6 +44,88 @@ class agilent_4263b(device):
     #         self.logging("Fetching data.")
     #     vals = self.ctrl.query("FETC?").split(",")
     #     return float(vals[0]), float(vals[1])
+
+    # RST can remain the same since it uses the IEEE 488.2 standard, like the keithley devices
+    def reset(self, debug=0):  #USED
+        if debug == 1:
+            self.logging("Reseting device.")
+        self.ctrl.write("*RST")
+        return 0        
+    
+    #TODO check if this really sets the amplitude, or DC biasing voltage.
+    def set_voltage(self, val, debug=0):
+        """ Set the voltage amplitude for AC source (?)
+        """
+        if debug == 1:
+            self.logging("Setting voltage to %f V." % val)
+        self.ctrl.write(f'SOUR:VOLT:AMPL {val}')
+        return 0
+
+    def set_frequency(self, val, debug=0):
+        """ Set the frequency for AC source
+        """
+        if debug == 1:
+            self.logging("Setting frequency to %s Hz." % val)
+        self.ctrl.write(f':SOUR:FREQ {val}')
+        return 0
+
+    def set_mode(self, mode='CSRS', debug=0, **instructions):
+        """
+        Set the measurement mode for the Agilent 4263B.
+        Compatible with legacy set_mode usage: lcr_meter.set_mode('RX')
+        """
+        if debug == 1:
+            self.logging("Setting measurement mode to %s. Options are ['RX', 'CSRS', 'CPRP', 'ZTD']." % mode)
+
+        # this maps the (previously used) commands from the keysight E4980 to the agilent 4263b formatting
+        # refer to E4980 manual: https://www.keysight.com/us/en/assets/9018-05655/user-manuals/9018-05655.pdf
+        # and the 4263b  manual: https://www.keysight.com/us/en/assets/9018-01378/user-manuals/9018-01378.pdf
+        MODE_MAP = {
+            'RX': 'R-X',
+            'CSRS': 'Cs-Rs',
+            'CPRP': 'Cp-Rp',
+            'ZTD': 'Z-thd'
+        }
+        if mode in MODE_MAP:
+            lcr_measurement = MODE_MAP[mode]
+        else:
+            lcr_measurement = mode
+
+        # Set the correct measurement mode and formatting for the Agilent 4263B
+        # Again, CHECK PAGE -- 133 -- of https://www.keysight.com/us/en/assets/9018-01378/user-manuals/9018-01378.pdf
+        VALID_prefix = {'Cp-D': 'FADM',
+                        'R-X': 'FIMP',
+                        'Cs-Rs': 'FIMP',
+                        'Cp-Rp': 'FADM',
+                        'Z-thd': 'FIMP',
+                        'Cp-Q': 'FADM',
+                        'Ls-Q': 'FIMP'}
+        VALID_form = {'D': 'D',
+                        'Cp': 'CP',
+                        'Cs': 'CS',
+                        'Ls': 'LS',
+                        'Rs': 'REAL',
+                        'Rp': 'RP',
+                        'G': 'REAL',
+                        'R': 'REAL',
+                        'X': 'IMAG',
+                        'Q': 'Q',
+                        'Z': 'MLIN',
+                        'thd' : 'PHAS',
+                        }
+        
+        # Split the measurement info two parts for the relevant commands
+        pivot = lcr_measurement.find("-")
+        calc1 = lcr_measurement[:pivot]
+        calc2 = lcr_measurement[pivot+1:]
+
+        self.ctrl.write(f":SENS:FUNC '" + VALID_prefix[lcr_measurement] + "'")
+        self.ctrl.write(f':CALC1:FORM {VALID_form[calc1]}')
+        self.ctrl.write(f':CALC2:FORM {VALID_form[calc2]}')
+
+        return 0
+    
+
 
 
     def selfCalibration(self, **instructions):
@@ -127,6 +185,8 @@ class agilent_4263b(device):
         self.logging.info(3, "instructions = " + str(instructions))
         lcr_measurement_time = VALID_MODES[instructions['lcr_measurement_time']]
         self.ctrl.write("SENS:FIMP:APER " + lcr_measurement_time)
+
+
 
 
     def setMeasurement(self, **instructions):
