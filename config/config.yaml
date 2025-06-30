@@ -7,7 +7,7 @@ voltage_settings:
  correction_count: 5
  range:
   v_min: -20
-  v_max: -900
+  v_max: -800
   step: -10
   nSampling: 10
  delay: 5

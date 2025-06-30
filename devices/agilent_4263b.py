@@ -137,12 +137,9 @@ class agilent_4263b(device):
             self.logging("Fetching measurement data.")
         self.ctrl.write(":INIT:CONT OFF")
         self.ctrl.write("INIT")
-        time.sleep(2)
+        time.sleep(0.5)
         vals = self.ctrl.query("FETC?").split(',')
-        if debug == 1:
-            self.logging("Measurement data fetched: " + str(vals))
-        if vals[0] != '0':
-            self.logging.error(f"Measurement fetch error: status={vals[0]} (1=Overload, 2=No contact)")
+        print("Measurement data fetched: " + str(vals))
         return float(vals[1]), float(vals[2])
 
 

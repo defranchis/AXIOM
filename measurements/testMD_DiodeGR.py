@@ -22,7 +22,6 @@ from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
 
 def init_liveplot():
     plt.ion()

@@ -87,7 +87,7 @@ class testEF_fullDiode(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_address =  25      # in the SSD lab gpib address of the power supply that does the IV scan
         self.switch_address       = 7       # gpib address of the switch
 
         ## LCR meter settings
