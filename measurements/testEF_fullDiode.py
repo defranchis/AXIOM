@@ -22,7 +22,6 @@ from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
-# from devices.hp4980 import * # LCR meter
 from devices.agilent_4263b import * # LCR meter
 
 
@@ -86,54 +85,41 @@ class testEF_fullDiode(measurement):
 
         self._initialise()
 
+        ## Setup devices
+        self.sourcemeter_settings = config['devices']['source-meter']
+        self.picoammeter_settings = config['devices']['picoammeter']
+        self.switch_settings = config['devices']['switch']
+        self.lcr_meter_settings = config['devices']['lcr-meter']
+
         ## KEITHLEY settings
-        self.keithley2410_address =  25      # in the SSD lab gpib address of the power supply that does the IV scan
-        self.switch_address       = 7       # gpib address of the switch
+        self.sourcemeter_address =  self.sourcemeter_settings['address']      # in the SSD lab gpib address of the power supply that does the IV scan[]
+        self.switch_address       = self.switch_settings['address']           # gpib address of the switch
 
         ## LCR meter settings
-        self.lcr_meter_address = 17         # in the SSD lab this is 9
-        #self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
-        
-        self.lcr_vol = 0.5 #0.501             # ac voltage amplitude in [mV]
-        # self.lcr_freq = 1e4    # ac voltage frequency in [Hz]
-        self.lcr_freq = config['frequency']
-        self.lcr_mode = 'RX'
-        self.approx_open_corr = 50e-12
+        self.lcr_meter_address = self.lcr_meter_settings['address']        
+        self.lcr_vol = self.lcr_meter_settings['voltage']
+        self.lcr_freq = self.lcr_meter_settings['frequency']
+        self.lcr_mode = self.lcr_meter_settings['mode'] 
+        self.approx_open_corr = self.lcr_meter_settings['approx_open_corr'] 
+        self.sourcemeter_lim_curr = self.sourcemeter_settings['lim_cur']
 
-
-        self.lim_cur_ke2410 = 1E-4          # compliance in [A]
-        #self.lim_vol = 10                   # compliance in [V]
-
-        voltage_config = config['voltage_settings']
-        open_short_correction = voltage_config.get('open_short_correction', False)
+        open_short_correction = self.sourcemeter_settings['open_short_correction']
 
         if open_short_correction:
-            correction_count = voltage_config.get('correction_count', 100)
+            correction_count = self.sourcemeter_settings.get('correction_count', 100)
             self.volt_list_CV = np.zeros(correction_count)
         else:
-            v_min = voltage_config['range']['v_min']
-            v_max = voltage_config['range']['v_max']
-            step = voltage_config['range']['step']
+            v_min = self.sourcemeter_settings['range']['v_min']
+            v_max = self.sourcemeter_settings['range']['v_max']
+            step = self.sourcemeter_settings['range']['step']
             self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
-
-        # v_min = -20
-        # v_max = -900
-        # step = -10
-        # self.volt_list_CV = [round(v,1) for v in np.arange(v_min, v_max + step, step)]
-        # self.volt_list_CV = np.zeros(100) #TO REMOVE
             
-        self.nSampling_CV = voltage_config['range'].get('nSampling', 10)
-        self.delay_vol_cv = voltage_config.get('delay', 5)
-
-        # self.nSampling_CV = 10
-        # self.delay_vol_cv = 5    # delay between setting voltage and executing measurement in [s]
-        # self.delay_vol_cv = 0 # TO REMOVE
-
+        self.nSampling_CV = self.sourcemeter_settings['range']['nSampling']
+        self.delay_vol_cv = self.sourcemeter_settings['delay'] 
 
         ## initialize the devices
 
-        self.keithley2410 = ke2410(self.keithley2410_address)
-
+        self.keithley2410 = ke2410(self.sourcemeter_address)
         self.switch = ke7001(self.switch_address)
         self.reset_switch()
 
@@ -144,6 +130,7 @@ class testEF_fullDiode(measurement):
         self.lcr_meter.set_mode(self.lcr_mode)
         self.lcr_meter.set_frequency(self.lcr_freq)
 
+    #TODO: Make power supply generic
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
@@ -154,7 +141,7 @@ class testEF_fullDiode(measurement):
         self.keithley2410.reset()
         self.keithley2410.set_source('voltage')
         self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.lim_cur_ke2410)
+        self.keithley2410.set_current_limit(self.sourcemeter_lim_curr)
         self.keithley2410.set_voltage(0)
         self.keithley2410.set_terminal('rear')
         time.sleep(3)
