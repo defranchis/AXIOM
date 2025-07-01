@@ -97,12 +97,12 @@ class testEF_fullDiode(measurement):
         self.reset_switch() # the order is arbitrary, but this works so we leave it in the current state
 
         ## Set up lcr meter
-        lcr_meter_class = getattr(devices, self.config['devices']['lcrmeter']['model'])
-        self.lcr_meter = lcr_meter_class(self.config['devices']['lcrmeter']['address'])
-        self.lcr_meter.reset()
-        self.lcr_meter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
-        self.lcr_meter.set_mode(self.config['devices']['lcrmeter']['mode'])
-        self.lcr_meter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
+        lcrmeter_class = getattr(devices, self.config['devices']['lcrmeter']['model'])
+        self.lcrmeter = lcrmeter_class(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter.reset()
+        self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
+        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        self.lcrmeter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
 
     #TODO: if these reset functions are equal accross measurements, move them to the base class
     def reset_power_supplies(self):
@@ -146,8 +146,8 @@ class testEF_fullDiode(measurement):
         # CV
         lim_vol  = self.sourcemeter.check_voltage_limit()
         lim_cur  = self.sourcemeter.check_current_limit()
-        lcr_vol  = float(self.lcr_meter.check_voltage())
-        lcr_freq = float(self.lcr_meter.check_frequency())
+        lcr_vol  = float(self.lcrmeter.check_voltage())
+        lcr_freq = float(self.lcrmeter.check_frequency())
 
         ## Header
         hdCV = [
@@ -173,7 +173,7 @@ class testEF_fullDiode(measurement):
         vol = self.sourcemeter.read_voltage()
 
 
-        measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
+        measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.nSampling_CV)])
         means = np.mean(measurements, axis=0)
         errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
 
