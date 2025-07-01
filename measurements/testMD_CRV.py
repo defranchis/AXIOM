@@ -23,7 +23,8 @@ from measurements import measurement
 from devices.ke2410 import * # power supply
 from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
+# from devices.hp4980 import * # switch
+from devices.agilent_4263b import *
 
 def init_liveplot():
     plt.ion()
@@ -101,14 +102,14 @@ class testMD_CRV(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
         self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
 
         self.keithley2410_gcddiode_address = 8
         self.switch_address       = 7   # gpib address of the switch
 
         ## LCR meter settings
-        self.lcr_meter_address = 15  # in the SSD lab this is 9
+        self.lcr_meter_address = 17  # in the SSD lab this is 9
         self.lcr_vol = 0.250 #0.501             # ac voltage amplitude in [mV]
         self.lcr_freq = 10000            # ac voltage frequency in [Hz]
         self.cv_res = 1e6                # cv parallel resistor in [Ohm]
@@ -168,7 +169,7 @@ class testMD_CRV(measurement):
         #self.keithley2410_gcddiode = ke2410(self.keithley2410_gcddiode_address)
 
         ## Set up lcr meter
-        self.lcr_meter = hp4980(self.lcr_meter_address)
+        self.lcr_meter = agilent_4263b(self.lcr_meter_address)
         self.lcr_meter.reset()
         self.lcr_meter.set_voltage(self.lcr_vol)
         self.lcr_meter.set_frequency(self.lcr_freq)
