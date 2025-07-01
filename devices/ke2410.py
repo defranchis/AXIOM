@@ -1,5 +1,5 @@
 import time, sys
-from devices.pyvisa_device import device, device_error
+from devices import device
 
 
 class ke2410(device):

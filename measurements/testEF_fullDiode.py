@@ -7,11 +7,8 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
 # Module structure import
 from measurements import measurement
+import devices 
 
-# Specific device imports for this configuration
-from devices.ke2410 import * # power supply
-from devices.ke7001 import * # switch
-from devices.agilent_4263b import * # LCR meter
 
 
 # Global plotter functions TODO: move all auxiliary helper functions that are used accross measurement setups to the utils module
@@ -79,6 +76,7 @@ class testEF_fullDiode(measurement):
         self.switch_settings = config['devices']['switch']
         self.lcr_meter_settings = config['devices']['lcr-meter']
 
+
         ## KEITHLEY settings
         self.sourcemeter_address =  self.sourcemeter_settings['address']      # in the SSD lab gpib address of the power supply that does the IV scan[]
         self.switch_address       = self.switch_settings['address']           # gpib address of the switch
@@ -105,14 +103,27 @@ class testEF_fullDiode(measurement):
         self.nSampling_CV = self.sourcemeter_settings['range']['nSampling']
         self.delay_vol_cv = self.sourcemeter_settings['delay'] 
 
-        
+
         ## initialize the devices
-        self.keithley2410 = ke2410(self.sourcemeter_address)
-        self.switch = ke7001(self.switch_address)
+        # self.keithley2410 = ke2410(self.sourcemeter_address)
+        # self.switch = ke7001(self.switch_address)
+
+
+        
+
+        device_class_name = self.sourcemeter_settings['model']
+        sourcmeter_class = getattr(devices, device_class_name)
+        self.keithley2410 = sourcmeter_class(self.sourcemeter_address)
+
+        switch_class_name = self.switch_settings['model']
+        switch_class = getattr(devices, switch_class_name)
+        self.switch = switch_class(self.switch_address)
         self.reset_switch()
 
         ## Set up lcr meter
-        self.lcr_meter = agilent_4263b(self.lcr_meter_address)
+        lcr_meter_class_name = self.lcr_meter_settings['model']
+        lcr_meter_class = getattr(devices, lcr_meter_class_name)
+        self.lcr_meter = lcr_meter_class(self.lcr_meter_address)
         self.lcr_meter.reset()
         self.lcr_meter.set_voltage(self.lcr_vol)
         self.lcr_meter.set_mode(self.lcr_mode)

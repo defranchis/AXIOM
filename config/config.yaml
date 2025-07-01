@@ -20,7 +20,7 @@ devices:
     model: 'ke7001'
     address: 7
   lcr-meter:
-    model: 'agilent_a4263b'
+    model: 'agilent_4263b'
     address: 17                    # in the SSD lab this is 9
     voltage: 0.5                   # ac voltage amplitude in [mV]
     #self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
