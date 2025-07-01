@@ -57,94 +57,66 @@ class testEF_fullDiode(measurement):
     def initialise(self):
 
         with open(self.config_path, 'r') as file:
-            config = yaml.safe_load(file)
+            self.config = yaml.safe_load(file)
 
-        print(config)
+        print(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running 3 CV scans :)")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
 
-        self._initialise()
+        self._initialise() # base class initialisation
 
-        #TODO: this is agrugably not necessary, but the rest of the code currently still expects this structure
-        ## Setup devices
-        self.sourcemeter_settings = config['devices']['source-meter']
-        self.switch_settings = config['devices']['switch']
-        self.lcr_meter_settings = config['devices']['lcr-meter']
-
-
-        ## KEITHLEY settings
-        self.sourcemeter_address =  self.sourcemeter_settings['address']      # in the SSD lab gpib address of the power supply that does the IV scan[]
-        self.switch_address       = self.switch_settings['address']           # gpib address of the switch
-
-        ## LCR meter settings
-        self.lcr_meter_address = self.lcr_meter_settings['address']        
-        self.lcr_vol = self.lcr_meter_settings['voltage']
-        self.lcr_freq = self.lcr_meter_settings['frequency']
-        self.lcr_mode = self.lcr_meter_settings['mode'] 
-        self.approx_open_corr = self.lcr_meter_settings['approx_open_corr'] 
-        self.sourcemeter_lim_curr = self.sourcemeter_settings['lim_cur']
-
-        open_short_correction = self.sourcemeter_settings['open_short_correction']
+        ## ---------- setup using data from config file ----------------
+        open_short_correction = self.config['devices']['sourcemeter']['open_short_correction']
 
         if open_short_correction:
-            correction_count = self.sourcemeter_settings.get('correction_count', 100)
+            correction_count = self.config['devices']['sourcemeter'].get('correction_count', 100)
             self.volt_list_CV = np.zeros(correction_count)
         else:
-            v_min = self.sourcemeter_settings['range']['v_min']
-            v_max = self.sourcemeter_settings['range']['v_max']
-            step = self.sourcemeter_settings['range']['step']
+            v_min = self.config['devices']['sourcemeter']['range']['v_min']
+            v_max = self.config['devices']['sourcemeter']['range']['v_max']
+            step = self.config['devices']['sourcemeter']['range']['step']
             self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
             
-        self.nSampling_CV = self.sourcemeter_settings['range']['nSampling']
-        self.delay_vol_cv = self.sourcemeter_settings['delay'] 
+        self.nSampling_CV = self.config['devices']['sourcemeter']['range']['nSampling']
+        self.delay_vol_cv = self.config['devices']['sourcemeter']['delay'] 
 
+        ## dynamically set up the devices based on the self.config file
+        ##TODO: add error handling for missing or incorrect device models in the self.config file
 
-        ## initialize the devices
-        # self.keithley2410 = ke2410(self.sourcemeter_address)
-        # self.switch = ke7001(self.switch_address)
+        ## Set up sourcemeter
+        sourcmeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
+        self.sourcemeter = sourcmeter_class(self.config['devices']['sourcemeter']['address'])
 
-
-        
-
-        device_class_name = self.sourcemeter_settings['model']
-        sourcmeter_class = getattr(devices, device_class_name)
-        self.keithley2410 = sourcmeter_class(self.sourcemeter_address)
-
-        switch_class_name = self.switch_settings['model']
-        switch_class = getattr(devices, switch_class_name)
-        self.switch = switch_class(self.switch_address)
-        self.reset_switch()
+        switch_class = getattr(devices, self.config['devices']['switch']['model'])
+        self.switch = switch_class(self.config['devices']['switch']['address'])
+        self.reset_switch() # the order is arbitrary, but this works so we leave it in the current state
 
         ## Set up lcr meter
-        lcr_meter_class_name = self.lcr_meter_settings['model']
-        lcr_meter_class = getattr(devices, lcr_meter_class_name)
-        self.lcr_meter = lcr_meter_class(self.lcr_meter_address)
+        lcr_meter_class = getattr(devices, self.config['devices']['lcrmeter']['model'])
+        self.lcr_meter = lcr_meter_class(self.config['devices']['lcrmeter']['address'])
         self.lcr_meter.reset()
-        self.lcr_meter.set_voltage(self.lcr_vol)
-        self.lcr_meter.set_mode(self.lcr_mode)
-        self.lcr_meter.set_frequency(self.lcr_freq)
+        self.lcr_meter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
+        self.lcr_meter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        self.lcr_meter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
 
-    #TODO: Make power supply generic
+    #TODO: if these reset functions are equal accross measurements, move them to the base class
     def reset_power_supplies(self):
-
         ## Reset power supply for CV measurement
-
-
-        self.keithley2410.ramp_down()
-        self.keithley2410.set_output_off()
-        self.keithley2410.reset()
-        self.keithley2410.set_source('voltage')
-        self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.sourcemeter_lim_curr)
-        self.keithley2410.set_voltage(0)
-        self.keithley2410.set_terminal('rear')
+        self.sourcemeter.ramp_down()
+        self.sourcemeter.set_output_off()
+        self.sourcemeter.reset()
+        self.sourcemeter.set_source('voltage')
+        self.sourcemeter.set_sense('current')
+        self.sourcemeter.set_current_limit(self.config['devices']['sourcemeter']['lim_cur'])
+        self.sourcemeter.set_voltage(0)
+        self.sourcemeter.set_terminal('rear')
         time.sleep(3)
-        self.keithley2410.set_output_off()
+        self.sourcemeter.set_output_off()
         time.sleep(1)
         
     def reset_switch(self):
@@ -172,8 +144,8 @@ class testEF_fullDiode(measurement):
 
     def createHeader(self):
         # CV
-        lim_vol  = self.keithley2410.check_voltage_limit()
-        lim_cur  = self.keithley2410.check_current_limit()
+        lim_vol  = self.sourcemeter.check_voltage_limit()
+        lim_cur  = self.sourcemeter.check_current_limit()
         lcr_vol  = float(self.lcr_meter.check_voltage())
         lcr_freq = float(self.lcr_meter.check_frequency())
 
@@ -194,11 +166,11 @@ class testEF_fullDiode(measurement):
 
     def CVpoint(self, biasV): 
 
-        self.keithley2410.set_voltage(biasV)
+        self.sourcemeter.set_voltage(biasV)
         time.sleep(self.delay_vol_cv)
 
-        cur_tot = self.keithley2410.read_current()
-        vol = self.keithley2410.read_voltage()
+        cur_tot = self.sourcemeter.read_current()
+        vol = self.sourcemeter.read_voltage()
 
 
         measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
@@ -210,10 +182,10 @@ class testEF_fullDiode(measurement):
 
         z = np.sqrt(r**2 + x**2)
         phi = np.arctan(x/r)
-        r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
-        r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+        r_s, c_s, l_s, D = lcr_series_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
+        r_p, c_p, l_p, D = lcr_parallel_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
 
-        line = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
+        line = [biasV, vol, self.config['devices']['lcrmeter']['frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
         
         self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
@@ -241,14 +213,14 @@ class testEF_fullDiode(measurement):
 
 
         self.reset_power_supplies()
-        self.reset_switch()
+        self.reset_switch() #TODO investigate if it is neccessary to reset the switch again, since it already happened after initialisation
 
         if shortGR:
             self.switch.close_channel(1)
         elif groundGR:
             self.switch.close_channel(3)
 
-        self.keithley2410.set_output_on()
+        self.sourcemeter.set_output_on()
 
 
         # Do CV Scan
@@ -263,7 +235,7 @@ class testEF_fullDiode(measurement):
                 label = 'CV floating GR'
                 if shortGR: label = 'CV shorted GR'
                 elif groundGR: label = 'CV grounded GR'
-                line = live_plotter(biasVs, 1/(np.abs(np.array(Cs_LCR))-self.approx_open_corr)**2, ax0, line, identifier=label, yaxis_title='1/Cs^2 [F^-2]', color=color)                
+                line = live_plotter(biasVs, 1/(np.abs(np.array(Cs_LCR))-self.config['devices']['lcrmeter']['approx_open_corr'])**2, ax0, line, identifier=label, yaxis_title='1/Cs^2 [F^-2]', color=color)                
 
 
         except BaseException as e: #KeyboardInterrupt:

@@ -3,7 +3,7 @@ irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
 #dose_rate: 12.79
 
 devices:
-  source-meter:
+  sourcemeter:
     model: 'ke2410'  
     address: 25
     open_short_correction: false
@@ -19,7 +19,7 @@ devices:
   switch:
     model: 'ke7001'
     address: 7
-  lcr-meter:
+  lcrmeter:
     model: 'agilent_4263b'
     address: 17                    # in the SSD lab this is 9
     voltage: 0.5                   # ac voltage amplitude in [mV]
