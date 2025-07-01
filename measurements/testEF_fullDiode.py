@@ -1,32 +1,20 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib.colors import LogNorm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.cm import coolwarm, ScalarMappable
-from matplotlib import gridspec
-from matplotlib.pyplot import axhline, subplots, show, hist, figure, setp, colorbar, plot, cm, title, xlabel, ylabel, grid, legend, savefig, axes, pcolormesh, close
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator, MaxNLocator
-import matplotlib.colors as colors
 plt.style.use('ggplot')
-import time, math, os
-import logging
+import time, math
 import numpy as np
-import mpld3
 import yaml
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
 # Module structure import
 from measurements import measurement
 
 # Specific device imports for this configuration
 from devices.ke2410 import * # power supply
-from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
 from devices.ke7001 import * # switch
 from devices.agilent_4263b import * # LCR meter
 
 
 # Global plotter functions TODO: move all auxiliary helper functions that are used accross measurement setups to the utils module
-
 def init_liveplot():
     plt.ion()
     fig = plt.figure(figsize=(13,13))
@@ -85,9 +73,9 @@ class testEF_fullDiode(measurement):
 
         self._initialise()
 
+        #TODO: this is agrugably not necessary, but the rest of the code currently still expects this structure
         ## Setup devices
         self.sourcemeter_settings = config['devices']['source-meter']
-        self.picoammeter_settings = config['devices']['picoammeter']
         self.switch_settings = config['devices']['switch']
         self.lcr_meter_settings = config['devices']['lcr-meter']
 
@@ -117,8 +105,8 @@ class testEF_fullDiode(measurement):
         self.nSampling_CV = self.sourcemeter_settings['range']['nSampling']
         self.delay_vol_cv = self.sourcemeter_settings['delay'] 
 
+        
         ## initialize the devices
-
         self.keithley2410 = ke2410(self.sourcemeter_address)
         self.switch = ke7001(self.switch_address)
         self.reset_switch()

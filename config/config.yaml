@@ -16,9 +16,6 @@ devices:
     delay: 5                        # delay between setting voltage and executing measurement in [s]
     lim_cur: 1.0e-4                 # compliance in [A]
     #lim_vol = 10                   # compliance in [V]
-  picoammeter:
-    model: 'ke6487'
-    address: 
   switch:
     model: 'ke7001'
     address: 7
