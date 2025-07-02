@@ -21,9 +21,9 @@ devices:
     address: 7
   lcrmeter:
     model: 'agilent_4263b'
-    address: 17                    # in the SSD lab this is 9
-    voltage: 0.5                   # ac voltage amplitude in [mV]
-    #self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
-    frequency: 1000                # ac frequency in [Hz]
+    address: 17                     # in the SSD lab this is 9
+    voltage: 0.5                    # ac voltage amplitude in [mV]
+    #cv_res = 1e6                   # cv parallel resistor in [Ohm]
+    frequency: 1000                 # ac frequency in [Hz]
     mode: 'RX'
     approx_open_corr: 50.0e-12

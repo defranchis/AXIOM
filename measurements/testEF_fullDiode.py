@@ -9,8 +9,6 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 from measurements import measurement
 import devices 
 
-
-
 # Global plotter functions TODO: move all auxiliary helper functions that are used accross measurement setups to the utils module
 def init_liveplot():
     plt.ion()
@@ -18,7 +16,6 @@ def init_liveplot():
     ax0 = fig.add_subplot(131)
     ax1 = fig.add_subplot(132)
     ax2 = fig.add_subplot(133)
-
 
     return fig, ax0, ax1, ax2
 
