@@ -91,106 +91,29 @@ class testMD_DiodeGR(measurement):
 
         self._initialise()
 
-        # ## KEITHLEY settings
-        # self.sourcemeter_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
-        # self.sourcemeter_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-
-
-        # self.config['device']['sourcemeter']['lim_cur'] = 1E-3          # compliance in [A]
-        # self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
-        # self.config['device']['sourcemeter']['lim_vol'] = 10                   # compliance in [V]
-
-        voltage_config = self.config['voltage_settings']
-        # self.config['devices']['sourcemeter']['range_iv']['Vmin_iv'] = voltage_config['Vmin_iv']
-        # self.config['devices']['sourcemeter']['range_iv']['Vmax_iv'] = voltage_config['Vmax_iv']
-        # self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'] = voltage_config['Vstep_iv']
-        
-        # self.config['devices']['sourcemeter']['range_iv']['Vmin_iv'] = -0.5
-        # self.config['devices']['sourcemeter']['range_iv']['Vmax_iv'] = 0.5
-        # self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'] = .1
         self.volt_list_iv = np.arange(self.config['devices']['sourcemeter']['range_iv']['Vmin_iv'], 
                                       self.config['devices']['sourcemeter']['range_iv']['Vmax_iv'] + 
                                       self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'], 
                                       self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'])
-        #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.config['devices']['sourcemeter']['range_iv']['Vmax_iv'] -self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'], self.config['devices']['sourcemeter']['range_iv']['Vmin_iv'] - self.config['devices']['sourcemeter']['range_iv']['Vstep_iv'], -self.config['devices']['sourcemeter']['range_iv']['Vstep_iv']))
-
-        '''
-        self.Vmin_bias_CV = -50  if '120um' in self.id else -100
-        self.Vmax_bias_CV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_CV = -50
-        self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
-        '''
-        # self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-        '''
-        self.Vmin_bias_IV = -100 if '120um' in self.id else -200
-        self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_IV = -50 if '120um' in self.id else -100
-        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
-        '''
-        
-        # self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-        # self.volt_list_bias_IV = [-350]
-
-        # self.config['devices']['sourcemeter']['range']['Vmin'] = voltage_config['Vmin']
-        # self.config['devices']['sourcemeter']['range']['Vmax'] = voltage_config['Vmax']
-        # self.config['devices']['sourcemeter']['range']['Vstep'] = voltage_config['Vstep']
-        # print(self.config['devices']['sourcemeter']['range']['Vmin'])
-
-        # self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
+ 
         self.volt_list_bias_IV = np.arange(self.config['devices']['sourcemeter']['range']['Vmax'], 
                                            self.config['devices']['sourcemeter']['range']['Vmin'] + 
                                            self.config['devices']['sourcemeter']['range']['Vstep'], 
                                            self.config['devices']['sourcemeter']['range']['Vstep']) if not '_0kGy' in self.id else self.config['devices']['sourcemeter']['volt_list_test']
-        # self.volt_list_bias_IV = [-350, -400]
 
-
-        #self.config['devices']['picoammeter_1']['n_sampling'] = 30 # TODO change to original 30s
-
-        #self.delay_vol_iv = voltage_config['delay_vol_iv']      # delay between setting voltage and executing measurement in [s]
-
-        #self.delay_initial_iv = 30  # TODO change to original 30s
-
-        #MD to remove!
-        # self.config['devices']['picoammeter_1']['n_sampling'] = 30
-        # self.delay_vol_iv = 10
-        # self.config['devices']['sourcemeter']['delay_vol'] = 1
-    
-        #self.delay_step_iv = 60
-        #self.discharge_voltage = 10
-
-        ## initialize the devices
-        
         ## Set up sourcemeter
         sourcmeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
         self.sourcemeter = sourcmeter_class(self.config['devices']['sourcemeter']['address'])
-        #   self.sourcemeter_ramp = sourcmeter_class(self.config['devices']['sourcemeter']['ramp-address'])
-
+        ## Lots of references to self.sourcemeter_ramp, this should be setup similarly here if it ever needs to be included. 
 
         ## Set up volt meter
         picoammeter_1_class = getattr(devices, self.config['devices']['picoammeter_1']['model'])
         self.picoammeter_1 = picoammeter_1_class(self.config['devices']['picoammeter_1']['address'])
-        picoammeter_2_class = getattr(devices, self.config['devices']['picoammeter_2']['model'])
+        picoammeter_2_class = getattr(devices, self.config['devices']['picoammeter_2']['model'])        #this is repeated in case the picoammeter_2 is not the same model as picoammeter_1
         self.picoammeter_2 = picoammeter_2_class(self.config['devices']['picoammeter_2']['address'])
 
+    #TODO: refactor since it also resets the picoammeter
     def reset_power_supplies(self):
-
-        ## Reset power supply for CV measurement
-
-        #   self.sourcemeter_ramp.ramp_down_slow()
-        #   self.sourcemeter_ramp.set_output_off()
-        #   self.sourcemeter_ramp.reset()
-        #   self.sourcemeter_ramp.set_source('voltage')
-        #   self.sourcemeter_ramp.set_sense('current')
-        #   self.sourcemeter_ramp.set_current_limit(self.config['devices']['sourcemeter']['lim_cur'])
-        #   self.sourcemeter_ramp.set_voltage(0)
-        #   self.sourcemeter_ramp.set_terminal('rear')
-        # time.sleep(3)
-        # MARC keithley2410.set_interlock_on()
-        #   self.sourcemeter_ramp.set_output_off()
-        # time.sleep(1)
-
 
         self.sourcemeter.ramp_down()
         self.sourcemeter.set_output_off()
@@ -201,7 +124,6 @@ class testMD_DiodeGR(measurement):
         self.sourcemeter.set_voltage(0)
         self.sourcemeter.set_terminal('rear')
         time.sleep(3)
-        # MARC keithley2410.set_interlock_on()
         self.sourcemeter.set_output_off()
         time.sleep(1)
         
@@ -215,7 +137,6 @@ class testMD_DiodeGR(measurement):
         self.picoammeter_2.reset()
         self.picoammeter_2.setup_ammeter()
         self.picoammeter_2.set_nplc(2)
-        # self.picoammeter_1.set_range(self.lim_cur_ke6487)
 
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
@@ -322,9 +243,6 @@ class testMD_DiodeGR(measurement):
         try:
             # Do IV Scan
             self.sourcemeter.set_output_on()
-        
-            #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
-            # self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\t Total Current [A]\t Diode pad Current [A]')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
             start_time = time.time()
