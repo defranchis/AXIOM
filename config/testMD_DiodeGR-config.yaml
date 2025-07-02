@@ -1,0 +1,44 @@
+sensorName: 'N4793_B ' #TODO: sensorName should be provided when invoking the test, to avoid duplication
+irradiationSteps: [0,0.5,1,2,3,4,5,7,10,15,20] # [0,5,10,15,20,30,50,70,100,150,200] #,300,500,700,1000,1500]
+voltage_settings:
+ 
+
+
+
+
+devices:
+  sourcemeter:
+    model: 'ke2410'  
+    address: 25
+    open_short_correction: false
+    correction_count: 5
+    range:
+      Vmin: -800  #TODO: make names consistent with other config files
+      Vmax: -10
+      Vstep: -10
+      # n_sampling: 10
+    range_iv:
+      Vmin_iv: -0.5
+      Vmax_iv: 0.5
+      Vstep_iv: 0.1
+    delay_vol: 1  # delay between setting voltage and executing measurement in [s]
+    # delay_ramp_iv: 1
+    volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
+    # volt_list_test: [-1, -5]
+    # delay_vol_iv: 30
+    # volt_list_bias_IV: [-50, -100, -150, -200, -250, -300, -350, -400, -450, -500, -550, -600 ] #, -700, -800, -900] # [-100, -150, -200, -250, -300, -350, -400]   #
+    lim_cur: 1.0e-3    # compliance in [A]
+    lim_vol: 10      # compliance in [V]
+  switch:
+    model: 'ke7001'
+    address: 7
+  picoammeter_1:
+    model: 'ke6487'
+    address: 15
+    # lim_cur: 5.0e-7  # compliance in [A] for the GCD, this should be ?
+    n_sampling: 30
+  picoammeter_2:
+    model: 'ke6487'
+    address: 23
+    # lim_cur: 5.0e-7  # compliance in [A] for the GCD, this should be ?
+    n_sampling: 30

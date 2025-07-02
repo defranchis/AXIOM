@@ -1,4 +1,5 @@
-sensorName: 'N4791_3' # this is the right name, but we ran with 200333_B
+sensorName: 'N4791_3' # this is the right name, but we ran with 
+#TODO: sensorName should be provided when invoking the test, to avoid duplication
 irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
 #dose_rate: 12.79
 
@@ -15,7 +16,7 @@ devices:
       nSampling: 10
     delay: 5                        # delay between setting voltage and executing measurement in [s]
     lim_cur: 1.0e-4                 # compliance in [A]
-    #lim_vol = 10                   # compliance in [V]
+    #lim_vol = 10                   # compliance in [V] 
   switch:
     model: 'ke7001'
     address: 7

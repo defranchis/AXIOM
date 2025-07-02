@@ -5,6 +5,8 @@ import numpy as np
 import yaml
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
+#TODO: move general imports to base measurement class
+
 # Module structure import
 from measurements import measurement
 import devices 
