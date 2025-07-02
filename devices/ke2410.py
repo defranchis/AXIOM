@@ -128,6 +128,8 @@ class ke2410(device):
         now = float(self.read_voltage())
         if debug == 1:
             self.logging.info("Ramping voltage from %.2f V to %.2f V." % (now, val))
+            self.logging.warning("USAGE OF ramp_voltage FUNCTION DOES NOT RANP BUT IMMEDIATELY SETS OUTPUT TO:  %.2f V." % (val))
+
         ## MARC if now > val:
         ## MARC     for v in range(now, val, -25):
         ## MARC         self.ctrl.write(":SOUR:VOLT %f" % v)

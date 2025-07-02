@@ -1,29 +1,12 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import matplotlib
-from matplotlib.colors import LogNorm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.cm import coolwarm, ScalarMappable
-from matplotlib import gridspec
-from matplotlib.pyplot import axhline, subplots, show, hist, figure, setp, colorbar, plot, cm, title, xlabel, ylabel, grid, legend, savefig, axes, pcolormesh, close
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator, MaxNLocator
-import matplotlib.colors as colors
 plt.style.use('ggplot')
-import time, math, os
-import logging
+import time, math
 import numpy as np
-import mpld3
 import yaml
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 # Module structure import
 from measurements import measurement
-
-# Specific device imports for this configuration
-from devices.ke2410 import * # power supply
-from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
-from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
+import devices
 
 def init_liveplot():
     plt.ion()
@@ -92,12 +75,12 @@ class testMD_DiodeStrip(measurement):
     def initialise(self):
 
         with open(self.config_path, 'r') as file:
-            config = yaml.safe_load(file)
+            self.config = yaml.safe_load(file)
 
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running measurements of the silicon! :)")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -105,23 +88,19 @@ class testMD_DiodeStrip(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
+        # self.sourcemeter_1_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
+        # self.sourcemeter_2_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
 
 
-        self.lim_cur_ke2410 = 1E-3          # compliance in [A]
-        # self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
-        self.lim_vol = 10                   # compliance in [V]
+        # self.lim_cur_ke2410 = 1E-3          # compliance in [A]
+        # # self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
+        # self.lim_vol = 10                   # compliance in [V]
 
-        voltage_config = config['voltage_settings']
-        self.Vmin_iv = voltage_config['Vmin_iv']
-        self.Vmax_iv = voltage_config['Vmax_iv']
-        self.Vstep_iv = voltage_config['Vstep_iv']
-        
-        # self.Vmin_iv = -0.5
-        # self.Vmax_iv = 0.5
-        # self.Vstep_iv = .1
-        self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
+
+        self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['Vmin_iv'], 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vmax_iv'] + 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'], 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'])
         #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
 
         '''
@@ -143,93 +122,110 @@ class testMD_DiodeStrip(measurement):
         
         # self.volt_list_bias_IV = [-350]
 
-        self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
-        self.volt_list_bias_IV = np.arange(self.Vmin, self.Vmax + self.Vstep, self.Vstep)
+        # self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
+        # self.volt_list_bias_IV = np.arange(self.Vmin, self.Vmax + self.Vstep, self.Vstep)
         # self.volt_list_bias_IV = [-350, -400]
+        self.volt_list_bias_IV = np.arange(self.config['devices']['sourcemeter_1']['range']['Vmax'], 
+                                           self.config['devices']['sourcemeter_1']['range']['Vmin'] + 
+                                           self.config['devices']['sourcemeter_1']['range']['Vstep'], 
+                                           self.config['devices']['sourcemeter_1']['range']['Vstep']) 
+        # if not '_0kGy' in self.id else self.config['devices']['sourcemeter']['volt_list_test']
 
 
-        #self.nSampling_IV = 30 # TODO change to original 30s
+        #self.config['devices']['sourcemeter_1']['n_sampling'] = 30 # TODO change to original 30s
 
-        #self.delay_vol_iv = voltage_config['delay_vol_iv']      # delay between setting voltage and executing measurement in [s]
+        #self.config['devices']['sourcemeter_1']['delay_vol'] = voltage_config['delay_vol_iv']      # delay between setting voltage and executing measurement in [s]
 
         #self.delay_initial_iv = 30  # TODO change to original 30s
 
         #MD to remove!
-        self.nSampling_IV = 100
-        self.delay_vol_iv = 10
-        self.delay_ramp_iv = 1
+        # self.config['devices']['sourcemeter_1']['n_sampling'] = 100 #used
+        # self.config['devices']['sourcemeter_1']['delay_vol'] = 10 #used 
+        # self.config['devices']['sourcemeter_1']['delay_ramp'] = 1 #used
     
         #self.delay_step_iv = 60
         #self.discharge_voltage = 10
 
         ## initialize the devices
 
-        self.keithley2410 = ke2410(self.keithley2410_address)
-        self.keithley2410_ramp = ke2410(self.keithley2410_ramp_address)
+
+        ## Set up sourcemeter
+        sourcemeter_1_class = getattr(devices, self.config['devices']['sourcemeter_1']['model'])
+        self.sourcemeter_1 = sourcemeter_1_class(self.config['devices']['sourcemeter_1']['address'])
+        sourcemeter_2_class = getattr(devices, self.config['devices']['sourcemeter_2']['model'])     #in case of different sourcemeter types
+        self.sourcemeter_2 = sourcemeter_2_class(self.config['devices']['sourcemeter_2']['address'])
 
 
-        ## Set up volt meter
-        self.keithley6487_address = 15
-        self.keithley6487 = ke6487(self.keithley6487_address)
+        # self.sourcemeter_1 = ke2410(self.sourcemeter_1_address)
+        # self.sourcemeter_2 = ke2410(self.sourcemeter_2_address)
+
+        # set up picoammeter
+        picoammeter_class = getattr(devices, self.config['devices']['picoammeter']['model'])
+        self.picoammeter = picoammeter_class(self.config['devices']['picoammeter']['address'])
+
+        # ## Set up volt meter
+        # self.picoammeter_address = 15
+        # self.picoammeter = ke6487(self.picoammeter_address)
 
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
 
-        self.keithley2410_ramp.ramp_down_slow()
-        self.keithley2410_ramp.set_output_off()
-        self.keithley2410_ramp.reset()
-        self.keithley2410_ramp.set_source('voltage')
-        self.keithley2410_ramp.set_sense('current')
-        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_ramp.set_voltage(0)
-        self.keithley2410_ramp.set_terminal('rear')
+        self.sourcemeter_2.ramp_down_slow()
+        self.sourcemeter_2.set_output_off()
+        self.sourcemeter_2.reset()
+        self.sourcemeter_2.set_source('voltage')
+        self.sourcemeter_2.set_sense('current')
+        self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_2']['lim_cur'])
+        self.sourcemeter_2.set_voltage(0)
+        self.sourcemeter_2.set_terminal('rear')
         time.sleep(3)
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410_ramp.set_output_off()
+        self.sourcemeter_2.set_output_off()
         time.sleep(1)
 
 
-        self.keithley2410.ramp_down()
-        self.keithley2410.set_output_off()
-        self.keithley2410.reset()
-        self.keithley2410.set_source('voltage')
-        self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410.set_voltage(0)
-        self.keithley2410.set_terminal('rear')
+        self.sourcemeter_1.ramp_down()
+        self.sourcemeter_1.set_output_off()
+        self.sourcemeter_1.reset()
+        self.sourcemeter_1.set_source('voltage')
+        self.sourcemeter_1.set_sense('current')
+        self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_1.set_voltage(0)
+        self.sourcemeter_1.set_terminal('rear')
         time.sleep(3)
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410.set_output_off()
+        self.sourcemeter_1.set_output_off()
         time.sleep(1)
         
 
-        self.keithley6487.ramp_down()
-        self.keithley6487.reset()
-        self.keithley6487.setup_ammeter()
-        self.keithley6487.set_nplc(2)
-        # self.keithley6487.set_range(self.lim_cur_ke6487)
+        self.picoammeter.ramp_down()
+        self.picoammeter.reset()
+        self.picoammeter.setup_ammeter()
+        self.picoammeter.set_nplc(2)
+        # self.picoammeter.set_range(self.lim_cur_ke6487)
 
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
+    #TODO: Read dynamically from config
     def createHeader(self):
         # IV
-        ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
-        ke6487_lim_cur = -999 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
-        ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
-        ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
+        picoammeter_lim_vol = -999. #self.picoammeter.check_voltage_limit()
+        picoammeter_lim_cur = -999 ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
+        sourcemeter_lim_vol  = self.sourcemeter_2.check_voltage_limit()
+        sourcemeter_lim_cur  = self.sourcemeter_2.check_current_limit()
 
         hdIV = [
             'IV m\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
-            'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'picoammeter voltage limit:      %8.2E V' % picoammeter_lim_vol,
+            'picoammeter current limit:      %8.2E A' % picoammeter_lim_cur,
+            'sourcemeter voltage limit:      %8.2E V' % sourcemeter_lim_vol,
+            'sourcemeter current limit:      %8.2E A' % sourcemeter_lim_cur,
+            'Voltage delay:                   %8.2f s' % self.config['devices']['sourcemeter_1']['delay_vol'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
         ]
         #line = [biasV, vol, cur_tot, measV, volSmall, means, errs]
@@ -237,29 +233,29 @@ class testMD_DiodeStrip(measurement):
         hdRV = [
             'RV Sweep\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
-            'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'picoammeter voltage limit:      %8.2E V' % picoammeter_lim_vol,
+            'picoammeter current limit:      %8.2E A' % picoammeter_lim_cur,
+            'sourcemeter voltage limit:      %8.2E V' % sourcemeter_lim_vol,
+            'sourcemeter current limit:      %8.2E A' % sourcemeter_lim_cur,
+            'Voltage delay:                   %8.2f s' % self.config['devices']['sourcemeter_1']['delay_vol'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
 
         return(hdIV, hdRV)
 
     def IVpoint(self, biasV, measV):
-        self.keithley2410_ramp.ramp_voltage(measV)
-        time.sleep(self.delay_ramp_iv)
+        self.sourcemeter_2.ramp_voltage(measV)
+        time.sleep(self.config['devices']['sourcemeter_1']['delay_ramp'])
 
-        cur_tot = self.keithley2410.read_current()
-        vol = self.keithley2410.read_voltage()
-        cur_totSmall = self.keithley2410_ramp.read_current()
-        volSmall = self.keithley2410_ramp.read_voltage()
+        cur_tot = self.sourcemeter_1.read_current()
+        vol = self.sourcemeter_1.read_voltage()
+        cur_totSmall = self.sourcemeter_2.read_current()
+        volSmall = self.sourcemeter_2.read_voltage()
 
-        measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
-        #measurements = measurements[2*self.nSampling_IV:]
+        measurements = np.array([self.picoammeter.read_current() for _ in range(self.config['devices']['sourcemeter_1']['n_sampling'])])
+        #measurements = measurements[2*self.config['devices']['sourcemeter_1']['n_sampling']:]
         means = np.mean(measurements, axis=0)
-        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.config['devices']['sourcemeter_1']['n_sampling'])
 
         #TODO V bias set, V bias measured, I bias, V ramp set, V ramp meas, I ramp, I amm, err I amm
         line = [biasV, vol, cur_tot, measV, volSmall, means, errs, cur_totSmall]
@@ -297,7 +293,7 @@ class testMD_DiodeStrip(measurement):
 
         try:
             # Do IV Scan
-            self.keithley2410.set_output_on()
+            self.sourcemeter_1.set_output_on()
         
             #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
@@ -306,10 +302,10 @@ class testMD_DiodeStrip(measurement):
 
             for v in self.volt_list_bias_IV:
         
-                self.keithley2410.ramp_up(v)
-                time.sleep(self.delay_ramp_iv)
-                self.keithley2410_ramp.set_output_on()
-                time.sleep(self.delay_vol_iv)
+                self.sourcemeter_1.ramp_up(v)
+                time.sleep(self.config['devices']['sourcemeter_1']['delay_ramp'])
+                self.sourcemeter_2.set_output_on()
+                time.sleep(self.config['devices']['sourcemeter_1']['delay_vol'])
 
                 line3 = []
                 Vs_amp = []
@@ -325,9 +321,9 @@ class testMD_DiodeStrip(measurement):
                     Is_amp.append(lineIV[5])
                     line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
             
-                self.keithley2410_ramp.ramp_down_slow()
-                time.sleep(self.delay_ramp_iv)
-                self.keithley2410_ramp.set_output_off()
+                self.sourcemeter_2.ramp_down_slow()
+                time.sleep(self.config['devices']['sourcemeter_1']['delay_ramp'])
+                self.sourcemeter_2.set_output_off()
 
                 biasVs.append(v)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    

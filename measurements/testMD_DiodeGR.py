@@ -84,7 +84,7 @@ class testMD_DiodeGR(measurement):
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running measurements of the silicon! :)")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -102,8 +102,8 @@ class testMD_DiodeGR(measurement):
                                            self.config['devices']['sourcemeter']['range']['Vstep']) if not '_0kGy' in self.id else self.config['devices']['sourcemeter']['volt_list_test']
 
         ## Set up sourcemeter
-        sourcmeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
-        self.sourcemeter = sourcmeter_class(self.config['devices']['sourcemeter']['address'])
+        sourcemeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
+        self.sourcemeter = sourcemeter_class(self.config['devices']['sourcemeter']['address'])
         ## Lots of references to self.sourcemeter_ramp, this should be setup similarly here if it ever needs to be included. 
 
         ## Set up volt meter
