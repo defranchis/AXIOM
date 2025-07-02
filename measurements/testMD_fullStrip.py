@@ -649,7 +649,7 @@ class testMD_fullStrip(measurement):
     def execute(self):
 
         # Name of files
-        name = "Test_name"
+        name =  self.__class__.__name__
 
         # Create plots
         fig, ax0, ax1, ax2, ax3, ax4, ax5, ax6, ax7 = init_liveplot()

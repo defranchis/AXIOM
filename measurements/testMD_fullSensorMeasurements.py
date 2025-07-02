@@ -520,7 +520,8 @@ class testMD_fullSensorMeasurements(measurement):
         fig, ax0, ax1,ax2 = init_liveplot()
 
         plots = {}
-
+        
+        # name =  self.__class__.__name__ #TODO: USE APPROPRIATE NAME 
         ## starting the measurements
         plots_cv_moshalf = self.doCVScan(1, ax0, name='MOShalf')
         plots["cv_moshalf"] = plots_cv_moshalf

@@ -255,7 +255,7 @@ class testEF_fullDiode(measurement):
     def execute(self):
 
         # Name of files
-        name = "Test_name"
+        name =  self.__class__.__name__
 
         # Create plots
         fig, ax0, ax1, ax2 = init_liveplot()

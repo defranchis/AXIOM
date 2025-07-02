@@ -664,6 +664,7 @@ class testMD_CRV(measurement):
 
         ## starting the measurements
         #FIXME
+        #         name =  self.__class__.__name__
         #plots_cv_moshalf = self.doCRVScan(1, ax0, ax1,ax2, name='MOShalf')
         #plots["cv_moshalf"] = plots_cv_moshalf
         #self.reset_power_supplies()
