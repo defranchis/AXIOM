@@ -43,5 +43,5 @@ devices:
     voltage: 1                    # ac voltage amplitude in [mV]
     cv_res: 1.0e6                   # cv parallel resistor in [Ohm]
     frequency: 1.0e6                 # ac frequency in [Hz]
-    # mode: 'RX'
+    mode: 'RX'
     # approx_open_corr: 50.0e-12

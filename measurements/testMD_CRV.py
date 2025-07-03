@@ -1,30 +1,16 @@
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import matplotlib
-from matplotlib.colors import LogNorm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.cm import coolwarm, ScalarMappable
-from matplotlib import gridspec
-from matplotlib.pyplot import axhline, subplots, show, hist, figure, setp, colorbar, plot, cm, title, xlabel, ylabel, grid, legend, savefig, axes, pcolormesh, close
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator, MaxNLocator
-import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import subplots, savefig
+from matplotlib.ticker import  AutoMinorLocator, MaxNLocator
 plt.style.use('ggplot')
-import time, math, os
-import logging
+import time, math
 import numpy as np
-import mpld3
 import yaml
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
 # Module structure import
 from measurements import measurement
 import devices
-# Specific device imports for this configuration
-# from devices.ke2410 import * # power supply
-# from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
-# from devices.ke7001 import * # switch
-# from devices.agilent_4263b import *
-
 
 
 def init_liveplot():
@@ -36,6 +22,7 @@ def init_liveplot():
 
     return fig, ax0, ax1, ax2
 
+#TODO: never used function, remove!
 def mypause(interval):
     backend = plt.rcParams['backend']
     if backend in matplotlib.rcsetup.interactive_bk:
@@ -85,10 +72,9 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class testMD_CRV(measurement):
 
-
     def __init__(self, ide, config_path):
         super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
-        self.config_path = config_path # this config path is NOT required and can be left empty for this specific measurement. 
+        self.config_path = config_path
 
 
     def initialise(self):
@@ -107,107 +93,31 @@ class testMD_CRV(measurement):
 
         self._initialise()
 
-        ## KEITHLEY settings
-        # self.keithley2410_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-        # self.sourcemeter_2_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-
-        # self.keithley2410_gcddiode_address = 8
-        # self.switch_address       = 7   # gpib address of the switch
-
-        # ## LCR meter settings
-        # self.lcr_meter_address = 17  # in the SSD lab this is 9
-        # self.config['devices']['lcrmeter']['voltage'] = 0.250 #0.501             # ac voltage amplitude in [mV]
-        # self.config['devices']['lcrmeter']['frequency'] = 10000            # ac voltage frequency in [Hz]
-        # self.config['devices']['lcrmeter']['cv_res'] = 1e6                # cv parallel resistor in [Ohm]
-        
-        # self.config['devices']['lcrmeter']['voltage'] = 1 #0.501             # ac voltage amplitude in [mV]
-        # self.config['devices']['lcrmeter']['frequency'] = 1E6            # ac voltage frequency in [Hz]       
-
-
-        # self.config['devices']['sourcemeter_1']['lim_cur'] = 1E-4  # compliance in [A]
-        #  self.config['devices']['picoammeter']['lim_cur'] = 5E-8    # compliance in [A] for the GCD, this should be 10 nA
-        # self.lim_vol = 10             # compliance in [V]
-
-        # check ef_fulldiode config how to replicate this using the config file.
-        self.volt_list_cv_orig = [i*-10 for i in range(2,51)] 
         self.volt_list_cv = np.arange(self.config['devices']['sourcemeter_1']['range_cv']['v_min'],
                                       self.config['devices']['sourcemeter_1']['range_cv']['v_max'] +
                                       self.config['devices']['sourcemeter_1']['range_cv']['step'],
                                       self.config['devices']['sourcemeter_1']['range_cv']['step'])
-        #TODO: remove test if these are equal
-        print("volt_list_cv_orig:", self.volt_list_cv_orig)
-        print("volt_list_cv:", self.volt_list_cv)
-        assert np.allclose(self.volt_list_cv_orig, self.volt_list_cv), "volt_list_cv_orig and volt_list_cv are not the same"
-        #self.currents_cv  = [0 for i in self.volt_list_cv]
 
-        # self.Vmin = -5
-        # self.Vmax = 5
-        # self.Vstep = .1
         self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['v_min'],
                                         self.config['devices']['sourcemeter_1']['range_iv']['v_max'] +
                                         self.config['devices']['sourcemeter_1']['range_iv']['step'],
                                         self.config['devices']['sourcemeter_1']['range_iv']['step'])
         
-        
-        #self.volt_list_iv = [i/10-5 for i in range(3)]
-        #self.volt_list_iv = [i/10+.5 for i in range(150)]
-        #self.currents_iv  = [0 for i in self.volt_list_iv]
 
-        # self.config['devices']['sourcemeter_1']['range_cv']['n_sampling'] =  10
-        # self.config['devices']['sourcemeter_1']['range_iv']['n_sampling'] = 100
-
-        # self.config['devices']['sourcemeter_1']['v_bias'] = -200
-
-        #self.is_preirradiation = False
-        #self.gcd_diode_bias = 10.
-
-        #if '_0kGy'in self.id or 'preirr' in self.id:
-        #    self.is_preirradiation = True
-        #    self.gcd_diode_bias = 5
-        #    #self.volt_list_cv = [0.-i*0.1 for i in range(30)] + [-3.-i for i in range(13)]
-        #    self.volt_list_cv = [0.-i*0.1 for i in range(80)] + [-8.-i*0.5 for i in range(15)]
-        #    self.currents_cv  = [0 for i in self.volt_list_cv]
-        #    self.volt_list_iv = [10.-i for i in range(26)]
-        #    self.currents_iv  = [0 for i in self.volt_list_iv]
-
-        ## might as well get the proper dose
-        #doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
-        #self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
-
-        # self.config['devices']['sourcemeter_1']['delay_cv'] = 10     # delay between setting voltage and executing measurement in [s]
-        # self.config['devices']['sourcemeter_1']['delay_iv'] = 10     # delay between setting voltage and executing measurement in [s]
-
-        ## initialize the devices
-
-        # self.keithley2410 = ke2410(self.keithley2410_address)
-        # self.sourcemeter_2 = ke2410(self.sourcemeter_2_address)
-
-        ## Set up sourcemeter
-        #TODO: combine these lines to avoid unecessary class instantiation
         self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
         self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
-
-
-        # self.switch       = ke7001(self.switch_address)
-        # self.reset_switch()
-        #self.keithley2410_gcddiode = ke2410(self.keithley2410_gcddiode_address)
 
         self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
         self.reset_switch() 
 
-        ## Set up lcr meter
         self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
         self.lcrmeter.reset()
         self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
         self.lcrmeter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
-        self.lcrmeter.set_mode('RX')
-
-        #self.cor_open = np.loadtxt('config/valuesOpen_2023.txt') # open correction for lcr meter
-
+        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+       
         self.picoammeter = getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
-
-        #self.reset_power_supplies()
 
     def reset_power_supplies(self):
 
