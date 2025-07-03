@@ -25,6 +25,7 @@ devices:
     volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
     lim_cur: 1.0e-3    # compliance in [A]
     lim_vol: 10      # compliance in [V]
+
   sourcemeter_2:
     model: 'ke2410'  
     address: 8
@@ -44,6 +45,7 @@ devices:
     volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
     lim_cur: 1.0e-3    # compliance in [A]
     lim_vol: 10      # compliance in [V]    
+    
   picoammeter:
     model: 'ke6487'
     address: 15

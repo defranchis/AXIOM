@@ -76,7 +76,6 @@ class testMD_CRV(measurement):
         super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
         self.config_path = config_path
 
-
     def initialise(self):
         #TODO: when all measurement classes are ready, this can be moved to the base class
         with open(self.config_path, 'r') as file:
@@ -117,7 +116,6 @@ class testMD_CRV(measurement):
         self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
        
         self.picoammeter = getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
-
 
     def reset_power_supplies(self):
 

@@ -87,85 +87,22 @@ class testMD_DiodeStrip(measurement):
 
         self._initialise()
 
-        ## KEITHLEY settings
-        # self.sourcemeter_1_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
-        # self.sourcemeter_2_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-
-
-        # self.lim_cur_ke2410 = 1E-3          # compliance in [A]
-        # # self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
-        # self.lim_vol = 10                   # compliance in [V]
-
-
         self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['Vmin_iv'], 
                                       self.config['devices']['sourcemeter_1']['range_iv']['Vmax_iv'] + 
                                       self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'], 
                                       self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'])
-        #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
 
-        '''
-        self.Vmin_bias_CV = -50  if '120um' in self.id else -100
-        self.Vmax_bias_CV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_CV = -50
-        self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
-        '''
-        # self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-        '''
-        self.Vmin_bias_IV = -100 if '120um' in self.id else -200
-        self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_IV = -50 if '120um' in self.id else -100
-        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
-        '''
-        
-        # self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-        # self.volt_list_bias_IV = [-350]
-
-        # self.volt_list_bias_IV = voltage_config['volt_list_bias_IV'] if not '_0kGy' in self.id else voltage_config['volt_list_test']
-        # self.volt_list_bias_IV = np.arange(self.Vmin, self.Vmax + self.Vstep, self.Vstep)
-        # self.volt_list_bias_IV = [-350, -400]
         self.volt_list_bias_IV = np.arange(self.config['devices']['sourcemeter_1']['range']['Vmax'], 
                                            self.config['devices']['sourcemeter_1']['range']['Vmin'] + 
                                            self.config['devices']['sourcemeter_1']['range']['Vstep'], 
                                            self.config['devices']['sourcemeter_1']['range']['Vstep']) 
-        # if not '_0kGy' in self.id else self.config['devices']['sourcemeter']['volt_list_test']
-
-
-        #self.config['devices']['sourcemeter_1']['n_sampling'] = 30 # TODO change to original 30s
-
-        #self.config['devices']['sourcemeter_1']['delay_vol'] = voltage_config['delay_vol_iv']      # delay between setting voltage and executing measurement in [s]
-
-        #self.delay_initial_iv = 30  # TODO change to original 30s
-
-        #MD to remove!
-        # self.config['devices']['sourcemeter_1']['n_sampling'] = 100 #used
-        # self.config['devices']['sourcemeter_1']['delay_vol'] = 10 #used 
-        # self.config['devices']['sourcemeter_1']['delay_ramp'] = 1 #used
-    
-        #self.delay_step_iv = 60
-        #self.discharge_voltage = 10
-
-        ## initialize the devices
-
 
         ## Set up sourcemeter
-        sourcemeter_1_class = getattr(devices, self.config['devices']['sourcemeter_1']['model'])
-        self.sourcemeter_1 = sourcemeter_1_class(self.config['devices']['sourcemeter_1']['address'])
-        sourcemeter_2_class = getattr(devices, self.config['devices']['sourcemeter_2']['model'])     #in case of different sourcemeter types
-        self.sourcemeter_2 = sourcemeter_2_class(self.config['devices']['sourcemeter_2']['address'])
-
-
-        # self.sourcemeter_1 = ke2410(self.sourcemeter_1_address)
-        # self.sourcemeter_2 = ke2410(self.sourcemeter_2_address)
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
         # set up picoammeter
-        picoammeter_class = getattr(devices, self.config['devices']['picoammeter']['model'])
-        self.picoammeter = picoammeter_class(self.config['devices']['picoammeter']['address'])
-
-        # ## Set up volt meter
-        # self.picoammeter_address = 15
-        # self.picoammeter = ke6487(self.picoammeter_address)
+        self.picoammeter = getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
     def reset_power_supplies(self):
 

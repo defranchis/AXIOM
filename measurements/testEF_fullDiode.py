@@ -85,20 +85,11 @@ class testEF_fullDiode(measurement):
         self.nSampling_CV = self.config['devices']['sourcemeter']['range']['nSampling']
         self.delay_vol_cv = self.config['devices']['sourcemeter']['delay'] 
 
-        ## dynamically set up the devices based on the self.config file
-        ##TODO: add error handling for missing or incorrect device models in the self.config file
-
-        ## Set up sourcemeter
-        sourcmeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
-        self.sourcemeter = sourcmeter_class(self.config['devices']['sourcemeter']['address'])
-
-        switch_class = getattr(devices, self.config['devices']['switch']['model'])
-        self.switch = switch_class(self.config['devices']['switch']['address'])
+        ## Set up sourcemeter, switch and lcrmeter
+        self.sourcemeter = getattr(devices, self.config['devices']['sourcemeter']['model'])(self.config['devices']['sourcemeter']['address'])
+        self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
         self.reset_switch() # the order is arbitrary, but this works so we leave it in the current state
-
-        ## Set up lcr meter
-        lcrmeter_class = getattr(devices, self.config['devices']['lcrmeter']['model'])
-        self.lcrmeter = lcrmeter_class(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
         self.lcrmeter.reset()
         self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
         self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])

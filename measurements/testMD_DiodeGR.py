@@ -102,15 +102,11 @@ class testMD_DiodeGR(measurement):
                                            self.config['devices']['sourcemeter']['range']['Vstep']) if not '_0kGy' in self.id else self.config['devices']['sourcemeter']['volt_list_test']
 
         ## Set up sourcemeter
-        sourcemeter_class = getattr(devices, self.config['devices']['sourcemeter']['model'])
-        self.sourcemeter = sourcemeter_class(self.config['devices']['sourcemeter']['address'])
-        ## Lots of references to self.sourcemeter_ramp, this should be setup similarly here if it ever needs to be included. 
+        self.sourcemeter = getattr(devices, self.config['devices']['sourcemeter']['model'])(self.config['devices']['sourcemeter']['address'])
 
-        ## Set up volt meter
-        picoammeter_1_class = getattr(devices, self.config['devices']['picoammeter_1']['model'])
-        self.picoammeter_1 = picoammeter_1_class(self.config['devices']['picoammeter_1']['address'])
-        picoammeter_2_class = getattr(devices, self.config['devices']['picoammeter_2']['model'])        #this is repeated in case the picoammeter_2 is not the same model as picoammeter_1
-        self.picoammeter_2 = picoammeter_2_class(self.config['devices']['picoammeter_2']['address'])
+        ## Set up volt meters
+        self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
+        self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
 
     #TODO: refactor since it also resets the picoammeter
     def reset_power_supplies(self):
