@@ -81,6 +81,7 @@ class testEF_fullDiode(measurement):
             step = self.config['devices']['sourcemeter']['range']['step']
             self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
             
+        #TODO: replace local variables by directly accessing the config
         self.nSampling_CV = self.config['devices']['sourcemeter']['range']['nSampling']
         self.delay_vol_cv = self.config['devices']['sourcemeter']['delay'] 
 

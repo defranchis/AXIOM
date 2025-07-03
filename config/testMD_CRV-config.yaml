@@ -1,0 +1,47 @@
+sensorName: 'N4791_3' # this is the right name, but we ran with 
+#TODO: sensorName should be provided when invoking the test, to avoid duplication
+irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
+#dose_rate: 12.79
+
+devices:
+  sourcemeter_1:
+    model: 'ke2410'  
+    address: 25
+    # open_short_correction: false
+    # correction_count: 5
+    range_cv:
+      v_min: -20
+      v_max: -500
+      step: -10
+      n_sampling: 10
+    range_iv:
+      v_min: -5
+      v_max: 5
+      step: 0.1
+      n_sampling: 100
+    delay_cv: 10                        # delay between setting voltage and executing measurement in [s]
+    delay_iv: 10                        # delay between setting voltage and executing measurement in [s]
+    lim_cur: 1.0e-4                 # compliance in [A]
+    v_bias: -200                # bias voltage in [V] for the GCD
+
+  sourcemeter_2:
+    model: 'ke2410'  
+    address: 8
+
+  switch:
+    model: 'ke7001'
+    address: 7
+  
+  picoammeter:
+    model: 'ke6487'
+    address: 15
+    lim_cur: 5.0e-8    # compliance in [A] for the GCD, this should be 10 nA
+    
+  lcrmeter:
+    model: 'agilent_4263b'
+    address: 17                     # in the SSD lab this is 9
+    voltage: 1                    # ac voltage amplitude in [mV]
+    cv_res: 1.0e6                   # cv parallel resistor in [Ohm]
+    frequency: 1.0e6                 # ac frequency in [Hz]
+    # mode: 'RX'
+    # approx_open_corr: 50.0e-12

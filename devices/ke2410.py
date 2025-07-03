@@ -204,6 +204,7 @@ class ke2410(device):
             if debug == 1:
                 print(self.read_voltage())
         self.ctrl.write(":SOUR:VOLT %f" % val)
+        #TODO: flush the console output once more to avoid confusing messages remaining visible after ramping has finished
         return 0
     
     def ramp_up_slow(self, val, debug=0):

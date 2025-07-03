@@ -18,13 +18,14 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 # Module structure import
 from measurements import measurement
-
+import devices
 # Specific device imports for this configuration
-from devices.ke2410 import * # power supply
-from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
-from devices.ke7001 import * # switch
-# from devices.hp4980 import * # switch
-from devices.agilent_4263b import *
+# from devices.ke2410 import * # power supply
+# from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
+# from devices.ke7001 import * # switch
+# from devices.agilent_4263b import *
+
+
 
 def init_liveplot():
     plt.ion()
@@ -91,10 +92,15 @@ class testMD_CRV(measurement):
 
 
     def initialise(self):
+        #TODO: when all measurement classes are ready, this can be moved to the base class
+        with open(self.config_path, 'r') as file:
+            self.config = yaml.safe_load(file)
+
+        print(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running all 3 measurements of the silicon!")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -102,42 +108,55 @@ class testMD_CRV(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
+        # self.keithley2410_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
+        # self.sourcemeter_2_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
 
-        self.keithley2410_gcddiode_address = 8
-        self.switch_address       = 7   # gpib address of the switch
+        # self.keithley2410_gcddiode_address = 8
+        # self.switch_address       = 7   # gpib address of the switch
 
-        ## LCR meter settings
-        self.lcr_meter_address = 17  # in the SSD lab this is 9
-        self.lcr_vol = 0.250 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 10000            # ac voltage frequency in [Hz]
-        self.cv_res = 1e6                # cv parallel resistor in [Ohm]
+        # ## LCR meter settings
+        # self.lcr_meter_address = 17  # in the SSD lab this is 9
+        # self.config['devices']['lcrmeter']['voltage'] = 0.250 #0.501             # ac voltage amplitude in [mV]
+        # self.config['devices']['lcrmeter']['frequency'] = 10000            # ac voltage frequency in [Hz]
+        # self.config['devices']['lcrmeter']['cv_res'] = 1e6                # cv parallel resistor in [Ohm]
         
-        self.lcr_vol = 1 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 1E6            # ac voltage frequency in [Hz]       
+        # self.config['devices']['lcrmeter']['voltage'] = 1 #0.501             # ac voltage amplitude in [mV]
+        # self.config['devices']['lcrmeter']['frequency'] = 1E6            # ac voltage frequency in [Hz]       
 
 
-        self.lim_cur_ke2410 = 1E-4  # compliance in [A]
-        self.lim_cur_ke6487 = 5E-8    # compliance in [A] for the GCD, this should be 10 nA
-        self.lim_vol = 10             # compliance in [V]
+        # self.config['devices']['sourcemeter_1']['lim_cur'] = 1E-4  # compliance in [A]
+        #  self.config['devices']['picoammeter']['lim_cur'] = 5E-8    # compliance in [A] for the GCD, this should be 10 nA
+        # self.lim_vol = 10             # compliance in [V]
 
-        self.volt_list_cv = [i*-10 for i in range(2,51)]
+        # check ef_fulldiode config how to replicate this using the config file.
+        self.volt_list_cv_orig = [i*-10 for i in range(2,51)] 
+        self.volt_list_cv = np.arange(self.config['devices']['sourcemeter_1']['range_cv']['v_min'],
+                                      self.config['devices']['sourcemeter_1']['range_cv']['v_max'] +
+                                      self.config['devices']['sourcemeter_1']['range_cv']['step'],
+                                      self.config['devices']['sourcemeter_1']['range_cv']['step'])
+        #TODO: remove test if these are equal
+        print("volt_list_cv_orig:", self.volt_list_cv_orig)
+        print("volt_list_cv:", self.volt_list_cv)
+        assert np.allclose(self.volt_list_cv_orig, self.volt_list_cv), "volt_list_cv_orig and volt_list_cv are not the same"
         #self.currents_cv  = [0 for i in self.volt_list_cv]
-        self.Vmin = -5
-        self.Vmax = 5
-        self.Vstep = .1
-        self.volt_list_iv = np.arange(self.Vmin, self.Vmax + self.Vstep, self.Vstep)
+
+        # self.Vmin = -5
+        # self.Vmax = 5
+        # self.Vstep = .1
+        self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['v_min'],
+                                        self.config['devices']['sourcemeter_1']['range_iv']['v_max'] +
+                                        self.config['devices']['sourcemeter_1']['range_iv']['step'],
+                                        self.config['devices']['sourcemeter_1']['range_iv']['step'])
         
         
         #self.volt_list_iv = [i/10-5 for i in range(3)]
         #self.volt_list_iv = [i/10+.5 for i in range(150)]
         #self.currents_iv  = [0 for i in self.volt_list_iv]
 
-        self.nSampling_CV =  10
-        self.nSampling_IV = 100
+        # self.config['devices']['sourcemeter_1']['range_cv']['n_sampling'] =  10
+        # self.config['devices']['sourcemeter_1']['range_iv']['n_sampling'] = 100
 
-        self.biasV = -200
+        # self.config['devices']['sourcemeter_1']['v_bias'] = -200
 
         #self.is_preirradiation = False
         #self.gcd_diode_bias = 10.
@@ -155,31 +174,38 @@ class testMD_CRV(measurement):
         #doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
         #self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
 
-        self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
-        self.delay_vol_iv = 10     # delay between setting voltage and executing measurement in [s]
+        # self.config['devices']['sourcemeter_1']['delay_cv'] = 10     # delay between setting voltage and executing measurement in [s]
+        # self.config['devices']['sourcemeter_1']['delay_iv'] = 10     # delay between setting voltage and executing measurement in [s]
 
         ## initialize the devices
 
-        self.keithley2410 = ke2410(self.keithley2410_address)
-        self.keithley2410_ramp = ke2410(self.keithley2410_ramp_address)
+        # self.keithley2410 = ke2410(self.keithley2410_address)
+        # self.sourcemeter_2 = ke2410(self.sourcemeter_2_address)
+
+        ## Set up sourcemeter
+        #TODO: combine these lines to avoid unecessary class instantiation
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
 
-        self.switch       = ke7001(self.switch_address)
-        self.reset_switch()
+        # self.switch       = ke7001(self.switch_address)
+        # self.reset_switch()
         #self.keithley2410_gcddiode = ke2410(self.keithley2410_gcddiode_address)
 
+        self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        self.reset_switch() 
+
         ## Set up lcr meter
-        self.lcr_meter = agilent_4263b(self.lcr_meter_address)
-        self.lcr_meter.reset()
-        self.lcr_meter.set_voltage(self.lcr_vol)
-        self.lcr_meter.set_frequency(self.lcr_freq)
-        self.lcr_meter.set_mode('RX')
+        self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter.reset()
+        self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
+        self.lcrmeter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
+        self.lcrmeter.set_mode('RX')
 
         #self.cor_open = np.loadtxt('config/valuesOpen_2023.txt') # open correction for lcr meter
 
-        ## Set up volt meter
-        self.keithley6487_address = 15
-        self.keithley6487 = ke6487(self.keithley6487_address)
+        self.picoammeter = getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
+
 
         #self.reset_power_supplies()
 
@@ -187,29 +213,29 @@ class testMD_CRV(measurement):
 
         ## Reset power supply for CV measurement
 
-        self.keithley2410.ramp_down()
-        self.keithley2410.set_output_off()
-        self.keithley2410.reset()
-        self.keithley2410.set_source('voltage')
-        self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410.set_voltage(0)
-        self.keithley2410.set_terminal('rear')
+        self.sourcemeter_1.ramp_down()
+        self.sourcemeter_1.set_output_off()
+        self.sourcemeter_1.reset()
+        self.sourcemeter_1.set_source('voltage')
+        self.sourcemeter_1.set_sense('current')
+        self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_1.set_voltage(0)
+        self.sourcemeter_1.set_terminal('rear')
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410.set_output_off()
+        self.sourcemeter_1.set_output_off()
         time.sleep(1)
         
 
-        self.keithley2410_ramp.ramp_down()
-        self.keithley2410_ramp.set_output_off()
-        self.keithley2410_ramp.reset()
-        self.keithley2410_ramp.set_source('voltage')
-        self.keithley2410_ramp.set_sense('current')
-        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_ramp.set_voltage(0)
-        self.keithley2410_ramp.set_terminal('rear')
+        self.sourcemeter_2.ramp_down()
+        self.sourcemeter_2.set_output_off()
+        self.sourcemeter_2.reset()
+        self.sourcemeter_2.set_source('voltage')
+        self.sourcemeter_2.set_sense('current')
+        self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_2.set_voltage(0)
+        self.sourcemeter_2.set_terminal('rear')
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410_ramp.set_output_off()
+        self.sourcemeter_2.set_output_off()
         time.sleep(1)
 
         ## Reset power supply of the second keithley which biases the gcd diode
@@ -218,18 +244,18 @@ class testMD_CRV(measurement):
         #self.keithley2410_gcddiode.reset()
         #self.keithley2410_gcddiode.set_source('voltage')
         #self.keithley2410_gcddiode.set_sense('current')
-        #self.keithley2410_gcddiode.set_current_limit(self.lim_cur_ke2410)
+        #self.keithley2410_gcddiode.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
         #self.keithley2410_gcddiode.set_voltage(0)
         #self.keithley2410_gcddiode.set_terminal('rear')
         # MARC keithley2410_gcddiode.set_interlock_on()
         #self.keithley2410_gcddiode.set_output_off()
         #time.sleep(1)
 
-        self.keithley6487.ramp_down()
-        self.keithley6487.reset()
-        self.keithley6487.setup_ammeter()
-        self.keithley6487.set_nplc(2)
-        self.keithley6487.set_range(self.lim_cur_ke6487)
+        self.picoammeter.ramp_down()
+        self.picoammeter.reset()
+        self.picoammeter.setup_ammeter()
+        self.picoammeter.set_nplc(2)
+        self.picoammeter.set_range( self.config['devices']['picoammeter']['lim_cur'])
 
     def reset_switch(self):
 
@@ -364,13 +390,13 @@ class testMD_CRV(measurement):
 
 
         #self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
+        self.sourcemeter_1.set_output_on()
 
         ## Check settings
-        lim_vol  = self.keithley2410.check_voltage_limit()
-        lim_cur  = self.keithley2410.check_current_limit()
-        lcr_vol  = float(self.lcr_meter.check_voltage())
-        lcr_freq = float(self.lcr_meter.check_frequency())
+        lim_vol  = self.sourcemeter_1.check_voltage_limit()
+        lim_cur  = self.sourcemeter_1.check_current_limit()
+        lcr_vol  = float(self.lcrmeter.check_voltage())
+        lcr_freq = float(self.lcrmeter.check_frequency())
 
         ## Header
         hd = [
@@ -379,7 +405,7 @@ class testMD_CRV(measurement):
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
+            'Voltage Delay:                   %8.2f s' % self.config['devices']['sourcemeter_1']['delay_cv'],
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
@@ -419,25 +445,25 @@ class testMD_CRV(measurement):
             #plateauVoltage = 999.
             ## Loop over voltages
             for iv, v in enumerate(self.volt_list_cv):
-                self.keithley2410.ramp_voltage(v)
-                time.sleep(self.delay_vol_cv)
+                self.sourcemeter_1.ramp_voltage(v)
+                time.sleep(self.config['devices']['sourcemeter_1']['delay_cv'])
 
-                cur_tot = self.keithley2410.read_current()
-                vol = self.keithley2410.read_voltage()
+                cur_tot = self.sourcemeter_1.read_current()
+                vol = self.sourcemeter_1.read_voltage()
 
-                measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
+                measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.config['devices']['sourcemeter_1']['range_cv']['n_sampling'])])
                 means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+                errs = np.std(measurements, axis=0)/math.sqrt(self.config['devices']['sourcemeter_1']['range_cv']['n_sampling'])
 
                 r, x = means
                 dr, dx = errs
 
                 z = np.sqrt(r**2 + x**2)
                 phi = np.arctan(x/r)
-                r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
-                r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+                r_s, c_s, l_s, D = lcr_series_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
+                r_p, c_p, l_p, D = lcr_parallel_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
 
-                line = [v, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                line = [v, vol, self.config['devices']['lcrmeter']['frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
                 out.append(line)
                 #self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
@@ -493,17 +519,17 @@ class testMD_CRV(measurement):
     def doIVScan(self, channel, ax, name=''):
 
         #self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
-        self.keithley2410_ramp.set_output_on()
+        self.sourcemeter_1.set_output_on()
+        self.sourcemeter_2.set_output_on()
         #self.keithley2410_gcddiode.set_output_on()
 
         ## Check settings
-        ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
-        ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
+        ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
+        ke6487_lim_cur =  self.config['devices']['picoammeter']['lim_cur'] ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
 
         ## Check settings
-        ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
-        ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
+        ke2410_lim_vol  = self.sourcemeter_2.check_voltage_limit()
+        ke2410_lim_cur  = self.sourcemeter_2.check_current_limit()
 
         ## Header
         hd = [
@@ -513,7 +539,7 @@ class testMD_CRV(measurement):
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'Voltage delay:                   %8.2f s' % self.config['devices']['sourcemeter_1']['delay_iv'],
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -538,8 +564,8 @@ class testMD_CRV(measurement):
 
         ## bias the ke6487 to -10 V
         
-        ## now new!! self.keithley6487.ramp_voltage(-1*self.gcd_diode_bias)
-        ## now new!! time.sleep(self.delay_vol_iv)
+        ## now new!! self.picoammeter.ramp_voltage(-1*self.gcd_diode_bias)
+        ## now new!! time.sleep(self.config['devices']['sourcemeter_1']['delay_iv'])
         #self.keithley2410_gcddiode.ramp_voltage(1*self.gcd_diode_bias)
 
 
@@ -565,24 +591,24 @@ class testMD_CRV(measurement):
         #minCurrent = 100000.
         #crossOver = 9999
         try:
-            self.keithley2410.ramp_up(self.biasV)
+            self.sourcemeter_1.ramp_up(self.config['devices']['sourcemeter_1']['v_bias'])
             time.sleep(30)
             ## Loop over voltages
             for iv,v in enumerate(self.volt_list_iv):
                 #if v < cutOffVoltage:
                     #break
 
-                self.keithley2410_ramp.ramp_voltage(v)
+                self.sourcemeter_2.ramp_voltage(v)
                 if iv == 0:
-                    time.sleep(30-self.delay_vol_iv)
-                time.sleep(self.delay_vol_iv)
+                    time.sleep(30-self.config['devices']['sourcemeter_1']['delay_iv'])
+                time.sleep(self.config['devices']['sourcemeter_1']['delay_iv'])
 
-                cur_tot = self.keithley2410_ramp.read_current()
-                vol = self.keithley2410_ramp.read_voltage()
+                cur_tot = self.sourcemeter_2.read_current()
+                vol = self.sourcemeter_2.read_voltage()
 
-                measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
+                measurements = np.array([self.picoammeter.read_current() for _ in range(self.config['devices']['sourcemeter_1']['range_iv']['n_sampling'])])
                 means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
+                errs = np.std(measurements, axis=0)/math.sqrt(self.config['devices']['sourcemeter_1']['range_iv']['n_sampling'])
 
                 i = means
                 di = errs
@@ -631,7 +657,7 @@ class testMD_CRV(measurement):
 
                 ## update the live plotting
                 line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
-                if i > self.lim_cur_ke6487:
+                if i >  self.config['devices']['picoammeter']['lim_cur']:
                     self.logging.info('reached compliance in the keithley6487')
                     self.reset_power_supplies()
                     break
