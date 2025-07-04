@@ -22,7 +22,7 @@ def init_liveplot():
 
     return fig, ax0, ax1, ax2
 
-#TODO: never used function, remove!
+# pauses execution of the script for a given interval, allowing the plot remain interactive
 def mypause(interval):
     backend = plt.rcParams['backend']
     if backend in matplotlib.rcsetup.interactive_bk:
@@ -640,4 +640,3 @@ class testMD_CRV(measurement):
 
     def finalise(self):
         self._finalise()
-
