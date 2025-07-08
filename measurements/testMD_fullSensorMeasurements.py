@@ -553,4 +553,3 @@ class testMD_fullSensorMeasurements(measurement):
 
     def finalise(self):
         self._finalise()
-
