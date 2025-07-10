@@ -112,16 +112,17 @@ class agilent_4263b(device):
             self.logging("Current frequency setting is %f Hz." % frequency)
         return frequency
 
-    #TODO: ensure the logging error is not printed for status 0
-    def execute_measurement(self, debug=0):
+    def execute_measurement(self, trig_delay=0, debug=0):
         """ Fetches the measurement data from the device.
             Format of query response is, <status>,<data1> ,<data2>,<val1>,<val2>
         """
         if debug == 1:
             self.logging("Fetching measurement data.")
-        self.ctrl.write(":INIT:CONT OFF")
-        self.ctrl.write("INIT")
-        time.sleep(0.5)
-        vals = self.ctrl.query("FETC?").split(',')
+        self.ctrl.write(":INIT:CONT ON") # Enable continuous measurement mode
+        # self.ctrl.write("INIT") # Trigger the measurement
+        self.ctrl.query("*OPC?")  # Wait for the operation to complete
+        if trig_delay > 0:
+            time.sleep(trig_delay)
+        vals = self.ctrl.query("FETC?").split(',') # Fetch the measurement data
         print("Measurement data fetched: " + str(vals))
         return float(vals[1]), float(vals[2])

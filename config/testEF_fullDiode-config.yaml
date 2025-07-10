@@ -6,7 +6,7 @@ irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
 devices:
   sourcemeter:
     model: 'ke2410'  
-    address: 25
+    address: 8
     open_short_correction: false
     correction_count: 5
     range:
@@ -15,7 +15,8 @@ devices:
       step: -10
       nSampling: 10
     delay: 5                        # delay between setting voltage and executing measurement in [s]
-    lim_cur: 1.0e-4                 # compliance in [A]
+    trig_delay: 0                   # delay between individual lcr triggers  
+    lim_cur: 1.0e-3                 # compliance in [A]
     #lim_vol = 10                   # compliance in [V] 
   switch:
     model: 'ke7001'

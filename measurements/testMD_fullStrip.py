@@ -383,7 +383,7 @@ class testMD_fullStrip(measurement):
 
         return(hdCV, hdIV, hdRV)
 
-    def CRVpoint(self, biasV, freq, channel):  ## don't really know how best to do this ... to be teasted on the setup
+    def CVpoint(self, biasV, freq, channel):  ##TODO: refactor since R is never used in this function (basically a CV point)
 
         self.switch.close_channel(channel)
         self.keithley2410.set_output_on()
@@ -494,7 +494,7 @@ class testMD_fullStrip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for f in self.lcr_freq:
-                    lineCV = self.CRVpoint(v, f, 1)
+                    lineCV = self.CVpoint(v, f, 1)
                     
                     # Recall that lineCV = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
                     #biasVs[self.volt_list_bias_CV.index(v), self.lcr_freq.index(f)] = lineCV[0]

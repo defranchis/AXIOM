@@ -47,6 +47,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
+
 class testEF_fullDiode(measurement): 
     
     def __init__(self, ide, config_path):
@@ -69,6 +70,9 @@ class testEF_fullDiode(measurement):
 
         self._initialise() # base class initialisation
 
+        # self.timer = time.time()
+        # self.logging.info(" ----TIMER ----TIMER start: ", self.timer, " seconds")
+        
         ## ---------- setup using data from config file ----------------
         open_short_correction = self.config['devices']['sourcemeter']['open_short_correction']
 
@@ -95,6 +99,8 @@ class testEF_fullDiode(measurement):
         self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
         self.lcrmeter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
 
+        # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
+        self.timer = time.time()
     #TODO: if these reset functions are equal accross measurements, move them to the base class
     def reset_power_supplies(self):
         ## Reset power supply for CV measurement
@@ -156,6 +162,7 @@ class testEF_fullDiode(measurement):
         return(hdCV)
 
     def CVpoint(self, biasV): 
+        self.timer = time.time()
 
         self.sourcemeter.set_voltage(biasV)
         time.sleep(self.delay_vol_cv)
@@ -163,10 +170,19 @@ class testEF_fullDiode(measurement):
         cur_tot = self.sourcemeter.read_current()
         vol = self.sourcemeter.read_voltage()
 
+        # self.logging.info(" ----TIMER ----reading and setting current and voltages took: ", time.time() - self.timer, "seconds")
+        self.timer = time.time()
 
-        measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.nSampling_CV)])
+        measurements = np.array([self.lcrmeter.execute_measurement(trig_delay = self.config['devices']['sourcemeter']['trig_delay']) for _ in range(self.nSampling_CV)])
+        # self.logging.info("Measurements: ", measurements)
+
+        # self.logging.info(" ----TIMER ----taking measurements took:  ", time.time() - self.timer, "seconds")
+        self.timer = time.time()
+
         means = np.mean(measurements, axis=0)
         errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+
+
 
         r, x = means
         dr, dx = errs
@@ -176,9 +192,23 @@ class testEF_fullDiode(measurement):
         r_s, c_s, l_s, D = lcr_series_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
 
-        line = [biasV, vol, self.config['devices']['lcrmeter']['frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
+        line = [
+            biasV,                                              # 1. The bias voltage set by the user
+            vol,                                                # 2. The measured voltage from the sourcemeter
+            self.config['devices']['lcrmeter']['frequency'],    # 3. The LCR meter measurement frequency
+            r,                                                  # 4. Mean resistance from LCR measurements
+            dr,                                                 # 5. Standard error of resistance
+            x,                                                  # 6. Mean reactance from LCR measurements
+            dx,                                                 # 7. Standard error of reactance
+            c_s,                                                # 8. Series capacitance (from LCR series equivalent)
+            c_p,                                                # 9. Parallel capacitance (from LCR parallel equivalent)
+            cur_tot                                             # 10. Total current measured by the sourcemeter
+        ]
         
         self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
+
+        # self.logging.info(" ----TIMER ----computing and logging line took:  ", time.time() - self.timer, "seconds")
+        self.timer = time.time()
 
         return (line)
         ## end of CV scan
@@ -219,14 +249,17 @@ class testEF_fullDiode(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_CV:
                 lineCV = self.CVpoint(v)      
-                    
+
                 outCV.append(lineCV)
                 biasVs.append(lineCV[0])
                 Cs_LCR.append(lineCV[8])
                 label = 'CV floating GR'
                 if shortGR: label = 'CV shorted GR'
                 elif groundGR: label = 'CV grounded GR'
-                line = live_plotter(biasVs, 1/(np.abs(np.array(Cs_LCR))-self.config['devices']['lcrmeter']['approx_open_corr'])**2, ax0, line, identifier=label, yaxis_title='1/Cs^2 [F^-2]', color=color)                
+                line = live_plotter(biasVs, 1/(np.abs(np.array(Cs_LCR))-self.config['devices']['lcrmeter']['approx_open_corr'])**2, ax0, line, identifier=label, yaxis_title='1/Cs^2 [F^-2]', color=color)           
+
+                # self.logging.info(" ----TIMER ----parsing line after CVpoint took:  ", time.time() - self.timer, "seconds")
+                self.timer = time.time()     
 
 
         except BaseException as e: #KeyboardInterrupt:
@@ -245,7 +278,6 @@ class testEF_fullDiode(measurement):
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
     def execute(self):
-
         # Name of files
         name =  self.__class__.__name__
 
@@ -258,8 +290,8 @@ class testEF_fullDiode(measurement):
             self.logging.info(line)
 
         self.CVscan(name, fig, ax0, hdCV)
-        self.CVscan(name, fig, ax1, hdCV, shortGR=True)
-        self.CVscan(name, fig, ax2, hdCV, groundGR=True)
+        # self.CVscan(name, fig, ax1, hdCV, shortGR=True)
+        # self.CVscan(name, fig, ax2, hdCV, groundGR=True)
 
     def finalise(self):
         self._finalise()
