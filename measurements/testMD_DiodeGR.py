@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib
 plt.style.use('ggplot')
 import time, math
 import numpy as np
