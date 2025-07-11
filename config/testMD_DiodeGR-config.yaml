@@ -1,4 +1,3 @@
-sensorName: 'N4793_B ' #TODO: sensorName should be provided when invoking the test, to avoid duplication
 irradiationSteps: [0,0.5,1,2,3,4,5,7,10,15,20] # [0,5,10,15,20,30,50,70,100,150,200] #,300,500,700,1000,1500]
 voltage_settings:
  

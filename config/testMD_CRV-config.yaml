@@ -1,5 +1,3 @@
-sensorName: 'N4791_3' # this is the right name, but we ran with 
-#TODO: sensorName should be provided when invoking the test, to avoid duplication
 irradiationSteps: [0, 0.5, 1, 2, 3,4, 5, 7, 10, 15, 20, 30, 50]
 #dose_rate: 12.79
 

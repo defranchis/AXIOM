@@ -77,6 +77,7 @@ class testMD_DiodeStrip(measurement):
 
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
+            print(self.config)
 
 
         self.logging.info("\t")
@@ -278,11 +279,12 @@ class testMD_DiodeStrip(measurement):
 
             self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
 
+            #TODO: ---- USE A PERFORMANCE PROFILER FUNCTION INSTEAD OF THIS MESS ---------
             elapsed_time = time.time() - start_time
             hours, rem = divmod(elapsed_time, 3600)
             minutes, seconds = divmod(rem, 60)
             self.logging.info("Elapsed time: {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), int(seconds)))
-
+            # ----------------------------------------------------------------------------
         
         except BaseException as e: #KeyboardInterrupt:
             self.logging.info('EXCEPTION RAISED IN IV SCAN:', e)

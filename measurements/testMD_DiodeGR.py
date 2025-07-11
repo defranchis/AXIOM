@@ -81,7 +81,7 @@ class testMD_DiodeGR(measurement):
 
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-
+            print(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -335,6 +335,7 @@ class testMD_DiodeGR(measurement):
         # for line in hdCV:
         #     self.logging.info(line)
 
+        #TODO: CVSCAN DOES NOT EVEN EXIST IN THIS MEASUREMENT FILE REMOVE THIS
         # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         

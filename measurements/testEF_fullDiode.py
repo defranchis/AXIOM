@@ -58,8 +58,7 @@ class testEF_fullDiode(measurement):
 
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-
-        print(self.config)
+            print(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -101,7 +100,7 @@ class testEF_fullDiode(measurement):
 
         # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
         self.timer = time.time()
-    #TODO: if these reset functions are equal accross measurements, move them to the base class
+        
     def reset_power_supplies(self):
         ## Reset power supply for CV measurement
         self.sourcemeter.ramp_down()

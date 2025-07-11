@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Paths to your data files
 file1 = 'cv_sweep.txt'
@@ -70,3 +71,31 @@ print(f"  ΔμX_Err = {delta_mean_x:.6e}")
 # Optionally save per-row comparison
 comparison.to_csv('error_comparison.csv', index=False)
 print("\nFull per-row comparison saved to 'error_comparison.csv'")
+
+# Plot errors
+plt.figure(figsize=(10, 6))
+plt.plot(r_err1, label='R_Err File 1', marker='o', linestyle='-', alpha=0.7)
+plt.plot(r_err2, label='R_Err File 2', marker='o', linestyle='-', alpha=0.7)
+plt.plot(x_err1, label='X_Err File 1', marker='x', linestyle='--', alpha=0.7)
+plt.plot(x_err2, label='X_Err File 2', marker='x', linestyle='--', alpha=0.7)
+plt.xlabel('Row Index')
+plt.ylabel('Error Value')
+plt.title('Error Comparison Between Two Data Sources')
+plt.legend()
+plt.tight_layout()
+# Plot the differences between errors
+plt.figure(figsize=(10, 6))
+plt.plot(comparison['ΔR_Err'], label='ΔR_Err (File2 - File1)', marker='o', linestyle='-', alpha=0.7)
+plt.plot(comparison['ΔX_Err'], label='ΔX_Err (File2 - File1)', marker='x', linestyle='--', alpha=0.7)
+plt.xlabel('Row Index')
+plt.ylabel('Error Difference')
+plt.title('Difference Between Errors (File2 - File1)')
+plt.legend()
+plt.tight_layout()
+# Calculate and print the average difference between errors
+avg_delta_r = comparison['ΔR_Err'].mean()
+avg_delta_x = comparison['ΔX_Err'].mean()
+print(f"\nAverage difference ΔR_Err (File2 - File1): {avg_delta_r:.6e}")
+print(f"Average difference ΔX_Err (File2 - File1): {avg_delta_x:.6e}")
+
+plt.show()

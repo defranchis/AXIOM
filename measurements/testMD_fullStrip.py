@@ -1,22 +1,16 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import matplotlib
-from matplotlib.colors import LogNorm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.cm import coolwarm, ScalarMappable
-from matplotlib import gridspec
-from matplotlib.pyplot import axhline, subplots, show, hist, figure, setp, colorbar, plot, cm, title, xlabel, ylabel, grid, legend, savefig, axes, pcolormesh, close
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator, MaxNLocator
-import matplotlib.colors as colors
+from matplotlib.pyplot import subplots, savefig
+from matplotlib.ticker import AutoMinorLocator, MaxNLocator
 plt.style.use('ggplot')
-import time, math, os
-import logging
+import time, math
 import numpy as np
-import mpld3
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+import yaml
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
 # Specific device imports for this configuration
 from measurements import measurement
+import devices
 
 # Specific device imports for this configuration
 from devices.ke2410 import * # power supply
@@ -93,14 +87,18 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 class testMD_fullStrip(measurement):
 
     def __init__(self, ide, config_path):
-        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
-        self.config_path = config_path # this config path is NOT required and can be left empty for this specific measurement. 
+        super().__init__(ide)    
+        self.config_path = config_path 
 
     def initialise(self):
 
+        with open(self.config_path, 'r') as file:
+            self.config = yaml.safe_load(file)
+            print(self.config)
+
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running all 3 measurements of the silicon! :)")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -108,8 +106,8 @@ class testMD_fullStrip(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_address =  25      # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_ramp_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
 
         self.keithley2410_gcddiode_address = 8
         self.switch_address       = 7       # gpib address of the switch
@@ -126,11 +124,11 @@ class testMD_fullStrip(measurement):
         #self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
         self.lim_vol = 10                   # compliance in [V]
 
-        
-        self.Vmin_iv = -.5
-        self.Vmax_iv = .5
-        self.Vstep_iv = .1
-        self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
+                
+                # self.Vmin_iv = -.5
+                # self.Vmax_iv = .5
+                # self.Vstep_iv = .1
+                # self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
         #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
 
         
@@ -141,13 +139,24 @@ class testMD_fullStrip(measurement):
         
         #self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
+                
+                # self.Vmin_bias_IV = -100 if '120um' in self.id else -200
+                # self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+                # self.Vstep_bias_IV = -50 if '120um' in self.id else -100
+                # self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
+                
         
-        self.Vmin_bias_IV = -100 if '120um' in self.id else -200
-        self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_IV = -50 if '120um' in self.id else -100
-        self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
-        
-        
+        self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['Vmin_iv'], 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vmax_iv'] + 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'], 
+                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'])
+
+        self.volt_list_bias_IV = np.arange(self.config['devices']['sourcemeter_1']['range']['Vmax'], 
+                                           self.config['devices']['sourcemeter_1']['range']['Vmin'] + 
+                                           self.config['devices']['sourcemeter_1']['range']['Vstep'], 
+                                           self.config['devices']['sourcemeter_1']['range']['Vstep']) 
+
+
         #self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
         
         #self.volt_list_bias_IV = [-350]
@@ -165,22 +174,22 @@ class testMD_fullStrip(measurement):
 
         ## initialize the devices
 
-        self.keithley2410 = ke2410(self.keithley2410_address)
-        self.keithley2410_ramp = ke2410(self.keithley2410_ramp_address)
+        self.keithley2410 = devices.ke2410(self.keithley2410_address)
+        self.keithley2410_ramp = devices.ke2410(self.keithley2410_ramp_address)
 
 
-        self.switch = ke7001(self.switch_address)
+        self.switch = devices.ke7001(self.switch_address)
         self.reset_switch()
 
         ## Set up lcr meter
-        self.lcr_meter = hp4980(self.lcr_meter_address)
+        self.lcr_meter = devices.agilent_4263b(self.lcr_meter_address)
         self.lcr_meter.reset()
         self.lcr_meter.set_voltage(self.lcr_vol)
         self.lcr_meter.set_mode('RX')
 
         ## Set up volt meter
         self.keithley6487_address = 15
-        self.keithley6487 = ke6487(self.keithley6487_address)
+        self.keithley6487 = devices.ke6487(self.keithley6487_address)
 
     def reset_power_supplies(self):
 
@@ -383,7 +392,7 @@ class testMD_fullStrip(measurement):
 
         return(hdCV, hdIV, hdRV)
 
-    def CVpoint(self, biasV, freq, channel):  ##TODO: refactor since R is never used in this function (basically a CV point)
+    def CVpoint(self, biasV, freq, channel): 
 
         self.switch.close_channel(channel)
         self.keithley2410.set_output_on()
@@ -659,7 +668,10 @@ class testMD_fullStrip(measurement):
         for line in hdCV:
             self.logging.info(line)
 
-        self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
+        # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
+        print("-------------------------------------------------------------------------------")
+        print("---------------- CURRENTLY ONLY RUNNING THE IV MEASUREMENTS -------------------")
+        print("-------------------------------------------------------------------------------")
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
    
     def finalise(self):
