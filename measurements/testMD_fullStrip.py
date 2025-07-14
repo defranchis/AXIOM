@@ -106,8 +106,8 @@ class testMD_fullStrip(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  25      # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_ramp_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
 
         self.keithley2410_gcddiode_address = 8
         self.switch_address       = 7       # gpib address of the switch
@@ -117,7 +117,7 @@ class testMD_fullStrip(measurement):
         self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
         
         self.lcr_vol = 0.5 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = [1e2, 1e3, 1e4]     # ac voltage frequency in [Hz]
+        self.lcr_freq = [1e2, 1e3, 1e4]     # ac voltage frequency in [Hz] 
 
 
         self.lim_cur_ke2410 = 1E-4          # compliance in [A]
@@ -166,9 +166,9 @@ class testMD_fullStrip(measurement):
         self.nSampling_IV = 30 # TODO change to original 30s
 
         self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
-        self.delay_vol_iv = 30      # delay between setting voltage and executing measurement in [s]
+        self.delay_vol_iv = 10      # delay between setting voltage and executing measurement in [s]
 
-        self.delay_step_iv = 3  # TODO change to original 30s
+        self.delay_step_iv = 1  # TODO change to original 30s
         #self.delay_step_iv = 60
         #self.discharge_voltage = 10
 
@@ -397,7 +397,7 @@ class testMD_fullStrip(measurement):
         self.switch.close_channel(channel)
         self.keithley2410.set_output_on()
         self.keithley2410.ramp_up(biasV)
-        self.keithley2410_ramp.set_output_on()
+        self.keithley2410_ramp.set_output_on()  #TODO: WHY IS THE SECOND SOURCEMETER USED ONLY HERE TO DO NOTHING?
         self.keithley2410_ramp.ramp_up(0)
         time.sleep(self.delay_vol_cv)
 
@@ -497,6 +497,7 @@ class testMD_fullStrip(measurement):
         self.reset_power_supplies()
         self.reset_switch()
 
+        #TODO: ENSURE THAT THE PLOTS HAVE DYNAMIC FREQUENCY LABELS
 
          # Do CV Scan
         try:            
@@ -515,22 +516,25 @@ class testMD_fullStrip(measurement):
                         biasVsa.append(lineCV[0])
                         Rs_LCRa.append(lineCV[3])
                         Cs_LCRa.append(lineCV[8])
-                        line0a = live_plotter(biasVsa, Rs_LCRa, ax0, line0a, identifier="RV curve (LCR) 10KHz", yaxis_title=tmp_id_y_R, color=colora)
-                        line1a = live_plotter(biasVsa, Cs_LCRa, ax1, line1a, identifier="CV curve 10KHz", yaxis_title=tmp_id_y_C, color=colora)
+                        line0a = live_plotter(biasVsa, Rs_LCRa, ax0, line0a, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colora)
+                        line1a = live_plotter(biasVsa, Cs_LCRa, ax1, line1a, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colora)
                     if f == self.lcr_freq[1]:
                         outCVb.append(lineCV)
                         biasVsb.append(lineCV[0])
                         Rs_LCRb.append(lineCV[3])
                         Cs_LCRb.append(lineCV[8])
-                        line0b = live_plotter(biasVsb, Rs_LCRb, ax4, line0b, identifier="RV curve (LCR) 100KHz", yaxis_title=tmp_id_y_R, color=colorb)
-                        line1b = live_plotter(biasVsb, Cs_LCRb, ax5, line1b, identifier="CV curve 100KHz", yaxis_title=tmp_id_y_C, color=colorb)
+                        line0b = live_plotter(biasVsb, Rs_LCRb, ax4, line0b, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorb)
+                        line1b = live_plotter(biasVsb, Cs_LCRb, ax5, line1b, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorb)
                     if f == self.lcr_freq[2]:
                         outCVc.append(lineCV)
                         biasVsc.append(lineCV[0])
                         Rs_LCRc.append(lineCV[3])
                         Cs_LCRc.append(lineCV[8])
-                        line0c = live_plotter(biasVsc, Rs_LCRc, ax6, line0c, identifier="RV curve (LCR) 1M", yaxis_title=tmp_id_y_R, color=colorc)
-                        line1c = live_plotter(biasVsc, Cs_LCRc, ax7, line1c, identifier="CV curve 1M", yaxis_title=tmp_id_y_C, color=colorc)
+                        line0c = live_plotter(
+                            biasVsc, Rs_LCRc, ax6, line0c,
+                            identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorc
+                        )
+                        line1c = live_plotter(biasVsc, Cs_LCRc, ax7, line1c, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorc)
                     #line0[:,self.lcr_freq.index(f)] = live_plotter(biasVs[:, self.lcr_freq.index(f)], Rs_LCR[:, self.lcr_freq.index(f)], ax0, line0[:,self.lcr_freq.index(f)], identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
                     #line1[:,self.lcr_freq.index(f)] = live_plotter(biasVs[:, self.lcr_freq.index(f)], Cs_LCR[:, self.lcr_freq.index(f)], ax1, line1[:,self.lcr_freq.index(f)], identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
                 
@@ -590,22 +594,10 @@ class testMD_fullStrip(measurement):
                 
                 self.keithley2410.ramp_up(v)
                 time.sleep(self.delay_vol_iv)
-
                 self.keithley2410_ramp.set_output_on()
-                
-                if i==0:
-                    pass
-                    #self.keithley2410_ramp.ramp_up_slow(self.volt_list_iv[0])
-                    #time.sleep(self.delay_initial_iv)
-                    
-                    #self.keithley2410_ramp.ramp_up_slow(self.discharge_voltage)
-                    #time.sleep(2*self.delay_initial_iv)
-                
-                    #dummy = np.array([self.keithley6487.read_current() for _ in range(3*self.nSampling_IV)])
-                    #self.keithley2410_ramp.ramp_down_slow()
-                    #time.sleep(self.delay_initial_iv)
-                    #print(self.keithley2410_ramp.check_compliance())
-                    #dummy = np.array([self.keithley6487.read_current() for _ in range(3*self.nSampling_IV)])
+                time.sleep(self.delay_vol_iv)
+
+
                     
 
                 line3 = []
@@ -668,10 +660,10 @@ class testMD_fullStrip(measurement):
         for line in hdCV:
             self.logging.info(line)
 
-        # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
-        print("-------------------------------------------------------------------------------")
-        print("---------------- CURRENTLY ONLY RUNNING THE IV MEASUREMENTS -------------------")
-        print("-------------------------------------------------------------------------------")
+        self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
+        # print("-------------------------------------------------------------------------------")
+        # print("---------------- CURRENTLY ONLY RUNNING THE IV MEASUREMENTS -------------------")
+        # print("-------------------------------------------------------------------------------")
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
    
     def finalise(self):
