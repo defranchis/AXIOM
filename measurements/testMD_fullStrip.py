@@ -8,15 +8,10 @@ import numpy as np
 import yaml
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
-# Specific device imports for this configuration
+
 from measurements import measurement
 import devices
 
-# Specific device imports for this configuration
-from devices.ke2410 import * # power supply
-from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
-from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
 
 
 def init_liveplot():
@@ -105,142 +100,91 @@ class testMD_fullStrip(measurement):
 
         self._initialise()
 
-        ## KEITHLEY settings
-        self.keithley2410_address =  8      # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_ramp_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
+        # CV measurement voltage list from config
+        self.volt_list_bias_CV = np.arange(
+            self.config['measurements']['CV']['range']['v_min'],
+            self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
+            self.config['measurements']['CV']['range']['step_size']
+        )
 
-        self.keithley2410_gcddiode_address = 8
-        self.switch_address       = 7       # gpib address of the switch
+        # IV measurement voltage list
+        self.volt_list_iv = np.arange(
+            self.config['measurements']['IV']['measurement_range']['v_min'],
+            self.config['measurements']['IV']['measurement_range']['v_max'] +  self.config['measurements']['IV']['measurement_range']['step_size'],
+            self.config['measurements']['IV']['measurement_range']['step_size']
+        )
 
-        ## LCR meter settings
-        self.lcr_meter_address = 17         # in the SSD lab this is 9
-        self.cv_res = 1e6                   # cv parallel resistor in [Ohm]
-        
-        self.lcr_vol = 0.5 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = [1e2, 1e3, 1e4]     # ac voltage frequency in [Hz] 
+        # IV bias voltage list
+        self.volt_list_bias_IV = np.arange(
+            self.config['measurements']['IV']['bias_range']['v_min'],
+            self.config['measurements']['IV']['bias_range']['v_max'] + self.config['measurements']['IV']['bias_range']['step_size'],
+            self.config['measurements']['IV']['bias_range']['step_size']
+        )
 
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
-        self.lim_cur_ke2410 = 1E-4          # compliance in [A]
-        #self.lim_cur_ke6487 = 5E-7          # compliance in [A] for the GCD, this should be ?
-        self.lim_vol = 10                   # compliance in [V]
-
-                
-                # self.Vmin_iv = -.5
-                # self.Vmax_iv = .5
-                # self.Vstep_iv = .1
-                # self.volt_list_iv = np.arange(self.Vmin_iv, self.Vmax_iv + self.Vstep_iv, self.Vstep_iv)
-        #self.volt_list_iv = np.append(self.volt_list_iv,np.arange(self.Vmax_iv -self.Vstep_iv, self.Vmin_iv - self.Vstep_iv, -self.Vstep_iv))
-
-        
-        self.Vmin_bias_CV = -50  if '120um' in self.id else -100
-        self.Vmax_bias_CV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-        self.Vstep_bias_CV = -50
-        self.volt_list_bias_CV = np.arange(self.Vmin_bias_CV, self.Vmax_bias_CV + self.Vstep_bias_CV, self.Vstep_bias_CV)
-        
-        #self.volt_list_bias_CV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-                
-                # self.Vmin_bias_IV = -100 if '120um' in self.id else -200
-                # self.Vmax_bias_IV = -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-                # self.Vstep_bias_IV = -50 if '120um' in self.id else -100
-                # self.volt_list_bias_IV = np.arange(self.Vmin_bias_IV, self.Vmax_bias_IV + self.Vstep_bias_IV, self.Vstep_bias_IV) if not '_0kGy'in self.id else np.array([-350])
-                
-        
-        self.volt_list_iv = np.arange(self.config['devices']['sourcemeter_1']['range_iv']['Vmin_iv'], 
-                                      self.config['devices']['sourcemeter_1']['range_iv']['Vmax_iv'] + 
-                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'], 
-                                      self.config['devices']['sourcemeter_1']['range_iv']['Vstep_iv'])
-
-        self.volt_list_bias_IV = np.arange(self.config['devices']['sourcemeter_1']['range']['Vmax'], 
-                                           self.config['devices']['sourcemeter_1']['range']['Vmin'] + 
-                                           self.config['devices']['sourcemeter_1']['range']['Vstep'], 
-                                           self.config['devices']['sourcemeter_1']['range']['Vstep']) 
-
-
-        #self.volt_list_bias_IV = [-100, -250, -400] if '120um' in self.id else ([-200, -400, -600] if '200um' in self.id else [-400, -600, -800])
-        
-        #self.volt_list_bias_IV = [-350]
-
-
-        self.nSampling_CV =  10
-        self.nSampling_IV = 30 # TODO change to original 30s
-
-        self.delay_vol_cv = 10     # delay between setting voltage and executing measurement in [s]
-        self.delay_vol_iv = 10      # delay between setting voltage and executing measurement in [s]
-
-        self.delay_step_iv = 1  # TODO change to original 30s
-        #self.delay_step_iv = 60
-        #self.discharge_voltage = 10
-
-        ## initialize the devices
-
-        self.keithley2410 = devices.ke2410(self.keithley2410_address)
-        self.keithley2410_ramp = devices.ke2410(self.keithley2410_ramp_address)
-
-
-        self.switch = devices.ke7001(self.switch_address)
+        self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
         self.reset_switch()
 
         ## Set up lcr meter
-        self.lcr_meter = devices.agilent_4263b(self.lcr_meter_address)
-        self.lcr_meter.reset()
-        self.lcr_meter.set_voltage(self.lcr_vol)
-        self.lcr_meter.set_mode('RX')
+        self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter.reset()
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode('RX')
 
-        ## Set up volt meter
-        self.keithley6487_address = 15
-        self.keithley6487 = devices.ke6487(self.keithley6487_address)
+        self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
 
-        self.keithley2410_ramp.ramp_down_slow()
-        self.keithley2410_ramp.set_output_off()
-        self.keithley2410_ramp.reset()
-        self.keithley2410_ramp.set_source('voltage')
-        self.keithley2410_ramp.set_sense('current')
-        self.keithley2410_ramp.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_ramp.set_voltage(0)
-        self.keithley2410_ramp.set_terminal('rear')
+        self.sourcemeter_2.ramp_down_slow()
+        self.sourcemeter_2.set_output_off()
+        self.sourcemeter_2.reset()
+        self.sourcemeter_2.set_source('voltage')
+        self.sourcemeter_2.set_sense('current')
+        self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_2']['lim_cur'])
+        self.sourcemeter_2.set_voltage(0)
+        self.sourcemeter_2.set_terminal('rear')
         time.sleep(3)
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410_ramp.set_output_off()
+        self.sourcemeter_2.set_output_off()
         time.sleep(1)
 
 
-        self.keithley2410.ramp_down()
-        self.keithley2410.set_output_off()
-        self.keithley2410.reset()
-        self.keithley2410.set_source('voltage')
-        self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410.set_voltage(0)
-        self.keithley2410.set_terminal('rear')
+        self.sourcemeter_1.ramp_down()
+        self.sourcemeter_1.set_output_off()
+        self.sourcemeter_1.reset()
+        self.sourcemeter_1.set_source('voltage')
+        self.sourcemeter_1.set_sense('current')
+        self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_1.set_voltage(0)
+        self.sourcemeter_1.set_terminal('rear')
         time.sleep(3)
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410.set_output_off()
+        self.sourcemeter_1.set_output_off()
         time.sleep(1)
         
 
         ## Reset power supply of the second keithley which biases the gcd diode
-        #self.keithley2410_gcddiode.ramp_voltage(0)
-        #self.keithley2410_gcddiode.set_output_off()
-        #self.keithley2410_gcddiode.reset()
-        #self.keithley2410_gcddiode.set_source('voltage')
-        #self.keithley2410_gcddiode.set_sense('current')
-        #self.keithley2410_gcddiode.set_current_limit(self.lim_cur_ke2410)
-        #self.keithley2410_gcddiode.set_voltage(0)
-        #self.keithley2410_gcddiode.set_terminal('rear')
+        #self.sourcemeter_1_gcddiode.ramp_voltage(0)
+        #self.sourcemeter_1_gcddiode.set_output_off()
+        #self.sourcemeter_1_gcddiode.reset()
+        #self.sourcemeter_1_gcddiode.set_source('voltage')
+        #self.sourcemeter_1_gcddiode.set_sense('current')
+        #self.sourcemeter_1_gcddiode.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        #self.sourcemeter_1_gcddiode.set_voltage(0)
+        #self.sourcemeter_1_gcddiode.set_terminal('rear')
         # MARC keithley2410_gcddiode.set_interlock_on()
-        #self.keithley2410_gcddiode.set_output_off()
+        #self.sourcemeter_1_gcddiode.set_output_off()
         #time.sleep(1)
 
-        self.keithley6487.ramp_down()
-        self.keithley6487.reset()
-        self.keithley6487.setup_ammeter()
-        self.keithley6487.set_nplc(2)
-        #self.keithley6487.set_range(self.lim_cur_ke6487)
+        self.picoammeter.ramp_down()
+        self.picoammeter.reset()
+        self.picoammeter.setup_ammeter()
+        self.picoammeter.set_nplc(2)
+        #self.picoammeter.set_range(self.lim_cur_ke6487)
 
     def reset_switch(self):
 
@@ -344,16 +288,16 @@ class testMD_fullStrip(measurement):
 
     def createHeader(self):
         # CV
-        lim_vol  = self.keithley2410.check_voltage_limit()
-        lim_cur  = self.keithley2410.check_current_limit()
-        lcr_vol  = float(self.lcr_meter.check_voltage())
-        lcr_freq = float(self.lcr_meter.check_frequency())
+        lim_vol  = self.sourcemeter_1.check_voltage_limit()
+        lim_cur  = self.sourcemeter_1.check_current_limit()
+        lcr_vol  = float(self.lcrmeter.check_voltage())
+        lcr_freq = float(self.lcrmeter.check_frequency())
 
         # IV
-        ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
-        #ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
-        ke2410_lim_vol  = self.keithley2410_ramp.check_voltage_limit()
-        ke2410_lim_cur  = self.keithley2410_ramp.check_current_limit()
+        ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
+        #ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
+        ke2410_lim_vol  = self.sourcemeter_2.check_voltage_limit()
+        ke2410_lim_cur  = self.sourcemeter_2.check_current_limit()
 
         ## Header
         hdCV = [
@@ -363,7 +307,7 @@ class testMD_fullStrip(measurement):
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
+            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
 
@@ -374,7 +318,7 @@ class testMD_fullStrip(measurement):
             #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
         ]
         #line = [biasV, vol, cur_tot, measV, volSmall, means, errs]
@@ -386,7 +330,7 @@ class testMD_fullStrip(measurement):
             #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
 
@@ -395,28 +339,29 @@ class testMD_fullStrip(measurement):
     def CVpoint(self, biasV, freq, channel): 
 
         self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
-        self.keithley2410.ramp_up(biasV)
-        self.keithley2410_ramp.set_output_on()  #TODO: WHY IS THE SECOND SOURCEMETER USED ONLY HERE TO DO NOTHING?
-        self.keithley2410_ramp.ramp_up(0)
-        time.sleep(self.delay_vol_cv)
+        self.sourcemeter_1.set_output_on()
+        self.sourcemeter_1.ramp_up(biasV)
+        self.sourcemeter_2.set_output_on()  #TODO: WHY IS THE SECOND SOURCEMETER USED ONLY HERE TO DO NOTHING?
+        self.sourcemeter_2.ramp_up(0)
+        time.sleep(self.config['measurements']['CV']['delay'])
 
-        cur_tot = self.keithley2410.read_current()
-        vol = self.keithley2410.read_voltage()
+        cur_tot = self.sourcemeter_1.read_current()
+        vol = self.sourcemeter_1.read_voltage()
 
         print("New frequency:", freq)
-        self.lcr_meter.set_frequency(freq)
+        self.lcrmeter.set_frequency(freq)
         time.sleep(1)
 
-        measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
+        measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.config['measurements']['CV']['sample_size'])])
         means = np.mean(measurements, axis=0)
-        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['CV']['sample_size'])
 
         r, x = means
         dr, dx = errs
 
         z = np.sqrt(r**2 + x**2)
         phi = np.arctan(x/r)
+        print({'freq': freq, 'z': z, 'phi': phi})
         r_s, c_s, l_s, D = lcr_series_equ(freq, z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(freq, z, phi)
 
@@ -428,18 +373,18 @@ class testMD_fullStrip(measurement):
         ## end of CV scan
 
     def IVpoint(self, biasV, measV):
-        self.keithley2410_ramp.ramp_voltage(measV)
-        time.sleep(self.delay_step_iv)
+        self.sourcemeter_2.ramp_voltage(measV)
+        time.sleep(self.config['measurements']['IV']['step_delay'])
 
-        cur_tot = self.keithley2410.read_current()
-        vol = self.keithley2410.read_voltage()
-        cur_totSmall = self.keithley2410_ramp.read_current()
-        volSmall = self.keithley2410_ramp.read_voltage()
+        cur_tot = self.sourcemeter_1.read_current()
+        vol = self.sourcemeter_1.read_voltage()
+        cur_totSmall = self.sourcemeter_2.read_current()
+        volSmall = self.sourcemeter_2.read_voltage()
 
-        measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
-        #measurements = measurements[2*self.nSampling_IV:]
+        measurements = np.array([self.picoammeter.read_current() for _ in range(self.config['measurements']['IV']['sample_size'])])
+        #measurements = measurements[2*self.config['measurements']['IV']['sample_size']:]
         means = np.mean(measurements, axis=0)
-        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['IV']['sample_size'])
 
         #TODO V bias set, V bias measured, I bias, V ramp set, V ramp meas, I ramp, I amm, err I amm
         line = [biasV, vol, cur_tot, measV, volSmall, means, errs, cur_totSmall]
@@ -464,9 +409,9 @@ class testMD_fullStrip(measurement):
         self.logging.info('\n\nSTARTING CV SCAN...\n\n')
         fname_out_CV = '_'.join(['cv', self.id, name]) + '.dat'
 
-        biasVsa = []#np.empty((len(self.volt_list_bias_CV), len(self.lcr_freq)))
-        Rs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.lcr_freq)))
-        Cs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.lcr_freq)))
+        biasVsa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
+        Rs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
+        Cs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
 
         biasVsb = []
         Rs_LCRb = []
@@ -497,35 +442,36 @@ class testMD_fullStrip(measurement):
         self.reset_power_supplies()
         self.reset_switch()
 
-        #TODO: ENSURE THAT THE PLOTS HAVE DYNAMIC FREQUENCY LABELS
 
          # Do CV Scan
         try:            
+
+            #TODO: improve this for loop to use the same code for all frequencies (iterating over the frequencies and then comparing to the same list is unhinged)
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
-                for f in self.lcr_freq:
+                for f in self.config['measurements']['CV']['frequencies']:
                     lineCV = self.CVpoint(v, f, 1)
                     
-                    # Recall that lineCV = [biasV, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
-                    #biasVs[self.volt_list_bias_CV.index(v), self.lcr_freq.index(f)] = lineCV[0]
-                    #Rs_LCR[self.volt_list_bias_CV.index(v), self.lcr_freq.index(f)] = lineCV[3]
-                    #Cs_LCR[self.volt_list_bias_CV.index(v), self.lcr_freq.index(f)] = lineCV[8]
+                    # Recall that lineCV = [biasV, vol, self.config['measurements']['CV']['frequencies'], r, dr, x, dx, c_s, c_p, cur_tot]
+                    #biasVs[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[0]
+                    #Rs_LCR[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[3]
+                    #Cs_LCR[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[8]
                     
-                    if f == self.lcr_freq[0]:
+                    if f == self.config['measurements']['CV']['frequencies'][0]:
                         outCVa.append(lineCV)
                         biasVsa.append(lineCV[0])
                         Rs_LCRa.append(lineCV[3])
                         Cs_LCRa.append(lineCV[8])
                         line0a = live_plotter(biasVsa, Rs_LCRa, ax0, line0a, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colora)
                         line1a = live_plotter(biasVsa, Cs_LCRa, ax1, line1a, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colora)
-                    if f == self.lcr_freq[1]:
+                    if f == self.config['measurements']['CV']['frequencies'][1]:
                         outCVb.append(lineCV)
                         biasVsb.append(lineCV[0])
                         Rs_LCRb.append(lineCV[3])
                         Cs_LCRb.append(lineCV[8])
                         line0b = live_plotter(biasVsb, Rs_LCRb, ax4, line0b, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorb)
                         line1b = live_plotter(biasVsb, Cs_LCRb, ax5, line1b, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorb)
-                    if f == self.lcr_freq[2]:
+                    if f == self.config['measurements']['CV']['frequencies'][2]:
                         outCVc.append(lineCV)
                         biasVsc.append(lineCV[0])
                         Rs_LCRc.append(lineCV[3])
@@ -535,8 +481,8 @@ class testMD_fullStrip(measurement):
                             identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorc
                         )
                         line1c = live_plotter(biasVsc, Cs_LCRc, ax7, line1c, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorc)
-                    #line0[:,self.lcr_freq.index(f)] = live_plotter(biasVs[:, self.lcr_freq.index(f)], Rs_LCR[:, self.lcr_freq.index(f)], ax0, line0[:,self.lcr_freq.index(f)], identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
-                    #line1[:,self.lcr_freq.index(f)] = live_plotter(biasVs[:, self.lcr_freq.index(f)], Cs_LCR[:, self.lcr_freq.index(f)], ax1, line1[:,self.lcr_freq.index(f)], identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
+                    #line0[:,self.config['measurements']['CV']['frequencies'].index(f)] = live_plotter(biasVs[:, self.config['measurements']['CV']['frequencies'].index(f)], Rs_LCR[:, self.config['measurements']['CV']['frequencies'].index(f)], ax0, line0[:,self.config['measurements']['CV']['frequencies'].index(f)], identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
+                    #line1[:,self.config['measurements']['CV']['frequencies'].index(f)] = live_plotter(biasVs[:, self.config['measurements']['CV']['frequencies'].index(f)], Cs_LCR[:, self.config['measurements']['CV']['frequencies'].index(f)], ax1, line1[:,self.config['measurements']['CV']['frequencies'].index(f)], identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
                 
 
 
@@ -583,7 +529,7 @@ class testMD_fullStrip(measurement):
         try:
             # Do IV Scan
             self.switch.close_channel(3)
-            self.keithley2410.set_output_on()
+            self.sourcemeter_1.set_output_on()
         
             #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
@@ -592,10 +538,10 @@ class testMD_fullStrip(measurement):
 
                 start_time = time.time()
                 
-                self.keithley2410.ramp_up(v)
-                time.sleep(self.delay_vol_iv)
-                self.keithley2410_ramp.set_output_on()
-                time.sleep(self.delay_vol_iv)
+                self.sourcemeter_1.ramp_up(v)
+                # time.sleep(self.config['measurements']['IV']['delay'])
+                self.sourcemeter_2.set_output_on()
+                time.sleep(self.config['measurements']['IV']['delay'])
 
 
                     
@@ -612,11 +558,14 @@ class testMD_fullStrip(measurement):
                     # Recall that lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs]
                     Vs_amp.append(lineIV[4])
                     Is_amp.append(lineIV[5])
-                    line3 = live_plotter(Vs_amp, Is_amp, ax3, line3, identifier="IV Curve", yaxis_title=tmp_id_y, color='g')
+                    line3 = live_plotter(
+                        Vs_amp, Is_amp, ax3, line3,
+                        identifier=f"IV Curve (Bias {v} V)", yaxis_title=tmp_id_y, color='g'
+                    )
             
-                self.keithley2410_ramp.ramp_down_slow()
-                time.sleep(self.delay_step_iv)
-                self.keithley2410_ramp.set_output_off()
+                self.sourcemeter_2.ramp_down_slow()
+                # time.sleep(self.config['measurements']['IV']['step_delay'])
+                self.sourcemeter_2.set_output_off()
                 biasVs.append(v)
                 fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
                 self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
@@ -652,7 +601,7 @@ class testMD_fullStrip(measurement):
         # Name of files
         name =  self.__class__.__name__
 
-        # Create plots
+        ##Create plots
         fig, ax0, ax1, ax2, ax3, ax4, ax5, ax6, ax7 = init_liveplot()
 
         ## Print header

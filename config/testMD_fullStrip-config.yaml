@@ -4,43 +4,47 @@ devices:
     address: 8
     open_short_correction: false
     correction_count: 5
-    range:
-      Vmin: -800  #TODO: make names consistent with other config files
-      Vmax: -10
-      Vstep: -10
-    range_iv:
-      Vmin_iv: -0.5
-      Vmax_iv: 0.5
-      Vstep_iv: 0.1
-    n_sampling: 100 
-    delay_vol: 10  # VERY INCONSISTENT NAMING TOGETHER WITH KEITHLEY FUNCITONS delay between SETTING voltage and executing measurement in [s]
-    delay_ramp: 1 # 
-    volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
-    lim_cur: 1.0e-3    # compliance in [A]
-    lim_vol: 10      # compliance in [V]
+    lim_cur: 1.0e-3
 
   sourcemeter_2:
     model: 'ke2410'  
     address: 25
-    open_short_correction: false
-    correction_count: 5
-    range:
-      Vmin: -800  #TODO: make names consistent with other config files
-      Vmax: -10
-      Vstep: -10
-    range_iv:
-      Vmin_iv: -0.5
-      Vmax_iv: 0.5
-      Vstep_iv: 0.1
-    n_sampling: 100 
-    delay_vol: 10  # VERY INCONSISTENT NAMING TOGETHER WITH KEITHLEY FUNCITONS delay between SETTING voltage and executing measurement in [s]
-    delay_ramp: 1 # 
-    volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
-    lim_cur: 1.0e-3    # compliance in [A]
-    lim_vol: 10      # compliance in [V]    
+    lim_cur: 1.0e-3
     
+  switch:
+    model: 'ke7001'
+    address: 7
+    connections:
+      lcrmeter: 1
+      picoammeter: 3
+
+  lcrmeter:
+    model: 'agilent_4263b'
+    address: 17
+
   picoammeter:
     model: 'ke6487'
     address: 15
-    # lim_cur: 5.0e-7  # compliance in [A] for the GCD, this should be ?
-    n_sampling: 30
+
+measurements:
+  CV:
+    range:
+      v_min: -100   #  -50 if '120um' in self.id else -100
+      v_max: -900   #   400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      step_size: -50
+    sample_size: 10
+    lcr_amplitude: 0.5
+    frequencies: [100, 1000, 10000]  # needs to be integers otherwise the utils complain
+    delay: 10
+  IV:
+    measurement_range:
+      v_min: -0.5
+      v_max: 0.5
+      step_size: 0.1
+    bias_range:
+      v_min: -10 
+      v_max: -800
+      step_size: -10
+    sample_size: 30
+    delay: 10 
+    step_delay: 3
