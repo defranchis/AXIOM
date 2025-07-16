@@ -30,21 +30,21 @@ measurements:
   CV:
     range:
       v_min: -100   #  -50 if '120um' in self.id else -100
-      v_max: -900   #   400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      v_max: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
       step_size: -50
     sample_size: 10
     lcr_amplitude: 0.5
-    frequencies: [100, 1000, 10000]  # needs to be integers otherwise the utils complain
+    frequencies: [1000, 10000, 100000]  # needs to be integers otherwise the plotting utils complain
     delay: 10
   IV:
     measurement_range:
-      v_min: -0.5
-      v_max: 0.5
-      step_size: 0.1
+      v_min: -1
+      v_max: 1
+      step_size: 0.2
     bias_range:
-      v_min: -10 
-      v_max: -800
-      step_size: -10
-    sample_size: 30
+      v_min: -100
+      v_max: -400
+      step_size: -50
+    sample_size: 10
     delay: 10 
-    step_delay: 3
+    step_delay: 5 

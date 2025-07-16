@@ -89,7 +89,7 @@ class testMD_fullStrip(measurement):
 
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-            print(self.config)
+            self.logging.info(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -361,7 +361,6 @@ class testMD_fullStrip(measurement):
 
         z = np.sqrt(r**2 + x**2)
         phi = np.arctan(x/r)
-        print({'freq': freq, 'z': z, 'phi': phi})
         r_s, c_s, l_s, D = lcr_series_equ(freq, z, phi)
         r_p, c_p, l_p, D = lcr_parallel_equ(freq, z, phi)
 
@@ -396,12 +395,14 @@ class testMD_fullStrip(measurement):
         
         return(line)
 
+    #TODO: fix possible division by zero when G becomes arbitrarily small (most likely due to irradiated sensor + high bias)
     def retrieveR(self, V, I):
-
+        
         # That 3 is making linear regression from 3V to 5V
         #index_3V = min(range(len(V)), key=lambda i: abs(V[i]-3))
         #G, Iq = np.polyfit(V[index_3V:], I[index_3V:], 1)
         G, Iq = np.polyfit(V, I, 1)
+        self.logging.info(f"Linear regression result: G = {G}, Iq = {Iq}")
         return (1/G, Iq)
 
     def CVscan(self, name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV):
@@ -495,12 +496,15 @@ class testMD_fullStrip(measurement):
         self.reset_power_supplies()
         self.reset_switch()
 
-        self.saveSinglePlot(fig, ax1,"10KHz_cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax0,"10KHz_rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax5,"100KHz_cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax4,"100KHz_rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax7,"1MHz_cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax6,"1MHz_rv_LCR_{a}_{b}.png".format(a=self.id, b=name))
+        #TODO: Fix names to match the actual frequencies
+        # Use actual frequencies from config for filenames
+        freq_list = self.config['measurements']['CV']['frequencies']
+        self.saveSinglePlot(fig, ax1, f"{freq_list[0]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
+        self.saveSinglePlot(fig, ax0, f"{freq_list[0]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
+        self.saveSinglePlot(fig, ax5, f"{freq_list[1]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
+        self.saveSinglePlot(fig, ax4, f"{freq_list[1]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
+        self.saveSinglePlot(fig, ax7, f"{freq_list[2]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
+        self.saveSinglePlot(fig, ax6, f"{freq_list[2]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
 
 
         self.save_list(outCVa, "10KHz_"+fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
@@ -539,7 +543,7 @@ class testMD_fullStrip(measurement):
                 start_time = time.time()
                 
                 self.sourcemeter_1.ramp_up(v)
-                # time.sleep(self.config['measurements']['IV']['delay'])
+                time.sleep(self.config['measurements']['IV']['delay'])
                 self.sourcemeter_2.set_output_on()
                 time.sleep(self.config['measurements']['IV']['delay'])
 
