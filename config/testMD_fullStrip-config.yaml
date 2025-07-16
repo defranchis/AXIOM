@@ -32,9 +32,9 @@ measurements:
       v_min: -100   #  -50 if '120um' in self.id else -100
       v_max: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
       step_size: -50
-    sample_size: 10
+    sample_size: 30
     lcr_amplitude: 0.5
-    frequencies: [1000, 10000, 100000]  # needs to be integers otherwise the plotting utils complain
+    frequencies: [10000, 100000]  # needs to be integers otherwise the plotting utils complain
     delay: 10
   IV:
     measurement_range:

@@ -252,6 +252,10 @@ class testMD_DiodeGR(measurement):
                 #   self.sourcemeter_ramp.set_output_on()
                 #time.sleep(self.delay_vol_iv)
 
+                if(not self.sourcemeter_1.check_compliance()):
+                    self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)
+
+
                 line3 = []
                 Vs_amp = []
                 Is_amp = []

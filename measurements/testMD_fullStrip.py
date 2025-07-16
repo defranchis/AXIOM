@@ -410,84 +410,45 @@ class testMD_fullStrip(measurement):
         self.logging.info('\n\nSTARTING CV SCAN...\n\n')
         fname_out_CV = '_'.join(['cv', self.id, name]) + '.dat'
 
-        biasVsa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
-        Rs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
-        Cs_LCRa = []#np.empty((len(self.volt_list_bias_CV), len(self.config['measurements']['CV']['frequencies'])))
+        freq_list = self.config['measurements']['CV']['frequencies']
+        num_freqs = len(freq_list)
 
-        biasVsb = []
-        Rs_LCRb = []
-        Cs_LCRb = []
-
-        biasVsc = []
-        Rs_LCRc = []
-        Cs_LCRc = []
-
-        line0a = []
-        line1a = []
-        line0b = []
-        line1b = []
-        line0c = []
-        line1c = []
-
-        outCVa = []
-        outCVb = []
-        outCVc = []
-        
-        colora = 'b'
-        colorb = 'r'
-        colorc = 'g'
-        tmp_id_y_R     = r'$R$'
-        tmp_id_y_C     = r'$C$'
-
+        # Prepare containers for each frequency
+        biasVs = [[] for _ in range(num_freqs)]
+        Rs_LCRs = [[] for _ in range(num_freqs)]
+        Cs_LCRs = [[] for _ in range(num_freqs)]
+        lines_R = [[] for _ in range(num_freqs)]
+        lines_C = [[] for _ in range(num_freqs)]
+        outCVs = [[] for _ in range(num_freqs)]
+        colors = ['b', 'r', 'g']
+        axes_R = [ax0, ax4, ax6]
+        axes_C = [ax1, ax5, ax7]
+        tmp_id_y_R = r'$R$'
+        tmp_id_y_C = r'$C$'
 
         self.reset_power_supplies()
         self.reset_switch()
 
-
-         # Do CV Scan
-        try:            
-
-            #TODO: improve this for loop to use the same code for all frequencies (iterating over the frequencies and then comparing to the same list is unhinged)
+        try:
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
-                for f in self.config['measurements']['CV']['frequencies']:
+                for idx, f in enumerate(freq_list):
                     lineCV = self.CVpoint(v, f, 1)
-                    
-                    # Recall that lineCV = [biasV, vol, self.config['measurements']['CV']['frequencies'], r, dr, x, dx, c_s, c_p, cur_tot]
-                    #biasVs[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[0]
-                    #Rs_LCR[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[3]
-                    #Cs_LCR[self.volt_list_bias_CV.index(v), self.config['measurements']['CV']['frequencies'].index(f)] = lineCV[8]
-                    
-                    if f == self.config['measurements']['CV']['frequencies'][0]:
-                        outCVa.append(lineCV)
-                        biasVsa.append(lineCV[0])
-                        Rs_LCRa.append(lineCV[3])
-                        Cs_LCRa.append(lineCV[8])
-                        line0a = live_plotter(biasVsa, Rs_LCRa, ax0, line0a, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colora)
-                        line1a = live_plotter(biasVsa, Cs_LCRa, ax1, line1a, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colora)
-                    if f == self.config['measurements']['CV']['frequencies'][1]:
-                        outCVb.append(lineCV)
-                        biasVsb.append(lineCV[0])
-                        Rs_LCRb.append(lineCV[3])
-                        Cs_LCRb.append(lineCV[8])
-                        line0b = live_plotter(biasVsb, Rs_LCRb, ax4, line0b, identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorb)
-                        line1b = live_plotter(biasVsb, Cs_LCRb, ax5, line1b, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorb)
-                    if f == self.config['measurements']['CV']['frequencies'][2]:
-                        outCVc.append(lineCV)
-                        biasVsc.append(lineCV[0])
-                        Rs_LCRc.append(lineCV[3])
-                        Cs_LCRc.append(lineCV[8])
-                        line0c = live_plotter(
-                            biasVsc, Rs_LCRc, ax6, line0c,
-                            identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colorc
+                    outCVs[idx].append(lineCV)
+                    biasVs[idx].append(lineCV[0])
+                    Rs_LCRs[idx].append(lineCV[3])
+                    Cs_LCRs[idx].append(lineCV[8])
+                    if idx < len(colors):  # Only plot if color/axes available
+                        lines_R[idx] = live_plotter(
+                            biasVs[idx], Rs_LCRs[idx], axes_R[idx], lines_R[idx],
+                            identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colors[idx]
                         )
-                        line1c = live_plotter(biasVsc, Cs_LCRc, ax7, line1c, identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colorc)
-                    #line0[:,self.config['measurements']['CV']['frequencies'].index(f)] = live_plotter(biasVs[:, self.config['measurements']['CV']['frequencies'].index(f)], Rs_LCR[:, self.config['measurements']['CV']['frequencies'].index(f)], ax0, line0[:,self.config['measurements']['CV']['frequencies'].index(f)], identifier="RV curve (LCR)", yaxis_title=tmp_id_y_R, color=color)
-                    #line1[:,self.config['measurements']['CV']['frequencies'].index(f)] = live_plotter(biasVs[:, self.config['measurements']['CV']['frequencies'].index(f)], Cs_LCR[:, self.config['measurements']['CV']['frequencies'].index(f)], ax1, line1[:,self.config['measurements']['CV']['frequencies'].index(f)], identifier="CV curve", yaxis_title=tmp_id_y_C, color=color)
-                
+                        lines_C[idx] = live_plotter(
+                            biasVs[idx], Cs_LCRs[idx], axes_C[idx], lines_C[idx],
+                            identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colors[idx]
+                        )
 
-
-        except BaseException as e: #KeyboardInterrupt:
+        except BaseException as e:
             self.logging.info('EXCEPTION RAISED IN CV SCAN:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
@@ -496,20 +457,12 @@ class testMD_fullStrip(measurement):
         self.reset_power_supplies()
         self.reset_switch()
 
-        #TODO: Fix names to match the actual frequencies
-        # Use actual frequencies from config for filenames
-        freq_list = self.config['measurements']['CV']['frequencies']
-        self.saveSinglePlot(fig, ax1, f"{freq_list[0]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
-        self.saveSinglePlot(fig, ax0, f"{freq_list[0]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
-        self.saveSinglePlot(fig, ax5, f"{freq_list[1]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
-        self.saveSinglePlot(fig, ax4, f"{freq_list[1]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
-        self.saveSinglePlot(fig, ax7, f"{freq_list[2]:.0f}Hz_cv_LCR_{self.id}_{name}.png")
-        self.saveSinglePlot(fig, ax6, f"{freq_list[2]:.0f}Hz_rv_LCR_{self.id}_{name}.png")
-
-
-        self.save_list(outCVa, "10KHz_"+fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
-        self.save_list(outCVb, "100KHz_"+fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
-        self.save_list(outCVc, "1MHz_"+fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
+        # Save plots and data for each frequency
+        for idx, f in enumerate(freq_list):
+            if idx < len(colors):  # Only save if axes available
+                self.saveSinglePlot(fig, axes_C[idx], f"{f:.0f}Hz_cv_LCR_{self.id}_{name}.png")
+                self.saveSinglePlot(fig, axes_R[idx], f"{f:.0f}Hz_rv_LCR_{self.id}_{name}.png")
+            self.save_list(outCVs[idx], f"{f:.0f}Hz_" + fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
 
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
@@ -548,7 +501,8 @@ class testMD_fullStrip(measurement):
                 time.sleep(self.config['measurements']['IV']['delay'])
 
 
-                    
+                if(not self.sourcemeter_1.check_compliance()):
+                    self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)
 
                 line3 = []
                 Vs_amp = []

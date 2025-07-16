@@ -246,6 +246,10 @@ class testMD_DiodeStrip(measurement):
                 self.sourcemeter_2.set_output_on()
                 time.sleep(self.config['devices']['sourcemeter_1']['delay_vol'])
 
+                if(not self.sourcemeter_1.check_compliance()):
+                    self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)
+
+
                 line3 = []
                 Vs_amp = []
                 Is_amp = []
