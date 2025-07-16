@@ -25,7 +25,8 @@ def init_liveplot():
     ax5 = fig.add_subplot(246)
     ax6 = fig.add_subplot(243)
     ax7 = fig.add_subplot(247)
-
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
 
     return fig, ax0, ax1, ax2, ax3, ax4, ax5, ax6, ax7
 

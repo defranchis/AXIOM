@@ -24,7 +24,8 @@ def init_liveplot():
     ax0 = fig.add_subplot(131)
     ax1 = fig.add_subplot(132)
     ax2 = fig.add_subplot(133)
-
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
     return fig, ax0, ax1, ax2
 
 def mypause(interval):

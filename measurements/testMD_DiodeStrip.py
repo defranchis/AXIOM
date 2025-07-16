@@ -14,7 +14,8 @@ def init_liveplot():
     fig = plt.figure(figsize=(13,13))
     ax0 = fig.add_subplot(121)
     ax1 = fig.add_subplot(122)
-
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
 
     return fig, ax0, ax1
 
