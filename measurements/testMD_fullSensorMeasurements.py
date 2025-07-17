@@ -1,15 +1,13 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import matplotlib
 plt.style.use('ggplot')
 import time, math, os
-import logging
 import numpy as np
-import mpld3
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
 
 # Module structure import
 from measurements import measurement
+import devices
 
 # Specific device imports for this configuration
 from devices.ke2410 import * # power supply
@@ -83,8 +81,12 @@ class testMD_fullSensorMeasurements(measurement):
         self._initialise()
 
         ## KEITHLEY settings
-        self.keithley2410_address =  25  # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_gcddiode_address = 8
+
+        # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
+        self.keithley2410_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
+        self.keithley2410_gcddiode_address = 25 #TEMPORARY FIX: USUALLY THESE ADDRESSES ARE SWAPPED, 25 IS THE MAIN WHICH DOES THE BACKPLANE BIAS 8 DOES THE SWEEP FOR THE GCD 
+        # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
         self.switch_address       = 7   # gpib address of the switch
 
         ## LCR meter settings
@@ -93,14 +95,14 @@ class testMD_fullSensorMeasurements(measurement):
         self.lcr_freq = 10000            # ac voltage frequency in [Hz]
         self.cv_res = 1e6                # cv parallel resistor in [Ohm]
 
-        self.lim_cur_ke2410 = 0.0002  # compliance in [A]
-        self.lim_cur_ke6487 = 2E-8    # compliance in [A] for the GCD, this should be 10 nA
+        self.lim_cur_ke2410 = 0.001  # compliance in [A]
+        self.lim_cur_ke6487 = 100E-9    # compliance in [A] for the GCD, this should be 10 nA
         self.lim_vol = 10             # compliance in [V]
 
-        self.volt_list_cv = [0.-i for i in range(451)]
+        self.volt_list_cv = [0. - i * 5 for i in range(91)]
         self.currents_cv  = [0 for i in self.volt_list_cv]
 
-        self.volt_list_iv = [10.-i for i in range(111)]
+        self.volt_list_iv = [10 - i * 3 for i in range(((10 - (-90)) // 3) + 1)]
         self.currents_iv  = [0 for i in self.volt_list_iv]
 
         self.nSampling_CV =  5
@@ -108,6 +110,9 @@ class testMD_fullSensorMeasurements(measurement):
 
         self.is_preirradiation = False
         self.gcd_diode_bias = 10.
+
+        # FIX TO AVOID CALLING GETREFERENCE CAPACITANCE. 
+        self.is_preirradiation = True 
 
         if '_0kGy'in self.id or 'preirr' in self.id:
             self.is_preirradiation = True
@@ -119,20 +124,23 @@ class testMD_fullSensorMeasurements(measurement):
             self.currents_iv  = [0 for i in self.volt_list_iv]
 
         ## might as well get the proper dose
-        doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
-        self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
+        # doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
+        # self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
+        self.currentDose = 3 # TEMPORARY FIX SINCE NAMME VALUE EXTRACTION IS BROKEN 
 
         self.delay_vol_cv = 0.3     # delay between setting voltage and executing measurement in [s]
         self.delay_vol_iv = 2.0     # delay between setting voltage and executing measurement in [s]
 
+        # Print out all measurement parameters set up in initialisation
+
         ## initialize the devices
-        self.keithley2410 = ke2410(self.keithley2410_address)
-        self.switch       = ke7001(self.switch_address)
+        self.keithley2410 = devices.ke2410(self.keithley2410_address)
+        self.switch       = devices.ke7001(self.switch_address)
         #self.reset_switch()
-        self.keithley2410_gcddiode = ke2410(self.keithley2410_gcddiode_address)
+        self.keithley2410_gcddiode = devices.ke2410(self.keithley2410_gcddiode_address)
 
         ## Set up lcr meter
-        self.lcr_meter = hp4980(self.lcr_meter_address)
+        self.lcr_meter = devices.agilent_4263b(self.lcr_meter_address)
         self.lcr_meter.reset()
         self.lcr_meter.set_voltage(self.lcr_vol)
         self.lcr_meter.set_frequency(self.lcr_freq)
@@ -140,7 +148,7 @@ class testMD_fullSensorMeasurements(measurement):
 
         ## Set up volt meter
         self.keithley6487_address = 15
-        self.keithley6487 = ke6487(self.keithley6487_address)
+        self.keithley6487 = devices.ke6487(self.keithley6487_address)
 
         #self.reset_power_supplies()
 
@@ -523,7 +531,7 @@ class testMD_fullSensorMeasurements(measurement):
         plots = {}
         
         # name =  self.__class__.__name__ #TODO: USE APPROPRIATE NAME 
-        ## starting the measurements
+        # ## starting the measurements
         plots_cv_moshalf = self.doCVScan(1, ax0, name='MOShalf')
         plots["cv_moshalf"] = plots_cv_moshalf
         
@@ -534,7 +542,7 @@ class testMD_fullSensorMeasurements(measurement):
         plots_cv_mos2000 =self.doCVScan(3, ax1, name='MOS2000')
         plots["cv_mos2000"] = plots_cv_mos2000
         
-        ## Close connections
+        # ## Close connections
         self.reset_power_supplies()
         self.reset_switch()
         
@@ -544,7 +552,7 @@ class testMD_fullSensorMeasurements(measurement):
         ## Close connections
         self.reset_power_supplies()
         self.reset_switch()
-
+ 
         #except BaseException as e:
         #print('EXCEPTION RAISED:', e)
         #self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
