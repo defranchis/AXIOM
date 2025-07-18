@@ -3,8 +3,9 @@ import matplotlib
 plt.style.use('ggplot')
 import time, math, os
 import numpy as np
-from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
+from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 import yaml
+
 # Module structure import
 from measurements import measurement
 import devices
@@ -200,7 +201,6 @@ class testMD_fullSensorMeasurements(measurement):
                                  'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_zoom_{a}_{b}.png".format(a=self.id, b=name))
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
-
 
     #TODO: REFACTOR 
     def doCVScan(self, channel, ax, name=''):  ## don't really know how best to do this ... to be teasted on the setup

@@ -434,7 +434,7 @@ class testMD_fullStrip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
-                    lineCV = self.CVpoint(v, f, 1)
+                    lineCV = self.CVpoint(v, f, 1) #TODO: READ CHANNEL DYANMICALLY FROM CONFIG
                     outCVs[idx].append(lineCV)
                     biasVs[idx].append(lineCV[0])
                     Rs_LCRs[idx].append(lineCV[3])

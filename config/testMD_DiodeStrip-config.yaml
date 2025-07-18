@@ -1,6 +1,3 @@
-irradiationSteps: [0,0.5,1,2,3,4,5,7,10,15,20] # [0,5,10,15,20,30,50,70,100,150,200] #,300,500,700,1000,1500]
-
-
 #TODO: naming convention should always enforce numbering of devices, even when there is only one device of some type.
 #TODO: remove unused variables, and move generic variables outside of devices section
 #TODO: make names consistent accross files, all snake_case 

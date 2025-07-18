@@ -1,7 +1,3 @@
-irradiationSteps: [0,0.5,1,2,3,4,5,7,10,15,20] # [0,5,10,15,20,30,50,70,100,150,200] #,300,500,700,1000,1500]
-voltage_settings:
- 
-
 #TODO: naming convention should always enforce numbering of devices, even when there is only one device of some type.
 #TODO: remove unused variables, and move generic variables outside of devices section
 #TODO: make names consistent accross files, all snake_case 
@@ -24,9 +20,6 @@ devices:
     delay_vol: 1  # delay between setting voltage and executing measurement in [s]
     # delay_ramp_iv: 1
     volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
-    # volt_list_test: [-1, -5]
-    # delay_vol_iv: 30
-    # volt_list_bias_IV: [-50, -100, -150, -200, -250, -300, -350, -400, -450, -500, -550, -600 ] #, -700, -800, -900] # [-100, -150, -200, -250, -300, -350, -400]   #
     lim_cur: 1.0e-3    # compliance in [A]
     lim_vol: 10      # compliance in [V]
   switch:
@@ -35,10 +28,8 @@ devices:
   picoammeter_1:
     model: 'ke6487'
     address: 15
-    # lim_cur: 5.0e-7  # compliance in [A] for the GCD, this should be ?
     n_sampling: 30
   picoammeter_2:
     model: 'ke6487'
     address: 23
-    # lim_cur: 5.0e-7  # compliance in [A] for the GCD, this should be ?
     n_sampling: 30
