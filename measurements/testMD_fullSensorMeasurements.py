@@ -79,30 +79,6 @@ class testMD_fullSensorMeasurements(measurement):
 
         self._initialise()
 
-        ## KEITHLEY settings
-
-        # # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
-        # self.sourcemeter_1_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
-        # self.sourcemeter_2_address = 25 #TEMPORARY FIX: USUALLY THESE ADDRESSES ARE SWAPPED, 25 IS THE MAIN WHICH DOES THE BACKPLANE BIAS 8 DOES THE SWEEP FOR THE GCD 
-        # # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # self.switch_address       = 7   # gpib address of the switch
-
-        ## LCR meter settings
-        # self.lcrmeter_address = 17  # in the SSD lab this is 9
-        # self.config['measurements']['CV']['lcr_amplitude'] = 0.250 #0.501             # ac voltage amplitude in [mV]
-        # self.config['measurements']['CV']['lcr_frequency'] = 10000            # ac voltage frequency in [Hz]
-
-        # self.config['devices']['sourcemeter_1']['lim_cur'] = 0.001  # compliance in [A]
-        # self.config['devices']['picoammeter']['lim_cur'] = 100E-9    # compliance in [A] for the GCD, this should be 10 nA
-        ## self.lim_vol = 10             # compliance in [V]
-
-        # self.volt_list_cv = [0. - i * 5 for i in range(91)]
-        # self.currents_cv  = [0 for i in self.volt_list_cv]
-
-        # self.volt_list_iv = [10 - i * 3 for i in range(((10 - (-90)) // 3) + 1)]
-        # self.currents_iv  = [0 for i in self.volt_list_iv]
-
         self.volt_list_cv = np.arange(
             self.config['measurements']['CV']['range']['v_min'],
             self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
@@ -116,42 +92,11 @@ class testMD_fullSensorMeasurements(measurement):
             self.config['measurements']['IV']['range']['step_size']
         )
 
-
-
-        # self.config['measurements']['CV']['sample_size'] =  5
-        # self.config['measurements']['IV']['sample_size'] = 30
-
-        # self.config['measurements']['IV']['gcd_diode_bias'] = 10.
-
-        # FIX TO AVOID CALLING GETREFERENCE CAPACITANCE. 
-        # self.config['sample']['preirradiated'] = True 
-
-        # if '_0kGy'in self.id or 'preirr' in self.id:
-        #     self.config['sample']['preirradiated'] = True
-        #     self.config['measurements']['IV']['gcd_diode_bias'] = 5
-        #     #self.volt_list_cv = [0.-i*0.1 for i in range(30)] + [-3.-i for i in range(13)]
-        #     self.volt_list_cv = [0.-i*0.1 for i in range(80)] + [-8.-i*0.5 for i in range(15)]
-        #     self.currents_cv  = [0 for i in self.volt_list_cv]
-        #     self.volt_list_iv = [10.-i for i in range(26)]
-        #     self.currents_iv  = [0 for i in self.volt_list_iv]
-
-        ### might as well get the proper dose
-        ## doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
-        ## self.config['sample']['current_dose'] = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
-
-        # self.config['sample']['current_dose'] = 3 # TEMPORARY FIX SINCE NAMME VALUE EXTRACTION IS BROKEN 
-
-        # self.config['measurements']['CV']['delay'] = 0.3     # delay between setting voltage and executing measurement in [s]
-        # self.config['measurements']['IV']['delay'] = 2.0     # delay between setting voltage and executing measurement in [s]
-
-        # Print out all measurement parameters set up in initialisation
-
         ## initialize the devices
         self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
         self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
         self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        self.reset_switch()
 
         ## Set up lcr meter
         self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
@@ -160,26 +105,6 @@ class testMD_fullSensorMeasurements(measurement):
         self.lcrmeter.set_mode('RX')
 
         self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
-
-
-
-
-        # self.sourcemeter_1 = devices.ke2410(self.sourcemeter_1_address)
-        # self.switch       = devices.ke7001(self.switch_address)
-        # self.sourcemeter_2 = devices.ke2410(self.sourcemeter_2_address)
-
-        # ## Set up lcr meter
-        # self.lcrmeter = devices.agilent_4263b(self.lcrmeter_address)
-        # self.lcrmeter.reset()
-        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        # self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
-        # self.lcrmeter.set_mode('RX')
-
-        # ## Set up volt meter
-        # self.picoammeter_address = 15
-        # self.picoammeter = devices.ke6487(self.picoammeter_address)
-
-        #self.reset_power_supplies()
 
     def reset_power_supplies(self):
 

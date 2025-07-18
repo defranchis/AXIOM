@@ -19,9 +19,9 @@ devices:
   switch:
     model: 'ke7001'
     address: 7
-    connections:
-      lcrmeter: 1
-      picoammeter: 3
+    # connections:
+    #   lcrmeter: 1
+    #   picoammeter: 3
 
   lcrmeter:
     model: 'agilent_4263b'
@@ -38,7 +38,7 @@ measurements:
     range:
       v_min: 0.   #  -50 if '120um' in self.id else -100
       v_max: -90   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-      step_size: -5
+      step_size: -3
     sample_size: 5
     lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
     lcr_frequency: 10000  # ac voltage frequency in [Hz]

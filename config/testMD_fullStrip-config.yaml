@@ -14,9 +14,9 @@ devices:
   switch:
     model: 'ke7001'
     address: 7
-    connections:
-      lcrmeter: 1
-      picoammeter: 3
+    # connections:
+    #   lcrmeter: 1
+    #   picoammeter: 3
 
   lcrmeter:
     model: 'agilent_4263b'
