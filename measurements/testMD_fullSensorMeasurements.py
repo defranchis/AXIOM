@@ -4,16 +4,11 @@ plt.style.use('ggplot')
 import time, math, os
 import numpy as np
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ, lcr_error_cp
-
+import yaml
 # Module structure import
 from measurements import measurement
 import devices
 
-# Specific device imports for this configuration
-from devices.ke2410 import * # power supply
-from devices.ke6487 import * # picoammeter and votlage source for IV bias of -10 V
-from devices.ke7001 import * # switch
-from devices.hp4980 import * # switch
 
 
 def init_liveplot():
@@ -67,13 +62,17 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 class testMD_fullSensorMeasurements(measurement):
 
     def __init__(self, ide, config_path):
-        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
-        self.config_path = config_path # this config path is NOT required and can be left empty for this specific measurement. 
+        super().__init__(ide)  
+        self.config_path = config_path 
 
     def initialise(self):
+        with open(self.config_path, 'r') as file:
+            self.config = yaml.safe_load(file)
+            print(self.config)
+
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running all 3 measurements of the silicon!")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info(self.__doc__)
         self.logging.info("\t")
@@ -82,109 +81,139 @@ class testMD_fullSensorMeasurements(measurement):
 
         ## KEITHLEY settings
 
-        # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
-        self.keithley2410_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
-        self.keithley2410_gcddiode_address = 25 #TEMPORARY FIX: USUALLY THESE ADDRESSES ARE SWAPPED, 25 IS THE MAIN WHICH DOES THE BACKPLANE BIAS 8 DOES THE SWEEP FOR THE GCD 
-        # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
+        # # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
+        # self.sourcemeter_1_address =  8  # in the SSD lab gpib address of the power supply that does the IV scan
+        # self.sourcemeter_2_address = 25 #TEMPORARY FIX: USUALLY THESE ADDRESSES ARE SWAPPED, 25 IS THE MAIN WHICH DOES THE BACKPLANE BIAS 8 DOES THE SWEEP FOR THE GCD 
+        # # TEMP ADDRESS FIX ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        self.switch_address       = 7   # gpib address of the switch
+        # self.switch_address       = 7   # gpib address of the switch
 
         ## LCR meter settings
-        self.lcr_meter_address = 17  # in the SSD lab this is 9
-        self.lcr_vol = 0.250 #0.501             # ac voltage amplitude in [mV]
-        self.lcr_freq = 10000            # ac voltage frequency in [Hz]
-        self.cv_res = 1e6                # cv parallel resistor in [Ohm]
+        # self.lcrmeter_address = 17  # in the SSD lab this is 9
+        # self.config['measurements']['CV']['lcr_amplitude'] = 0.250 #0.501             # ac voltage amplitude in [mV]
+        # self.config['measurements']['CV']['lcr_frequency'] = 10000            # ac voltage frequency in [Hz]
 
-        self.lim_cur_ke2410 = 0.001  # compliance in [A]
-        self.lim_cur_ke6487 = 100E-9    # compliance in [A] for the GCD, this should be 10 nA
-        self.lim_vol = 10             # compliance in [V]
+        # self.config['devices']['sourcemeter_1']['lim_cur'] = 0.001  # compliance in [A]
+        # self.config['devices']['picoammeter']['lim_cur'] = 100E-9    # compliance in [A] for the GCD, this should be 10 nA
+        ## self.lim_vol = 10             # compliance in [V]
 
-        self.volt_list_cv = [0. - i * 5 for i in range(91)]
-        self.currents_cv  = [0 for i in self.volt_list_cv]
+        # self.volt_list_cv = [0. - i * 5 for i in range(91)]
+        # self.currents_cv  = [0 for i in self.volt_list_cv]
 
-        self.volt_list_iv = [10 - i * 3 for i in range(((10 - (-90)) // 3) + 1)]
-        self.currents_iv  = [0 for i in self.volt_list_iv]
+        # self.volt_list_iv = [10 - i * 3 for i in range(((10 - (-90)) // 3) + 1)]
+        # self.currents_iv  = [0 for i in self.volt_list_iv]
 
-        self.nSampling_CV =  5
-        self.nSampling_IV = 30
+        self.volt_list_cv = np.arange(
+            self.config['measurements']['CV']['range']['v_min'],
+            self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
+            self.config['measurements']['CV']['range']['step_size']
+        )
 
-        self.is_preirradiation = False
-        self.gcd_diode_bias = 10.
+        # IV measurement voltage list
+        self.volt_list_iv = np.arange(
+            self.config['measurements']['IV']['range']['v_min'],
+            self.config['measurements']['IV']['range']['v_max'] +  self.config['measurements']['IV']['range']['step_size'],
+            self.config['measurements']['IV']['range']['step_size']
+        )
+
+
+
+        # self.config['measurements']['CV']['sample_size'] =  5
+        # self.config['measurements']['IV']['sample_size'] = 30
+
+        # self.config['measurements']['IV']['gcd_diode_bias'] = 10.
 
         # FIX TO AVOID CALLING GETREFERENCE CAPACITANCE. 
-        self.is_preirradiation = True 
+        # self.config['sample']['preirradiated'] = True 
 
-        if '_0kGy'in self.id or 'preirr' in self.id:
-            self.is_preirradiation = True
-            self.gcd_diode_bias = 5
-            #self.volt_list_cv = [0.-i*0.1 for i in range(30)] + [-3.-i for i in range(13)]
-            self.volt_list_cv = [0.-i*0.1 for i in range(80)] + [-8.-i*0.5 for i in range(15)]
-            self.currents_cv  = [0 for i in self.volt_list_cv]
-            self.volt_list_iv = [10.-i for i in range(26)]
-            self.currents_iv  = [0 for i in self.volt_list_iv]
+        # if '_0kGy'in self.id or 'preirr' in self.id:
+        #     self.config['sample']['preirradiated'] = True
+        #     self.config['measurements']['IV']['gcd_diode_bias'] = 5
+        #     #self.volt_list_cv = [0.-i*0.1 for i in range(30)] + [-3.-i for i in range(13)]
+        #     self.volt_list_cv = [0.-i*0.1 for i in range(80)] + [-8.-i*0.5 for i in range(15)]
+        #     self.currents_cv  = [0 for i in self.volt_list_cv]
+        #     self.volt_list_iv = [10.-i for i in range(26)]
+        #     self.currents_iv  = [0 for i in self.volt_list_iv]
 
-        ## might as well get the proper dose
-        # doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
-        # self.currentDose = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
-        self.currentDose = 3 # TEMPORARY FIX SINCE NAMME VALUE EXTRACTION IS BROKEN 
+        ### might as well get the proper dose
+        ## doseIndex = [i for i, j in enumerate(self.id.split('_')) if 'kGy'in str(j)][0]
+        ## self.config['sample']['current_dose'] = int((self.id.split('_')[doseIndex]).replace('kGy','')) 
 
-        self.delay_vol_cv = 0.3     # delay between setting voltage and executing measurement in [s]
-        self.delay_vol_iv = 2.0     # delay between setting voltage and executing measurement in [s]
+        # self.config['sample']['current_dose'] = 3 # TEMPORARY FIX SINCE NAMME VALUE EXTRACTION IS BROKEN 
+
+        # self.config['measurements']['CV']['delay'] = 0.3     # delay between setting voltage and executing measurement in [s]
+        # self.config['measurements']['IV']['delay'] = 2.0     # delay between setting voltage and executing measurement in [s]
 
         # Print out all measurement parameters set up in initialisation
 
         ## initialize the devices
-        self.keithley2410 = devices.ke2410(self.keithley2410_address)
-        self.switch       = devices.ke7001(self.switch_address)
-        #self.reset_switch()
-        self.keithley2410_gcddiode = devices.ke2410(self.keithley2410_gcddiode_address)
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
+
+        self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        self.reset_switch()
 
         ## Set up lcr meter
-        self.lcr_meter = devices.agilent_4263b(self.lcr_meter_address)
-        self.lcr_meter.reset()
-        self.lcr_meter.set_voltage(self.lcr_vol)
-        self.lcr_meter.set_frequency(self.lcr_freq)
-        self.lcr_meter.set_mode('RX')
+        self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter.reset()
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode('RX')
 
-        ## Set up volt meter
-        self.keithley6487_address = 15
-        self.keithley6487 = devices.ke6487(self.keithley6487_address)
+        self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
+
+
+
+
+        # self.sourcemeter_1 = devices.ke2410(self.sourcemeter_1_address)
+        # self.switch       = devices.ke7001(self.switch_address)
+        # self.sourcemeter_2 = devices.ke2410(self.sourcemeter_2_address)
+
+        # ## Set up lcr meter
+        # self.lcrmeter = devices.agilent_4263b(self.lcrmeter_address)
+        # self.lcrmeter.reset()
+        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        # self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
+        # self.lcrmeter.set_mode('RX')
+
+        # ## Set up volt meter
+        # self.picoammeter_address = 15
+        # self.picoammeter = devices.ke6487(self.picoammeter_address)
 
         #self.reset_power_supplies()
 
     def reset_power_supplies(self):
 
         ## Reset power supply for CV measurement
-        self.keithley2410.ramp_down()
-        self.keithley2410.set_output_off()
-        self.keithley2410.reset()
-        self.keithley2410.set_source('voltage')
-        self.keithley2410.set_sense('current')
-        self.keithley2410.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410.set_voltage(0)
-        self.keithley2410.set_terminal('rear')
+        self.sourcemeter_1.ramp_down()
+        self.sourcemeter_1.set_output_off()
+        self.sourcemeter_1.reset()
+        self.sourcemeter_1.set_source('voltage')
+        self.sourcemeter_1.set_sense('current')
+        self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_1.set_voltage(0)
+        self.sourcemeter_1.set_terminal('rear')
         # MARC keithley2410.set_interlock_on()
-        self.keithley2410.set_output_off()
+        self.sourcemeter_1.set_output_off()
         time.sleep(1)
 
         ## Reset power supply of the second keithley which biases the gcd diode
-        self.keithley2410_gcddiode.ramp_voltage(0)
-        self.keithley2410_gcddiode.set_output_off()
-        self.keithley2410_gcddiode.reset()
-        self.keithley2410_gcddiode.set_source('voltage')
-        self.keithley2410_gcddiode.set_sense('current')
-        self.keithley2410_gcddiode.set_current_limit(self.lim_cur_ke2410)
-        self.keithley2410_gcddiode.set_voltage(0)
-        self.keithley2410_gcddiode.set_terminal('rear')
+        self.sourcemeter_2.ramp_voltage(0)
+        self.sourcemeter_2.set_output_off()
+        self.sourcemeter_2.reset()
+        self.sourcemeter_2.set_source('voltage')
+        self.sourcemeter_2.set_sense('current')
+        self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_2.set_voltage(0)
+        self.sourcemeter_2.set_terminal('rear')
         # MARC keithley2410_gcddiode.set_interlock_on()
-        self.keithley2410_gcddiode.set_output_off()
+        self.sourcemeter_2.set_output_off()
         time.sleep(1)
 
-        #self.keithley6487.ramp_down()
-        self.keithley6487.reset()
-        self.keithley6487.setup_ammeter()
-        self.keithley6487.set_nplc(2)
-        self.keithley6487.set_range(self.lim_cur_ke6487)
+        #self.picoammeter.ramp_down()
+        self.picoammeter.reset()
+        self.picoammeter.setup_ammeter()
+        self.picoammeter.set_nplc(2)
+        self.picoammeter.set_range(self.config['devices']['picoammeter']['lim_cur'])
 
     def reset_switch(self):
 
@@ -247,26 +276,28 @@ class testMD_fullSensorMeasurements(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
+
+    #TODO: REFACTOR 
     def doCVScan(self, channel, ax, name=''):  ## don't really know how best to do this ... to be teasted on the setup
 
 
         self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
+        self.sourcemeter_1.set_output_on()
 
         ## Check settings
-        lim_vol  = self.keithley2410.check_voltage_limit()
-        lim_cur  = self.keithley2410.check_current_limit()
-        lcr_vol  = float(self.lcr_meter.check_voltage())
-        lcr_freq = float(self.lcr_meter.check_frequency())
+        lim_vol  = self.sourcemeter_1.check_voltage_limit()
+        lim_cur  = self.sourcemeter_1.check_current_limit()
+        lcr_vol  = float(self.lcrmeter.check_voltage())
+        lcr_freq = float(self.lcrmeter.check_frequency())
 
         ## Header
         hd = [
-            'Single IV\n',
+            'Single IV\n', #TODO: IS THIS HEADER CORRECT? IT MENTIONS 'IV' INSTEAD OF 'CV', EVERYTHING COULD BE COPIED FROM THE IV HEADER AND MIGHT NOT MAKE SENSE
             'Power Supply voltage limit:      %8.2E V' % lim_vol,
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
+            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['delay'],
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
@@ -293,32 +324,32 @@ class testMD_fullSensorMeasurements(measurement):
         rolling_avg = []
 
         try:
-            if not self.is_preirradiation:
+            if not self.config['sample']['preirradiated']:
                 reference_capacitance = self.getReferenceCapacitance(name)
             else:
                 reference_capacitance = -1
             plateauVoltage = 999.
             ## Loop over voltages
-            for iv, v in enumerate(self.volt_list_cv):
-                self.keithley2410.ramp_voltage(v)
-                time.sleep(self.delay_vol_cv)
+            for cv, v in enumerate(self.volt_list_cv):
+                self.sourcemeter_1.ramp_voltage(v)
+                time.sleep(self.config['measurements']['CV']['delay'])
 
-                cur_tot = self.keithley2410.read_current()
-                vol = self.keithley2410.read_voltage()
+                cur_tot = self.sourcemeter_1.read_current()
+                vol = self.sourcemeter_1.read_voltage()
 
-                measurements = np.array([self.lcr_meter.execute_measurement() for _ in range(self.nSampling_CV)])
+                measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.config['measurements']['CV']['sample_size'])])
                 means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+                errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['CV']['sample_size'])
 
                 r, x = means
                 dr, dx = errs
 
                 z = np.sqrt(r**2 + x**2)
                 phi = np.arctan(x/r)
-                r_s, c_s, l_s, D = lcr_series_equ(self.lcr_freq, z, phi)
-                r_p, c_p, l_p, D = lcr_parallel_equ(self.lcr_freq, z, phi)
+                r_s, c_s, l_s, D = lcr_series_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
+                r_p, c_p, l_p, D = lcr_parallel_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
 
-                line = [v, vol, self.lcr_freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                line = [v, vol, self.config['measurements']['CV']['lcr_frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
                 out.append(line)
                 #self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
@@ -330,8 +361,8 @@ class testMD_fullSensorMeasurements(measurement):
                 line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
 
                 ## check if we are in the plateau
-                if iv < 10:
-                    c_baseline = c_baseline + (c_s - c_baseline)/(iv+1)
+                if cv < 10:
+                    c_baseline = c_baseline + (c_s - c_baseline)/(cv+1)
                     rolling_avg.append(c_s)
                 else:
                     rolling_avg.pop(0)
@@ -341,13 +372,13 @@ class testMD_fullSensorMeasurements(measurement):
                 rms = [i**2 for i in rolling_avg]
                 rms = math.sqrt(sum(rms)/len(rms))
 
-                if c_s > 0.9*reference_capacitance and not self.is_preirradiation: ## start checking the flattening once the c_s goes above 120% of the baseline
+                if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']: ## start checking the flattening once the c_s goes above 120% of the baseline
                     ## let's abort once the current rolling average is between the min and max of the last 10 values
                     print('this is the rms of the last 10', rms)
                     if 0.985*rms < c_s < 1.015*rms:
                         self.logging.info('it looks like the plateau is reached... ending measurement!')
                         if plateauVoltage > 0: plateauVoltage = v
-                        if not self.is_preirradiation and v < 1.2*plateauVoltage:
+                        if not self.config['sample']['preirradiated'] and v < 1.2*plateauVoltage:
                             break
                         else:
                             self.logging.info('going on because this is a preirradiated sample or we want to go the extra mile...')
@@ -369,16 +400,16 @@ class testMD_fullSensorMeasurements(measurement):
     def doIVScan(self, channel, ax, name=''):
 
         self.switch.close_channel(channel)
-        self.keithley2410.set_output_on()
-        self.keithley2410_gcddiode.set_output_on()
+        self.sourcemeter_1.set_output_on()
+        self.sourcemeter_2.set_output_on()
 
         ## Check settings
-        ke6487_lim_vol = -999. #self.keithley6487.check_voltage_limit()
-        ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.keithley6487.check_current_limit()
+        ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
+        ke6487_lim_cur = self.config['devices']['picoammeter']['lim_cur'] ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
 
         ## Check settings
-        ke2410_lim_vol  = self.keithley2410.check_voltage_limit()
-        ke2410_lim_cur  = self.keithley2410.check_current_limit()
+        ke2410_lim_vol  = self.sourcemeter_1.check_voltage_limit()
+        ke2410_lim_cur  = self.sourcemeter_1.check_current_limit()
 
         ## Header
         hd = [
@@ -388,7 +419,7 @@ class testMD_fullSensorMeasurements(measurement):
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.delay_vol_iv,
+            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -413,19 +444,19 @@ class testMD_fullSensorMeasurements(measurement):
 
         ## bias the ke6487 to -10 V
         
-        ## now new!! self.keithley6487.ramp_voltage(-1*self.gcd_diode_bias)
-        ## now new!! time.sleep(self.delay_vol_iv)
-        self.keithley2410_gcddiode.ramp_voltage(1*self.gcd_diode_bias)
+        ## now new!! self.picoammeter.ramp_voltage(-1*self.config['measurements']['IV']['gcd_diode_bias'])
+        ## now new!! time.sleep(self.config['measurements']['IV']['delay'])
+        self.sourcemeter_2.ramp_voltage(1*self.config['measurements']['IV']['gcd_diode_bias'])
 
 
         cutOffVoltage = -85
 
-        if self.currentDose <=1: cutOffVoltage = -30
-        elif self.currentDose <=2: cutOffVoltage = -40 
-        elif self.currentDose <=5: cutOffVoltage = -55 
-        elif self.currentDose <=10: cutOffVoltage = -65 
-        elif self.currentDose <=20: cutOffVoltage = -70 
-        elif self.currentDose <=40: cutOffVoltage = -75 
+        if self.config['sample']['current_dose'] <=1: cutOffVoltage = -30
+        elif self.config['sample']['current_dose'] <=2: cutOffVoltage = -40 
+        elif self.config['sample']['current_dose'] <=5: cutOffVoltage = -55 
+        elif self.config['sample']['current_dose'] <=10: cutOffVoltage = -65 
+        elif self.config['sample']['current_dose'] <=20: cutOffVoltage = -70 
+        elif self.config['sample']['current_dose'] <=40: cutOffVoltage = -75 
 
         print('cut-off voltage = {} V'.format(cutOffVoltage))
 
@@ -444,15 +475,15 @@ class testMD_fullSensorMeasurements(measurement):
             for iv,v in enumerate(self.volt_list_iv):
                 if v < cutOffVoltage:
                     break
-                self.keithley2410.ramp_voltage(v)
-                time.sleep(self.delay_vol_iv)
+                self.sourcemeter_1.ramp_voltage(v)
+                time.sleep(self.config['measurements']['IV']['delay'])
 
-                cur_tot = self.keithley2410.read_current()
-                vol = self.keithley2410.read_voltage()
+                cur_tot = self.sourcemeter_1.read_current()
+                vol = self.sourcemeter_1.read_voltage()
 
-                measurements = np.array([self.keithley6487.read_current() for _ in range(self.nSampling_IV)])
+                measurements = np.array([self.picoammeter.read_current() for _ in range(self.config['measurements']['IV']['sample_size'])])
                 means = np.mean(measurements, axis=0)
-                errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_IV)
+                errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['IV']['sample_size'])
 
                 i = means
                 di = errs
@@ -468,7 +499,7 @@ class testMD_fullSensorMeasurements(measurement):
                 tmp_y.append(means)
 
                 ## check if we are in the plateau
-                nFirst = 15 if not self.is_preirradiation else 5
+                nFirst = 15 if not self.config['sample']['preirradiated'] else 5
                 if iv and iv < nFirst:
                     i_baseline = i_baseline + (i - i_baseline)/(iv)
                     rolling_avg.append(i)
@@ -501,7 +532,7 @@ class testMD_fullSensorMeasurements(measurement):
 
                 ## update the live plotting
                 line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
-                if i > self.lim_cur_ke6487:
+                if i > self.config['devices']['picoammeter']['lim_cur']:
                     self.logging.info('reached compliance in the keithley6487')
                     self.reset_power_supplies()
                     break
