@@ -143,7 +143,6 @@ class testMD_DiodeStrip(measurement):
         self.picoammeter.reset()
         self.picoammeter.setup_ammeter()
         self.picoammeter.set_nplc(2)
-        # self.picoammeter.set_range(self.lim_cur_ke6487)
 
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())

@@ -168,24 +168,10 @@ class testMD_fullStrip(measurement):
         time.sleep(1)
         
 
-        ## Reset power supply of the second keithley which biases the gcd diode
-        #self.sourcemeter_1_gcddiode.ramp_voltage(0)
-        #self.sourcemeter_1_gcddiode.set_output_off()
-        #self.sourcemeter_1_gcddiode.reset()
-        #self.sourcemeter_1_gcddiode.set_source('voltage')
-        #self.sourcemeter_1_gcddiode.set_sense('current')
-        #self.sourcemeter_1_gcddiode.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
-        #self.sourcemeter_1_gcddiode.set_voltage(0)
-        #self.sourcemeter_1_gcddiode.set_terminal('rear')
-        # MARC keithley2410_gcddiode.set_interlock_on()
-        #self.sourcemeter_1_gcddiode.set_output_off()
-        #time.sleep(1)
-
         self.picoammeter.ramp_down()
         self.picoammeter.reset()
         self.picoammeter.setup_ammeter()
         self.picoammeter.set_nplc(2)
-        #self.picoammeter.set_range(self.lim_cur_ke6487)
 
     def reset_switch(self):
 
@@ -196,7 +182,6 @@ class testMD_fullStrip(measurement):
     
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-        #fig.savefig(name, bbox_inches=extent)
         fig.savefig(self.rdir+'/'+name, bbox_inches=extent.expanded(1.2, 1.2))
         return 0
     
@@ -315,10 +300,10 @@ class testMD_fullStrip(measurement):
         hdIV = [
             'IV Sweep\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
-            'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
+            'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
+            #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
+            'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
+            'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
         ]
@@ -327,10 +312,10 @@ class testMD_fullStrip(measurement):
         hdRV = [
             'RV Sweep\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % ke6487_lim_vol,
-            #'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
-            'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
+            'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
+            #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
+            'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
+            'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
             'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -471,7 +456,7 @@ class testMD_fullStrip(measurement):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
         self.reset_power_supplies()
-        self.reset_switch()
+        self.reset_switch()#TODO: this should be outside of the IVscan function to allow usage without switch when doing only IV or CV
         fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
         fname_out_RV = '_'.join(['rv', self.id, name]) + '.dat'
         tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
@@ -492,7 +477,7 @@ class testMD_fullStrip(measurement):
             #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
-            for i, v in enumerate(self.volt_list_bias_IV):
+            for v in self.volt_list_bias_IV:
 
                 start_time = time.time()
                 

@@ -1,4 +1,3 @@
-import os
 import measurements
 from optparse import OptionParser
 
