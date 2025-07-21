@@ -80,32 +80,40 @@ class testMD_fullSensorMeasurements(measurement):
 
         self._initialise()
 
-        self.volt_list_cv = np.arange(
-            self.config['measurements']['CV']['range']['v_min'],
-            self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
-            self.config['measurements']['CV']['range']['step_size']
-        )
+        self.testset = self.config['measurements'].get('testset', [])  #to detemrine which tests to run and which devices to initialize. 
 
-        # IV measurement voltage list
-        self.volt_list_iv = np.arange(
-            self.config['measurements']['IV']['range']['v_min'],
-            self.config['measurements']['IV']['range']['v_max'] +  self.config['measurements']['IV']['range']['step_size'],
-            self.config['measurements']['IV']['range']['step_size']
-        )
-
-        ## initialize the devices
+        # sourcemeter_1 is always used
         self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
+        if 'moshalf' in self.testset or 'mos2000' in self.testset:
+            self.volt_list_cv = np.arange(
+                self.config['measurements']['CV']['range']['v_min'],
+                self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
+                self.config['measurements']['CV']['range']['step_size']
+            )
+            ## Set up lcr meter
+            self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+            self.lcrmeter.reset()
+            self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+            self.lcrmeter.set_mode('RX')
+        
+        if 'gcd' in self.testset:
+            # IV measurement voltage list
+            self.volt_list_iv = np.arange(
+                self.config['measurements']['IV']['range']['v_min'],
+                self.config['measurements']['IV']['range']['v_max'] +  self.config['measurements']['IV']['range']['step_size'],
+                self.config['measurements']['IV']['range']['step_size']
+            )
+
+            self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
+            self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
+        
+        # self.switch_active = False
+        # if 'moshalf' in self.testset or 'mos2000' in self.testset and 'gcd' in self.testset:
+        self.switch_active = True
         self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
 
-        ## Set up lcr meter
-        self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode('RX')
 
-        self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
     def reset_power_supplies(self):
 
@@ -122,31 +130,30 @@ class testMD_fullSensorMeasurements(measurement):
         self.sourcemeter_1.set_output_off()
         time.sleep(1)
 
-        ## Reset power supply of the second keithley which biases the gcd diode
-        self.sourcemeter_2.ramp_voltage(0)
-        self.sourcemeter_2.set_output_off()
-        self.sourcemeter_2.reset()
-        self.sourcemeter_2.set_source('voltage')
-        self.sourcemeter_2.set_sense('current')
-        self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
-        self.sourcemeter_2.set_voltage(0)
-        self.sourcemeter_2.set_terminal('rear')
-        # MARC keithley2410_gcddiode.set_interlock_on()
-        self.sourcemeter_2.set_output_off()
-        time.sleep(1)
+        if 'gcd' in self.testset:
+            ## Reset power supply of the second keithley which biases the gcd diode
+            self.sourcemeter_2.ramp_voltage(0)
+            self.sourcemeter_2.set_output_off()
+            self.sourcemeter_2.reset()
+            self.sourcemeter_2.set_source('voltage')
+            self.sourcemeter_2.set_sense('current')
+            self.sourcemeter_2.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+            self.sourcemeter_2.set_voltage(0)
+            self.sourcemeter_2.set_terminal('rear')
+            self.sourcemeter_2.set_output_off()
+            time.sleep(1)
 
-        #self.picoammeter.ramp_down()
-        self.picoammeter.reset()
-        self.picoammeter.setup_ammeter()
-        self.picoammeter.set_nplc(2)
-        self.picoammeter.set_range(self.config['devices']['picoammeter']['lim_cur'])
+            self.picoammeter.reset()
+            self.picoammeter.setup_ammeter()
+            self.picoammeter.set_nplc(2)
+            self.picoammeter.set_range(self.config['devices']['picoammeter']['lim_cur'])
 
     def reset_switch(self):
-
-        ## Set up the switch
-        self.switch.reset(1)
-        self.switch.get_idn()
-        self.switch.open_all()
+        # only reset switch if actually used in current configuration
+        if self.switch_active: 
+            self.switch.reset(1)
+            self.switch.get_idn()
+            self.switch.open_all()
     
     def getReferenceCapacitance(self, name):
         elms = self.id.split('_')
@@ -202,11 +209,10 @@ class testMD_fullSensorMeasurements(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-    #TODO: REFACTOR 
     def doCVScan(self, channel, ax, name=''):  ## don't really know how best to do this ... to be teasted on the setup
 
 
-        self.switch.close_channel(channel)
+        if self.switch_active: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
 
         ## Check settings
@@ -324,7 +330,7 @@ class testMD_fullSensorMeasurements(measurement):
 
     def doIVScan(self, channel, ax, name=''):
 
-        self.switch.close_channel(channel)
+        if self.switch_active: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
         self.sourcemeter_2.set_output_on()
 
@@ -477,42 +483,27 @@ class testMD_fullSensorMeasurements(measurement):
 
     def execute(self):
 
-        ## reset all the stuff first
-        ## =========================================
         self.reset_power_supplies()
         self.reset_switch()
 
         fig, ax0, ax1,ax2 = init_liveplot()
-
         plots = {}
         
-        # name =  self.__class__.__name__ #TODO: USE APPROPRIATE NAME 
-        # ## starting the measurements
-        plots_cv_moshalf = self.doCVScan(1, ax0, name='MOShalf')
-        plots["cv_moshalf"] = plots_cv_moshalf
-        
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
-        
-        plots_cv_mos2000 =self.doCVScan(3, ax1, name='MOS2000')
-        plots["cv_mos2000"] = plots_cv_mos2000
-        
-        # ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
-        
-        plots_iv_gcd = self.doIVScan(9, ax2, name='GCD')
-        plots["iv_gcd"] = plots_iv_gcd
-        
-        ## Close connections
-        self.reset_power_supplies()
-        self.reset_switch()
- 
-        #except BaseException as e:
-        #print('EXCEPTION RAISED:', e)
-        #self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
-        #self.logging.error(e)
+        if 'moshalf' in self.testset:
+            plots_cv_moshalf = self.doCVScan(self.config['devices']['switch']['connections']['lcrmeter'], ax0, name='MOShalf')
+            plots["cv_moshalf"] = plots_cv_moshalf
+            self.reset_power_supplies()
+            self.reset_switch()
+        if 'mos2000' in self.testset:
+            plots_cv_mos2000 = self.doCVScan(self.config['devices']['switch']['connections']['lcrmeter'], ax1, name='MOS2000')
+            plots["cv_mos2000"] = plots_cv_mos2000
+            self.reset_power_supplies()
+            self.reset_switch()
+        if 'gcd' in self.testset:
+            plots_iv_gcd = self.doIVScan(self.config['devices']['switch']['connections']['picoammeter'], ax2, name='GCD')
+            plots["iv_gcd"] = plots_iv_gcd
+            self.reset_power_supplies()
+            self.reset_switch()
 
         self.savePlots(plots)
 

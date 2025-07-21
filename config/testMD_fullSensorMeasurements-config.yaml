@@ -2,13 +2,10 @@ sample:
   preirradiated: true
   current_dose: 3
 
-
 devices:
   sourcemeter_1:
     model: 'ke2410'  
     address: 8
-    open_short_correction: false
-    correction_count: 5
     lim_cur: 1.0e-3 # compliance current in [A]
 
   sourcemeter_2:
@@ -19,9 +16,9 @@ devices:
   switch:
     model: 'ke7001'
     address: 7
-    # connections:
-    #   lcrmeter: 1
-    #   picoammeter: 3
+    connections:
+      lcrmeter: 3
+      picoammeter: 9
 
   lcrmeter:
     model: 'agilent_4263b'
@@ -33,7 +30,8 @@ devices:
     lim_cur: 100.0e-9    # compliance in [A] for the GCD, this should be 10 nA
 
 
-measurements:
+measurements: 
+  testset: [moshalf, mos2000, gcd]    #[moshalf, mos2000, gcd]
   CV:
     range:
       v_min: 0.   #  -50 if '120um' in self.id else -100

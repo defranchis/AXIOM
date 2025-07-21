@@ -331,17 +331,11 @@ class testMD_DiodeGR(measurement):
         name =  self.__class__.__name__
 
         # Create plots
-        # fig, ax0, ax1, ax2, ax3, ax4, ax5, ax6, ax7 = init_liveplot()
         fig, ax3, ax2 = init_liveplot()
 
         ## Print header
-        # [hdCV, hdIV, hdRV] = self.createHeader()
         [hdIV, hdRV] = self.createHeader()
-        # for line in hdCV:
-        #     self.logging.info(line)
 
-        #TODO: CVSCAN DOES NOT EVEN EXIST IN THIS MEASUREMENT FILE REMOVE THIS
-        # self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
     def finalise(self):

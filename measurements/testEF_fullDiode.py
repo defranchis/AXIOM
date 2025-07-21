@@ -70,20 +70,11 @@ class testEF_fullDiode(measurement):
 
         self._initialise() # base class initialisation
 
-        # self.timer = time.time()
-        # self.logging.info(" ----TIMER ----TIMER start: ", self.timer, " seconds")
-        
-        ## ---------- setup using data from config file ----------------
-        open_short_correction = self.config['devices']['sourcemeter']['open_short_correction']
 
-        if open_short_correction:
-            correction_count = self.config['devices']['sourcemeter'].get('correction_count', 100)
-            self.volt_list_CV = np.zeros(correction_count)
-        else:
-            v_min = self.config['devices']['sourcemeter']['range']['v_min']
-            v_max = self.config['devices']['sourcemeter']['range']['v_max']
-            step = self.config['devices']['sourcemeter']['range']['step']
-            self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
+        v_min = self.config['devices']['sourcemeter']['range']['v_min']
+        v_max = self.config['devices']['sourcemeter']['range']['v_max']
+        step = self.config['devices']['sourcemeter']['range']['step']
+        self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
             
         #TODO: replace local variables by directly accessing the config
         self.nSampling_CV = self.config['devices']['sourcemeter']['range']['nSampling']
@@ -92,7 +83,9 @@ class testEF_fullDiode(measurement):
         ## Set up sourcemeter, switch and lcrmeter
         self.sourcemeter = getattr(devices, self.config['devices']['sourcemeter']['model'])(self.config['devices']['sourcemeter']['address'])
         self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+
         self.reset_switch() # the order is arbitrary, but this works so we leave it in the current state
+        
         self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
         self.lcrmeter.reset()
         self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
@@ -234,7 +227,7 @@ class testEF_fullDiode(measurement):
 
 
         self.reset_power_supplies()
-        self.reset_switch() #TODO investigate if it is neccessary to reset the switch again, since it already happened after initialisation
+        self.reset_switch()
 
         if shortGR:
             self.switch.close_channel(1)
@@ -289,6 +282,8 @@ class testEF_fullDiode(measurement):
         for line in hdCV:
             self.logging.info(line)
 
+
+        #TODO: move the measurement set to the config file
         self.CVscan(name, fig, ax0, hdCV)
         # self.CVscan(name, fig, ax1, hdCV, shortGR=True)
         # self.CVscan(name, fig, ax2, hdCV, groundGR=True)
