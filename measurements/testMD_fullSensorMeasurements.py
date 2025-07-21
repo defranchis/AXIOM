@@ -108,10 +108,10 @@ class testMD_fullSensorMeasurements(measurement):
             self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
             self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
         
-        # self.switch_active = False
-        # if 'moshalf' in self.testset or 'mos2000' in self.testset and 'gcd' in self.testset:
-        self.switch_active = True
-        self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        self.switch_active = False
+        if 'moshalf' in self.testset or 'mos2000' in self.testset and 'gcd' in self.testset:
+            self.switch_active = True
+            self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
 
 
 
@@ -373,10 +373,6 @@ class testMD_fullSensorMeasurements(measurement):
         tmp_x, tmp_y = [], []
         line0 = []
 
-        ## bias the ke6487 to -10 V
-        
-        ## now new!! self.picoammeter.ramp_voltage(-1*self.config['measurements']['IV']['gcd_diode_bias'])
-        ## now new!! time.sleep(self.config['measurements']['IV']['delay'])
         self.sourcemeter_2.ramp_voltage(1*self.config['measurements']['IV']['gcd_diode_bias'])
 
 
