@@ -70,43 +70,37 @@ class testEF_fullDiode(measurement):
 
         self._initialise() # base class initialisation
 
-
-        v_min = self.config['devices']['sourcemeter']['range']['v_min']
-        v_max = self.config['devices']['sourcemeter']['range']['v_max']
-        step = self.config['devices']['sourcemeter']['range']['step']
-        self.volt_list_CV = [round(v, 1) for v in np.arange(v_min, v_max + step, step)]  # Voltage range
+        self.volt_list_CV = [round(v, 1) for v in np.arange(self.config['measurements']['CV']['range']['v_min'],
+                                                            self.config['measurements']['CV']['range']['v_max'] +
+                                                            self.config['measurements']['CV']['range']['step_size'],
+                                                            self.config['measurements']['CV']['range']['step_size'])]  # Voltage range
             
-        #TODO: replace local variables by directly accessing the config
-        self.nSampling_CV = self.config['devices']['sourcemeter']['range']['nSampling']
-        self.delay_vol_cv = self.config['devices']['sourcemeter']['delay'] 
 
-        ## Set up sourcemeter, switch and lcrmeter
-        self.sourcemeter = getattr(devices, self.config['devices']['sourcemeter']['model'])(self.config['devices']['sourcemeter']['address'])
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
         self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-
-        self.reset_switch() # the order is arbitrary, but this works so we leave it in the current state
+        self.reset_switch() 
         
         self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
         self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['devices']['lcrmeter']['voltage'])
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
         self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
-        self.lcrmeter.set_frequency(self.config['devices']['lcrmeter']['frequency'])
+        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
 
         # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
         self.timer = time.time()
         
     def reset_power_supplies(self):
         ## Reset power supply for CV measurement
-        self.sourcemeter.ramp_down()
-        self.sourcemeter.set_output_off()
-        self.sourcemeter.reset()
-        self.sourcemeter.set_source('voltage')
-        self.sourcemeter.set_sense('current')
-        self.sourcemeter.set_current_limit(self.config['devices']['sourcemeter']['lim_cur'])
-        self.sourcemeter.set_voltage(0)
-        self.sourcemeter.set_terminal('rear')
+        self.sourcemeter_1.ramp_down()
+        self.sourcemeter_1.set_output_off()
+        self.sourcemeter_1.reset()
+        self.sourcemeter_1.set_source('voltage')
+        self.sourcemeter_1.set_sense('current')
+        self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
+        self.sourcemeter_1.set_voltage(0)
+        self.sourcemeter_1.set_terminal('rear')
         time.sleep(3)
-        self.sourcemeter.set_output_off()
+        self.sourcemeter_1.set_output_off()
         time.sleep(1)
         
     def reset_switch(self):
@@ -134,8 +128,8 @@ class testEF_fullDiode(measurement):
 
     def createHeader(self):
         # CV
-        lim_vol  = self.sourcemeter.check_voltage_limit()
-        lim_cur  = self.sourcemeter.check_current_limit()
+        lim_vol  = self.sourcemeter_1.check_voltage_limit()
+        lim_cur  = self.sourcemeter_1.check_current_limit()
         lcr_vol  = float(self.lcrmeter.check_voltage())
         lcr_freq = float(self.lcrmeter.check_frequency())
 
@@ -147,7 +141,7 @@ class testEF_fullDiode(measurement):
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.delay_vol_cv,
+            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
 
@@ -157,23 +151,23 @@ class testEF_fullDiode(measurement):
     def CVpoint(self, biasV): 
         self.timer = time.time()
 
-        self.sourcemeter.set_voltage(biasV)
-        time.sleep(self.delay_vol_cv)
+        self.sourcemeter_1.set_voltage(biasV)
+        time.sleep(self.config['measurements']['CV']['delay'])
 
-        cur_tot = self.sourcemeter.read_current()
-        vol = self.sourcemeter.read_voltage()
+        cur_tot = self.sourcemeter_1.read_current()
+        vol = self.sourcemeter_1.read_voltage()
 
         # self.logging.info(" ----TIMER ----reading and setting current and voltages took: ", time.time() - self.timer, "seconds")
         self.timer = time.time()
 
-        measurements = np.array([self.lcrmeter.execute_measurement(trig_delay = self.config['devices']['sourcemeter']['trig_delay']) for _ in range(self.nSampling_CV)])
+        measurements = np.array([self.lcrmeter.execute_measurement(trig_delay = self.config['measurements']['CV']['trig_delay']) for _ in range(self.config['measurements']['CV']['sample_size'])])
         # self.logging.info("Measurements: ", measurements)
 
         # self.logging.info(" ----TIMER ----taking measurements took:  ", time.time() - self.timer, "seconds")
         self.timer = time.time()
 
         means = np.mean(measurements, axis=0)
-        errs = np.std(measurements, axis=0)/math.sqrt(self.nSampling_CV)
+        errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['CV']['sample_size'])
 
 
 
@@ -182,13 +176,13 @@ class testEF_fullDiode(measurement):
 
         z = np.sqrt(r**2 + x**2)
         phi = np.arctan(x/r)
-        r_s, c_s, l_s, D = lcr_series_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
-        r_p, c_p, l_p, D = lcr_parallel_equ(self.config['devices']['lcrmeter']['frequency'], z, phi)
+        r_s, c_s, l_s, D = lcr_series_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
+        r_p, c_p, l_p, D = lcr_parallel_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
 
         line = [
             biasV,                                              # 1. The bias voltage set by the user
             vol,                                                # 2. The measured voltage from the sourcemeter
-            self.config['devices']['lcrmeter']['frequency'],    # 3. The LCR meter measurement frequency
+            self.config['measurements']['CV']['lcr_frequency'], # 3. The LCR meter measurement frequency
             r,                                                  # 4. Mean resistance from LCR measurements
             dr,                                                 # 5. Standard error of resistance
             x,                                                  # 6. Mean reactance from LCR measurements
@@ -234,7 +228,7 @@ class testEF_fullDiode(measurement):
         elif groundGR:
             self.switch.close_channel(3)
 
-        self.sourcemeter.set_output_on()
+        self.sourcemeter_1.set_output_on()
 
 
         # Do CV Scan
@@ -282,11 +276,14 @@ class testEF_fullDiode(measurement):
         for line in hdCV:
             self.logging.info(line)
 
+        self.testset = self.config['measurements'].get('testset', []) 
 
-        #TODO: move the measurement set to the config file
-        self.CVscan(name, fig, ax0, hdCV)
-        # self.CVscan(name, fig, ax1, hdCV, shortGR=True)
-        # self.CVscan(name, fig, ax2, hdCV, groundGR=True)
+        if 'floating' in self.testset:
+            self.CVscan(name, fig, ax0, hdCV)
+        if 'short' in self.testset:
+            self.CVscan(name, fig, ax1, hdCV, shortGR=True)
+        if 'ground' in self.testset:
+            self.CVscan(name, fig, ax2, hdCV, groundGR=True)
 
     def finalise(self):
         self._finalise()

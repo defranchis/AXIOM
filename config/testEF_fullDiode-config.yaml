@@ -1,26 +1,32 @@
 devices:
-  sourcemeter:
+  sourcemeter_1:
     model: 'ke2410'  
     address: 8
     open_short_correction: false
     correction_count: 5
-    range:
-      v_min: -20
-      v_max: -800
-      step: -10
-      nSampling: 10
-    delay: 5                        # delay between setting voltage and executing measurement in [s]
-    trig_delay: 0                   # delay between individual lcr triggers  
     lim_cur: 1.0e-3                 # compliance in [A]
-    #lim_vol = 10                   # compliance in [V] 
+
   switch:
     model: 'ke7001'
     address: 7
+
   lcrmeter:
     model: 'agilent_4263b'
     address: 17                     # in the SSD lab this is 9
-    voltage: 0.5                    # ac voltage amplitude in [mV]
-    #cv_res = 1e6                   # cv parallel resistor in [Ohm]
-    frequency: 1000                 # ac frequency in [Hz]
     mode: 'RX'
     approx_open_corr: 50.0e-12
+
+
+measurements:
+  testset: [floating, short, ground]  #[floating, short, ground]
+
+  CV:
+    range:
+      v_min: -20
+      v_max: -500
+      step_size: -10
+    sample_size: 5
+    delay: 3                        # delay between setting voltage and executing measurement in [s]
+    trig_delay: 0                   # delay between individual lcr triggers  
+    lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
+    lcr_frequency: 1000                 # ac frequency in [Hz]
