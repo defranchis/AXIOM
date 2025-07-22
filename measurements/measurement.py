@@ -8,9 +8,8 @@ import platform
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-import matplotlib
-from utils.tools import add_coloring_to_emit_ansi, add_coloring_to_emit_windows
- 
+from utils.tools import add_coloring_to_emit_ansi
+
 
 def mkdir(d):
     if not os.path.exists(d):

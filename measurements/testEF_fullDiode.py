@@ -11,7 +11,6 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 from measurements import measurement
 import devices 
 
-# Global plotter functions TODO: move all auxiliary helper functions that are used accross measurement setups to the utils module
 def init_liveplot():
     plt.ion()
     fig = plt.figure(figsize=(13,13))
@@ -48,7 +47,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-
 class testEF_fullDiode(measurement): 
     
     def __init__(self, ide, config_path):
@@ -56,10 +54,10 @@ class testEF_fullDiode(measurement):
         self.config_path = config_path
 
     def initialise(self):
-
+        
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-            print(self.config)
+            self.logging.info(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")

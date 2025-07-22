@@ -79,7 +79,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-## TODO this should probably be refactored due to the amount of internally defined functions
 class testMD_fullStrip(measurement):
 
     def __init__(self, ide, config_path):

@@ -71,7 +71,6 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-
 class testMD_DiodeGR(measurement):
 
     def __init__(self, ide, config_path):
@@ -82,7 +81,7 @@ class testMD_DiodeGR(measurement):
 
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-            print(self.config)
+            self.logging.info(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -211,7 +210,7 @@ class testMD_DiodeGR(measurement):
         G, Iq = np.polyfit(V, I, 1)
         return (1/G, Iq)
 
-    def IVscan(self, name, fig, ax2, ax3, hdIV):
+    def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
         self.reset_power_supplies()

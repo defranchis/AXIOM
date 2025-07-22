@@ -69,7 +69,7 @@ class testMD_fullSensorMeasurements(measurement):
     def initialise(self):
         with open(self.config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-            print(self.config)
+            self.logging.info(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
@@ -209,7 +209,7 @@ class testMD_fullSensorMeasurements(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-    def doCVScan(self, channel, ax, name=''):  ## don't really know how best to do this ... to be teasted on the setup
+    def doCVScan(self, channel, ax, name=''): 
 
 
         if self.switch_active: self.switch.close_channel(channel)
