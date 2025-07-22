@@ -1,35 +1,33 @@
-#TODO: naming convention should always enforce numbering of devices, even when there is only one device of some type.
-#TODO: remove unused variables, and move generic variables outside of devices section
-#TODO: make names consistent accross files, all snake_case 
-
 devices:
-  sourcemeter:
+  sourcemeter_1:
     model: 'ke2410'  
     address: 25
     open_short_correction: false
     correction_count: 5
-    range:
-      Vmin: -800  #TODO: make names consistent with other config files
-      Vmax: -10
-      Vstep: -10
-      # n_sampling: 10
-    range_iv:
-      Vmin_iv: -0.5
-      Vmax_iv: 0.5
-      Vstep_iv: 0.1
-    delay_vol: 1  # delay between setting voltage and executing measurement in [s]
-    # delay_ramp_iv: 1
-    volt_list_test: [-5, -10, -15, -30, -40, -60, -90, -110, -130, -160, -180, -200, -280, -300, -350, -400, -450, -500, -600, -800]  # [ -145, -155, -165, -175, -185, -195 ]  # [-150]
     lim_cur: 1.0e-3    # compliance in [A]
-    lim_vol: 10      # compliance in [V]
+
   switch:
     model: 'ke7001'
     address: 7
+
   picoammeter_1:
     model: 'ke6487'
     address: 15
-    n_sampling: 30
+
   picoammeter_2:
     model: 'ke6487'
     address: 23
-    n_sampling: 30
+
+
+measurements:
+  IV:
+    measurement_range:
+      v_min: -0.5
+      v_max: 0.5
+      step_size: 0.1
+    bias_range:
+      v_min: -10  
+      v_max: -800
+      step_size: -20
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
