@@ -95,15 +95,15 @@ class testMD_DiodeGR(measurement):
 
         # IV measurement voltage sweep range
         self.volt_list_iv = np.arange(
-            self.config['measurements']['IV']['measurement_range']['v_min'],
-            self.config['measurements']['IV']['measurement_range']['v_max'] + self.config['measurements']['IV']['measurement_range']['step_size'],
+            self.config['measurements']['IV']['measurement_range']['v_start'],
+            self.config['measurements']['IV']['measurement_range']['v_end'] + self.config['measurements']['IV']['measurement_range']['step_size'],
             self.config['measurements']['IV']['measurement_range']['step_size']
         )
 
         # IV bias voltage sweep range
         self.volt_list_bias_IV = np.arange(
-            self.config['measurements']['IV']['bias_range']['v_min'],
-            self.config['measurements']['IV']['bias_range']['v_max'] + self.config['measurements']['IV']['bias_range']['step_size'],
+            self.config['measurements']['IV']['bias_range']['v_start'],
+            self.config['measurements']['IV']['bias_range']['v_end'] + self.config['measurements']['IV']['bias_range']['step_size'],
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 

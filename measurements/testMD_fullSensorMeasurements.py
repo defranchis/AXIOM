@@ -87,8 +87,8 @@ class testMD_fullSensorMeasurements(measurement):
 
         if 'moshalf' in self.testset or 'mos2000' in self.testset:
             self.volt_list_cv = np.arange(
-                self.config['measurements']['CV']['range']['v_min'],
-                self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
+                self.config['measurements']['CV']['range']['v_start'],
+                self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
                 self.config['measurements']['CV']['range']['step_size']
             )
             ## Set up lcr meter
@@ -100,8 +100,8 @@ class testMD_fullSensorMeasurements(measurement):
         if 'gcd' in self.testset:
             # IV measurement voltage list
             self.volt_list_iv = np.arange(
-                self.config['measurements']['IV']['range']['v_min'],
-                self.config['measurements']['IV']['range']['v_max'] +  self.config['measurements']['IV']['range']['step_size'],
+                self.config['measurements']['IV']['range']['v_start'],
+                self.config['measurements']['IV']['range']['v_end'] +  self.config['measurements']['IV']['range']['step_size'],
                 self.config['measurements']['IV']['range']['step_size']
             )
 

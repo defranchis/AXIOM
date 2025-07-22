@@ -22,8 +22,8 @@ measurements:
 
   CV:
     range:
-      v_min: -20
-      v_max: -500
+      v_start: -20
+      v_end: -500
       step_size: -10
     sample_size: 5
     delay: 3                        # delay between setting voltage and executing measurement in [s]

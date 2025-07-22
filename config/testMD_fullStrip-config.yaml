@@ -29,8 +29,8 @@ devices:
 measurements:
   CV:
     range:
-      v_min: -100   #  -50 if '120um' in self.id else -100
-      v_max: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      v_start: -100   #  -50 if '120um' in self.id else -100
+      v_end: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
       step_size: -50
     sample_size: 20
     lcr_amplitude: 0.5
@@ -38,12 +38,12 @@ measurements:
     delay: 5
   IV:
     measurement_range:
-      v_min: -1
-      v_max: 1
+      v_start: -1
+      v_end: 1
       step_size: 0.2
     bias_range:
-      v_min: -100
-      v_max: -400
+      v_start: -100
+      v_end: -400
       step_size: -50
     sample_size: 10 # default = 10
     delay: 5

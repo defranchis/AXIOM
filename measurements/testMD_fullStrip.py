@@ -103,22 +103,22 @@ class testMD_fullStrip(measurement):
 
         # CV measurement voltage list from config
         self.volt_list_bias_CV = np.arange(
-            self.config['measurements']['CV']['range']['v_min'],
-            self.config['measurements']['CV']['range']['v_max'] + self.config['measurements']['CV']['range']['step_size'],
+            self.config['measurements']['CV']['range']['v_start'],
+            self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
             self.config['measurements']['CV']['range']['step_size']
         )
 
         # IV measurement voltage list
         self.volt_list_iv = np.arange(
-            self.config['measurements']['IV']['measurement_range']['v_min'],
-            self.config['measurements']['IV']['measurement_range']['v_max'] +  self.config['measurements']['IV']['measurement_range']['step_size'],
+            self.config['measurements']['IV']['measurement_range']['v_start'],
+            self.config['measurements']['IV']['measurement_range']['v_end'] +  self.config['measurements']['IV']['measurement_range']['step_size'],
             self.config['measurements']['IV']['measurement_range']['step_size']
         )
 
         # IV bias voltage list
         self.volt_list_bias_IV = np.arange(
-            self.config['measurements']['IV']['bias_range']['v_min'],
-            self.config['measurements']['IV']['bias_range']['v_max'] + self.config['measurements']['IV']['bias_range']['step_size'],
+            self.config['measurements']['IV']['bias_range']['v_start'],
+            self.config['measurements']['IV']['bias_range']['v_end'] + self.config['measurements']['IV']['bias_range']['step_size'],
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 

@@ -70,8 +70,8 @@ class testEF_fullDiode(measurement):
 
         self._initialise() # base class initialisation
 
-        self.volt_list_CV = [round(v, 1) for v in np.arange(self.config['measurements']['CV']['range']['v_min'],
-                                                            self.config['measurements']['CV']['range']['v_max'] +
+        self.volt_list_CV = [round(v, 1) for v in np.arange(self.config['measurements']['CV']['range']['v_start'],
+                                                            self.config['measurements']['CV']['range']['v_end'] +
                                                             self.config['measurements']['CV']['range']['step_size'],
                                                             self.config['measurements']['CV']['range']['step_size'])]  # Voltage range
             
