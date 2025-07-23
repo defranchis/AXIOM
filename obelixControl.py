@@ -126,7 +126,6 @@ def statusRead4():    #status window 3 and 4
         print ("OBELIX: all irradiation parameters look okay")
         return 1
 
-
 def testCurrent(int_current_mA):
     if(int_current_mA < 2 or int_current_mA > 80 or type(int_current_mA) != int):
         return False;    
@@ -141,7 +140,6 @@ def nominalCurrent():
     answerCN = int(answerCN[1:]);#Delete*in the front of the answer
     return int(answerCN/1000);
 
-
 def actualCurrent():
     port.readlines()
     port.write( 'CA\r'.encode() );    #Request actual current
@@ -149,7 +147,6 @@ def actualCurrent():
     answerCA = port.readline(12);
     answerCA = int(answerCA[1:]);
     return int(answerCA/1000);
-
 
 def setCurrent(int_current_mA):
     if(testCurrent(int_current_mA) == False):
@@ -180,13 +177,10 @@ def setCurrent(int_current_mA):
     print (">> Actual current has reached {0}mA".format(int_current_mA));
     return answerCN;
 
-
-
 def testVoltage(int_voltage_kV):
     if(int_voltage_kV < 2 or int_voltage_kV > 60 or type(int_voltage_kV) != int):
         return False;
     return True;
-
 
 def nominalVoltage():
     port.readlines()
@@ -195,7 +189,6 @@ def nominalVoltage():
     answerVN = port.readline(12);
     answerVN = int(answerVN[1:]);    #Delete * in the front of the answer
     return int(answerVN/1000);
-
 
 def actualVoltage():
     port.readlines()
@@ -260,7 +253,6 @@ def turnHVOn():
     print('OBELIX: the actual voltage is', act_volt)
     print('OBELIX: the actual current is', act_curr)
     
-
 def openShutter(int_shutternumber, override=''):
     if not override:
         a = input('ATTENTION: are you sure you want to start irradiation (type "yes" if so)? ')
@@ -291,7 +283,6 @@ def openShutter(int_shutternumber, override=''):
     if(int_shutternumber == 3):
         return statusRead4();
 
-
 def closeShutter(int_shutternumber):
     while(int_shutternumber != 2 and int_shutternumber != 3 or type(int_shutternumber) != int):
         int_shutternumber = input("OBELIX: Please choose a correct shutternumber to close (2 (back) or 3 (down)... ");
@@ -301,7 +292,6 @@ def closeShutter(int_shutternumber):
     time.sleep(3);
     if(int_shutternumber == 3):
         return(not statusRead4());
-
 
 def validateSetTimerString(setTimerString):
     reg = re.match(r'([ ]*)([0-9]{1}) ([0-9]{2}) ([0-9]{2}) ([0-9]{2})([ ]*)',setTimerString)
@@ -322,10 +312,6 @@ def validateSetTimerString(setTimerString):
         else:
             print('>> Timer string validated')
             return [int(reg.group(2)), int(reg.group(3)), int(reg.group(4)), int(reg.group(5))]
-            
-
-
-
 
 def exposureTimerOn (n):
     port.write('SR:02\n'.encode())
@@ -350,14 +336,11 @@ def exposureTimerOn (n):
         return True
     return False
 
-
-
 def nominalExposureTimer(n):
     port.write(('TN:%1d\r' %n).encode())
     time.sleep(1)
     answerNET = port.readline(12)
     return answerNET[1:]
-
 
 def actualExposureTimer(n):
     port.write(('TA:%1d\r' %n).encode())
@@ -365,8 +348,6 @@ def actualExposureTimer(n):
     answerAET = port.readline(12)
     return answerAET[1:]
 
-
-## timer number 3!
 def setExposureTimer(n,hours,minutes,seconds):
 
     print('OBELIX: setting the exposure timer to {h} hours, {m} minutes, and {s} seconds'.format(h=hours,m=minutes,s=seconds))
@@ -406,7 +387,6 @@ def setExposureTimer(n,hours,minutes,seconds):
     #else:
     #    print("This timer is already On")
 
-
 def secondsToHoursMinutesAndSeconds(seconds):
     
     hours = seconds/3600
@@ -414,7 +394,6 @@ def secondsToHoursMinutesAndSeconds(seconds):
     seconds = ((seconds % 3600) % 60)
 
     return [hours, minutes, seconds]
-
 
 def readExposureTimerActualValue(n):
 
@@ -425,8 +404,6 @@ def readExposureTimerActualValue(n):
     exposureTimerSeconds = exposureTimerSeconds[1:(len(exposureTimerSeconds)-1)]
     return int(exposureTimerSeconds)
     
-
-
 if __name__ == '__main__':
 
     #From now on it's the main code

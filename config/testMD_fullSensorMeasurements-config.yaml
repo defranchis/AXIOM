@@ -1,6 +1,6 @@
 sample:
   preirradiated: true
-  current_dose: 3
+  current_dose: 3        #TODO: GET FROM PARSER/RUNNER INSTEAD OF STATIC CONFIG 
 
 devices:
   sourcemeter_1:
