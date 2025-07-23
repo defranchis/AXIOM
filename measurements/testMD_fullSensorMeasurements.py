@@ -155,6 +155,7 @@ class testMD_fullSensorMeasurements(measurement):
             self.switch.get_idn()
             self.switch.open_all()
     
+    #TODO: refactor, this is consolidation of concerns. refactor or potentially remove scanning behaviour 
     def getReferenceCapacitance(self, name):
         elms = self.id.split('_')
         newelms = []
@@ -223,7 +224,7 @@ class testMD_fullSensorMeasurements(measurement):
 
         ## Header
         hd = [
-            'Single IV\n', #TODO: IS THIS HEADER CORRECT? IT MENTIONS 'IV' INSTEAD OF 'CV', EVERYTHING COULD BE COPIED FROM THE IV HEADER AND MIGHT NOT MAKE SENSE
+            'Single CV\n', 
             'Power Supply voltage limit:      %8.2E V' % lim_vol,
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
