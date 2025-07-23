@@ -50,19 +50,9 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
         # figManager.window.state('zoomed')
 
     line.set_xdata(x_vec)
-    line.set_ydata(y_vec)
-
-    '''
-    # adjust limits if new data goes beyond bounds
-    if np.min(y_vec)<=line.axes.get_ylim()[0] or np.max(y_vec)>=line.axes.get_ylim()[1]:
-        ax.set_ylim([np.min(y_vec)-np.std(y_vec),np.max(y_vec)+np.std(y_vec)])
-    if np.min(x_vec)<=line.axes.get_xlim()[0] or np.max(x_vec)>=line.axes.get_xlim()[1]:
-        ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
-    '''
-    
+    line.set_ydata(y_vec) 
     
     ax.set_ylim([np.min(y_vec)-0.005*abs(np.min(y_vec)),np.max(y_vec)+0.005*abs(np.max(y_vec))])
-    #ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
     ax.set_xlim([np.min(x_vec)-0.5,np.max(x_vec)+0.5])
 
     # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
@@ -149,8 +139,6 @@ class testMD_DiodeGR(measurement):
         # IV
         picoammeter_lim_vol = -999. #self.picoammeter_1.check_voltage_limit()
         picoammeter_lim_cur = -999 ## hopefully keithley6487.check_current_limit() #self.picoammeter_1.check_current_limit()
-        # sourcemeter_lim_vol  = self.sourcemeter_1_ramp.check_voltage_limit()
-        # sourcemeter_lim_cur  = self.sourcemeter_1_ramp.check_current_limit()
         sourcemeter_lim_vol  =   self.sourcemeter_1.check_voltage_limit()
         sourcemeter_lim_cur  =   self.sourcemeter_1.check_current_limit()
 
@@ -160,12 +148,12 @@ class testMD_DiodeGR(measurement):
         hdIV = [
             'IV m\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % picoammeter_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % picoammeter_lim_cur,
-            'Ke6487 second voltage limit:      %8.2E V' % picoammeter_lim_vol_2,
-            'Ke6487 second current limit:      %8.2E A' % picoammeter_lim_cur_2,
-            'Ke2410 voltage limit:      %8.2E V' % sourcemeter_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % sourcemeter_lim_cur,
+            'Picoammeter voltage limit:      %8.2E V' % picoammeter_lim_vol,
+            'Picoammeter current limit:      %8.2E A' % picoammeter_lim_cur,
+            'Picoammeter second voltage limit:      %8.2E V' % picoammeter_lim_vol_2,
+            'Picoammeter second current limit:      %8.2E A' % picoammeter_lim_cur_2,
+            'Sourcemeter voltage limit:      %8.2E V' % sourcemeter_lim_vol,
+            'Sourcemeter current limit:      %8.2E A' % sourcemeter_lim_cur,
             'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
         ]
@@ -174,12 +162,12 @@ class testMD_DiodeGR(measurement):
         hdRV = [
             'RV Sweep\n',
             'Measurement Settings:',
-            'Ke6487 voltage limit:      %8.2E V' % picoammeter_lim_vol,
-            'Ke6487 current limit:      %8.2E A' % picoammeter_lim_cur,
-            'Ke6487 2 voltage limit:      %8.2E V' % picoammeter_lim_vol_2,
-            'Ke6487 2 current limit:      %8.2E A' % picoammeter_lim_cur_2,
-            'Ke2410 voltage limit:      %8.2E V' % sourcemeter_lim_vol,
-            'Ke2410 current limit:      %8.2E A' % sourcemeter_lim_cur,
+            'Picoammeter voltage limit:      %8.2E V' % picoammeter_lim_vol,
+            'Picoammeter current limit:      %8.2E A' % picoammeter_lim_cur,
+            'Picoammeter 2 voltage limit:      %8.2E V' % picoammeter_lim_vol_2,
+            'Picoammeter 2 current limit:      %8.2E A' % picoammeter_lim_cur_2,
+            'Sourcemeter voltage limit:      %8.2E V' % sourcemeter_lim_vol,
+            'Sourcemeter current limit:      %8.2E A' % sourcemeter_lim_cur,
             'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -204,11 +192,6 @@ class testMD_DiodeGR(measurement):
         self.logging.info("{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <8.3E}".format(*line))
         
         return(line)
-
-    #TODO: if G = 0 this crashes due to division by zero
-    def retrieveR(self, V, I):
-        G, Iq = np.polyfit(V, I, 1)
-        return (1/G, Iq)
 
     def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
 
@@ -245,6 +228,7 @@ class testMD_DiodeGR(measurement):
                 outIV_oneBias = []
                 
                 lineIV = self.IVpoint(v)
+                
                 outIV_oneBias.append(lineIV)
                 data_save.append(lineIV)
 
