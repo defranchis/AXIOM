@@ -1,27 +1,15 @@
 import serial
 import datetime, time
 import sys
-import os
-from time import gmtime, strftime
 import re
+import yaml
+
 from obelixWarnings import generalWarnings
 
-from devices.ke2410 import *
-from devices.ke7001 import *
+import devices
 
-## Set up the switch
-switch = ke7001(7)
-switch.reset(1)
-switch.get_idn()
-switch.open_all()
 
-pow_supply = ke2410(25) ## address of the power supply to bias the MOS
-pow_supply.reset()
-pow_supply.set_source('voltage')
-pow_supply.set_sense('current')
-pow_supply.set_current_limit(0.0002)
-pow_supply.set_voltage(0)
-pow_supply.set_terminal('rear')
+
 
 
 def convertkGyToTime(nkGy):
@@ -52,18 +40,18 @@ def biasMOS2000_ON(channel=3):
     print('OBELIX: now turning the MOS2000 bias ON...')
     switch.open_all()
     switch.close_channel(channel)
-    pow_supply.set_output_on()
-    pow_supply.ramp_voltage(getCalibratedVoltage(10))
-    #pow_supply.ramp_voltage(7.)
+    sourcemeter_1.set_output_on()
+    sourcemeter_1.ramp_voltage(getCalibratedVoltage(10))
+    #sourcemeter_1.ramp_voltage(7.)
     time.sleep(2)
 
 def biasMOS2000_OFF(channel=3):
     print('OBELIX: now turning the MOS2000 bias OFF...')
-    pow_supply.ramp_voltage(0)
+    sourcemeter_1.ramp_voltage(0)
     time.sleep(2)
     switch.open_all()
-    pow_supply.set_output_off()
-    pow_supply.reset()
+    sourcemeter_1.set_output_off()
+    sourcemeter_1.reset()
 
 def convertToBinary(word):
     word = word[1:];
@@ -406,8 +394,6 @@ def readExposureTimerActualValue(n):
     
 if __name__ == '__main__':
 
-    #From now on it's the main code
-    
     port = serial.Serial('COM3',baudrate = 9600,timeout=1)
 
     args = sys.argv
@@ -421,58 +407,68 @@ if __name__ == '__main__':
             print('exiting after keyboard interrupt')
             biasMOS2000_OFF(channel=3)
             exit(0)
+    else:
+        config_path = args[1]
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
 
-    _currentDose = float(args[1])
-    _targetDose  = float(args[2])
 
-        
+    current_dose = float(args[2])
+    target_dose  = float(args[3])
 
-    _overrideUserInput = ''
-    if len(args) > 3:
-        _overrideUserInput = args[3]
+    switch = getattr(devices, config['devices']['switch']['model'])(config['devices']['switch']['address'])
+    switch.reset(1)
+    switch.get_idn()
+    switch.open_all()
+
+    sourcemeter_1 = getattr(devices, config['devices']['sourcemeter_1']['model'])(config['devices']['sourcemeter_1']['address'])
+    sourcemeter_1.reset()
+    sourcemeter_1.set_source('voltage')
+    sourcemeter_1.set_sense('current')
+    sourcemeter_1.set_current_limit(config['devices']['sourcemeter_1']['lim_cur'])
+    sourcemeter_1.set_voltage(0)
+    sourcemeter_1.set_terminal('rear')
+
+    _overrideUserInput = 'yes'
+
     
     
     try:
-        #inputVoltage = input("Enter the voltage of the tube in kV ") 
-        nom_volt = setVoltage(40) #int(inputVoltage))
-        #inputCurrent = input("Enter the current of the tube in mA ")
-        nom_curr = setCurrent(50) #int(inputCurrent))
-        validateSetTimerStringRet = None
-        ##while(validateSetTimerStringRet == None):
-        ##    setTimerString = input("Enter the exposure timer number, the hours, minutes and seconds (use spaces between values) ")
-        ##    validateSetTimerStringRet = validateSetTimerString(setTimerString)
+        nom_volt = setVoltage(config['irradiation']['voltage']) 
+        nom_curr = setCurrent(config['irradiation']['current']) 
 
-        dose_current = _currentDose #float(input('OBELIX: enter the CURRENT dose of the sample'))
-        dose_target  = _targetDose  #float(input('OBELIX: enter the TARGET  dose of the sample'))
-        dose_toirr  = dose_target - dose_current
+        validateSetTimerStringRet = None
+
+        dose_toirr  = target_dose - current_dose
   
-        print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=dose_current, b=dose_target, c=dose_toirr))
+        print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=dose_toirr))
         hours, minutes, seconds = convertkGyToTime(dose_toirr)
         setExposureTimer(3, hours, minutes, seconds)
-        #remainingTimeInSeconds = (int(validateSetTimerStringRet[1]) * 3600 + int(validateSetTimerStringRet[2]) * 60 + int(validateSetTimerStringRet[3]))
-        #shutterNumber = input("Enter the shutter number ")
+
         remainingTimeInSeconds = readExposureTimerActualValue(3)
+
         turnHVOn()
-        biasMOS2000_ON(channel=3)
+        biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
         openShutter(3, _overrideUserInput) #int(shutterNumber))
+
         while(remainingTimeInSeconds):
             remainingTimeInSeconds = readExposureTimerActualValue(3)
             hours, minutes, seconds = secondsToHoursMinutesAndSeconds(remainingTimeInSeconds)
             #print('>> Elapsed Time in Seconds: %d' %elapsedTimeInSeconds)
-            print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time: {h}h {m}m {s}s'.format(a=dose_current,b=dose_target,h=hours,m=minutes,s=seconds))
+            print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time: {h}h {m}m {s}s'.format(a=current_dose,b=target_dose,h=hours,m=minutes,s=seconds))
             print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours,minutes,seconds))
             generalWarnings(port)
             ret = statusRead4()
             if ret == -1:
                 pass
             time.sleep(1)
-        biasMOS2000_OFF(channel=3)
+        biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
     
     except: #Exception as e:
         print('OBELIX: EXCEPTION RAISED!!!')
         port.write('CS:3\r'.encode())
         port.write('HV:0\r'.encode())
         print('exiting after keyboard interrupt')
-        biasMOS2000_OFF(channel=3)
+        biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
         exit(1)
     

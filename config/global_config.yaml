@@ -1,0 +1,41 @@
+test_name: 'testEF_fullDiode'
+
+devices:
+  sourcemeter_1:
+    model: 'ke2410'  
+    address: 8
+    open_short_correction: false
+    correction_count: 5
+    lim_cur: 1.0e-3                 # compliance in [A]
+
+  switch:
+    model: 'ke7001'
+    address: 7
+    connections:
+      biasMOS2000: 3
+
+  lcrmeter:
+    model: 'agilent_4263b'
+    address: 17                     # in the SSD lab this is 9
+    mode: 'RX'
+    approx_open_corr: 50.0e-12
+
+
+measurements:
+  testset: [floating, short, ground]  #[floating, short, ground]
+
+  CV:
+    range:
+      v_start: -20
+      v_end: -500
+      step_size: -10
+    sample_size: 5
+    delay: 3                        # delay between setting voltage and executing measurement in [s]
+    trig_delay: 0                   # delay between individual lcr triggers  
+    lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
+    lcr_frequency: 1000                 # ac frequency in [Hz]
+
+irradiation:
+  # doselist: 
+  voltage: 40  # the voltage of the tube in kV
+  current: 50  # the current of the tube in mA
