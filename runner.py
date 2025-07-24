@@ -3,8 +3,12 @@ from optparse import OptionParser
 import shutil
 import os
 import yaml
+import subprocess
 
 
+
+def format_name(sample_type, sample_id, dose = None):
+    return( '{t}_{n}_{d}kGy'.format(t=sample_type, n=sample_id, d=dose) )
 
 def main():
 
@@ -21,11 +25,29 @@ def main():
         config = yaml.safe_load(f)
 
     test = getattr(measurements, config['test_name'])
+    # if irradiation is present in config, run for loop with irradiation steps + measurement. 
 
-    msr = test(ide=id, config_path=config_path)
-    msr.initialise()
-    msr.execute()
-    msr.finalise()
+    if "irradiation" in config:
+        irradiation = config["irradiation"]
+        dose_steps = irradiation.get("doselist", [])
+        #TODO: set id correctly such that it includes the dose
+        
+        current_dose = 0
+        for target_dose in dose_steps:
+            
+            subprocess.run([
+                'python',
+                './obelixControl.py',
+                config_path,
+                str(current_dose),
+                str(target_dose)
+            ], check=True)
+            current_dose = target_dose 
+
+            msr = test(ide=format_name(config['sample_type'], config['sample_id'], current_dose), config_path=config_path)
+            msr.initialise()
+            msr.execute()
+            msr.finalise()
 
 if __name__=="__main__":
     main()

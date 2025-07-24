@@ -1,4 +1,6 @@
 test_name: 'testEF_fullDiode'
+sample_type: 'diode'
+sample_id: 102364  #TODO:: this should always be requested from the cli
 
 devices:
   sourcemeter_1:
@@ -36,6 +38,7 @@ measurements:
     lcr_frequency: 1000                 # ac frequency in [Hz]
 
 irradiation:
-  # doselist: 
+  doselist: [0,1,2,5,10,20,40]
+  dose_rate: 14.257  ## value taken on Aug 31st 2023
   voltage: 40  # the voltage of the tube in kV
   current: 50  # the current of the tube in mA
