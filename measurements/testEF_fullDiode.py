@@ -74,15 +74,15 @@ class testEF_fullDiode(measurement):
                                                             self.config['measurements']['CV']['range']['step_size'])]  # Voltage range
             
 
-        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        # self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        # self.reset_switch() 
+        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        self.reset_switch() 
         
-        # self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        # self.lcrmeter.reset()
-        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        # self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
-        # self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
+        self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        self.lcrmeter.reset()
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
 
         # # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
         # self.timer = time.time()
@@ -263,25 +263,25 @@ class testEF_fullDiode(measurement):
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
     def execute(self):
-        # Name of files
-        # name =  self.__class__.__name__
+    #     Name of files
+        name =  self.__class__.__name__
 
-        # # Create plots
-        # fig, ax0, ax1, ax2 = init_liveplot()
+        # Create plots
+        fig, ax0, ax1, ax2 = init_liveplot()
 
-        # ## Print header
-        # hdCV = self.createHeader()
-        # for line in hdCV:
-        #     self.logging.info(line)
+        ## Print header
+        hdCV = self.createHeader()
+        for line in hdCV:
+            self.logging.info(line)
 
         self.testset = self.config['measurements'].get('testset', []) 
 
-        # if 'floating' in self.testset:
-        #     self.CVscan(name, fig, ax0, hdCV)
-        # if 'short' in self.testset:
-        #     self.CVscan(name, fig, ax1, hdCV, shortGR=True)
-        # if 'ground' in self.testset:
-        #     self.CVscan(name, fig, ax2, hdCV, groundGR=True)
+        if 'floating' in self.testset:
+            self.CVscan(name, fig, ax0, hdCV)
+        if 'short' in self.testset:
+            self.CVscan(name, fig, ax1, hdCV, shortGR=True)
+        if 'ground' in self.testset:
+            self.CVscan(name, fig, ax2, hdCV, groundGR=True)
 
     def finalise(self):
         self._finalise()

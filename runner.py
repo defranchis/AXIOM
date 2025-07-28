@@ -1,7 +1,5 @@
 import measurements
 from optparse import OptionParser
-import shutil
-import os
 import yaml
 import subprocess
 
@@ -48,6 +46,11 @@ def main():
             msr.initialise()
             msr.execute()
             msr.finalise()
-
+    else:
+        msr = test(ide=format_name(config['sample_type'], config['sample_id']), config_path=config_path)
+        msr.initialise()
+        msr.execute()
+        msr.finalise()
+        
 if __name__=="__main__":
     main()

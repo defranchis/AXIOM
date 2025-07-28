@@ -414,6 +414,9 @@ if __name__ == '__main__':
     else:
         print(f"going from {current_dose} to {target_dose}")
 
+    print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=target_dose - current_dose))
+    time.sleep(2)
+    
     # switch = getattr(devices, config['devices']['switch']['model'])(config['devices']['switch']['address'])
     # switch.reset(1)
     # switch.get_idn()

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Qt5Agg')  # TODO:    THIS SHOULD REALLY BE MOVED TO THE BASE MEASUREMENT CLASS SO THAT EVERY MEASUREMENT USES QT5Agg
 plt.style.use('ggplot')
 import time, math
 import numpy as np
@@ -17,7 +18,10 @@ def init_liveplot():
     ax0 = fig.add_subplot(121)
     ax1 = fig.add_subplot(122)
     figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    # Maximize window depending on backend
+    # The is caused by of the lack of a virtual environment, if we used that we could completely avoid these random inconsistencies.
+    figManager.window.showMaximized()  # This works for Qt5Agg backend
+    # Add more backends as needed
 
     return fig, ax0, ax1
 
@@ -39,15 +43,11 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
         #plt.cla()
 
         line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
-
         ax.set_title(identifier)
         #update plot label/title
         ax.set_ylabel(yaxis_title)
         ax.set_xlabel('voltage')
         plt.show()
-        figManager = plt.get_current_fig_manager()
-        #figManager.window.showMaximized()
-        # figManager.window.state('zoomed')
 
     line.set_xdata(x_vec)
     line.set_ydata(y_vec) 

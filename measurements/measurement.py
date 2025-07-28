@@ -33,29 +33,28 @@ class measurement(object):
         mkdir(self.rdir)
 
         ## Set log file
-        self.logfile = '%s/log.txt' % (self.rdir)
+        self.logfile = f"{self.rdir}/log.txt"
 
-        ## Create logger and formater
+        ## Create logger and formatter
         logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s", datefmt='%H:%M:%S')
         self.logging = logging.getLogger('root')
         self.logging.setLevel(logging.DEBUG)
 
-        ## Add colours
-        if platform.system() == 'Windows':
-            # logging.StreamHandler.emit = add_coloring_to_emit_windows(logging.StreamHandler.emit)
-            pass
-        else:
-            logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
+        # ✅ Only add handlers once
+        if not self.logging.handlers:
+            ## Add coloring
+            if platform.system() != 'Windows':
+                logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
-        ## Add logging to console
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setFormatter(logFormatter)
-        self.logging.addHandler(consoleHandler)
+            ## Console handler
+            consoleHandler = logging.StreamHandler()
+            consoleHandler.setFormatter(logFormatter)
+            self.logging.addHandler(consoleHandler)
 
-        ## Add logging to file
-        fileHandler = logging.FileHandler(filename=self.logfile)
-        fileHandler.setFormatter(logFormatter)
-        self.logging.addHandler(fileHandler)
+            ## File handler
+            fileHandler = logging.FileHandler(filename=self.logfile)
+            fileHandler.setFormatter(logFormatter)
+            self.logging.addHandler(fileHandler)
 
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())

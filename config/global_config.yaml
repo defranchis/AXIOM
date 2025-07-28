@@ -1,44 +1,43 @@
-test_name: 'testEF_fullDiode'
+test_name: 'testMD_DiodeGR'
 sample_type: 'diode'
 sample_id: 102364  #TODO:: this should always be requested from the cli
 
 devices:
   sourcemeter_1:
     model: 'ke2410'  
-    address: 8
+    address: 25
     open_short_correction: false
     correction_count: 5
-    lim_cur: 1.0e-3                 # compliance in [A]
+    lim_cur: 1.0e-3    # compliance in [A]
 
   switch:
     model: 'ke7001'
     address: 7
-    connections:
-      biasMOS2000: 3
 
-  lcrmeter:
-    model: 'agilent_4263b'
-    address: 17                     # in the SSD lab this is 9
-    mode: 'RX'
-    approx_open_corr: 50.0e-12
+  picoammeter_1:
+    model: 'ke6487'
+    address: 15
+
+  picoammeter_2:
+    model: 'ke6487'
+    address: 23
 
 
 measurements:
-  testset: [floating, short, ground]  #[floating, short, ground]
-
-  CV:
-    range:
-      v_start: -20
-      v_end: -500
-      step_size: -10
-    sample_size: 5
-    delay: 3                        # delay between setting voltage and executing measurement in [s]
-    trig_delay: 0                   # delay between individual lcr triggers  
-    lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
-    lcr_frequency: 1000                 # ac frequency in [Hz]
+  IV:
+    measurement_range:
+      v_start: -0.5
+      v_end: 0.5
+      step_size: 0.1
+    bias_range:
+      v_start: -10  
+      v_end: -40
+      step_size: -20
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
 
 irradiation:
-  doselist: [0,1,2,5,10,20,40]
+  doselist: [0,1,2,5,10]
   dose_rate: 14.257  ## value taken on Aug 31st 2023
   voltage: 40  # the voltage of the tube in kV
   current: 50  # the current of the tube in mA
