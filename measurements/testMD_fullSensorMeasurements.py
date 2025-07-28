@@ -85,6 +85,12 @@ class testMD_fullSensorMeasurements(measurement):
         # sourcemeter_1 is always used
         self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
 
+
+        #TODO:  Change behaviour such that devices are initialized, if they are declared in the config.
+        #       which requires a check when gcd is present with mos or moshalf, to verify that a switch is declared in the config.
+        #       This should be default behavour accross files. 
+
+
         if 'moshalf' in self.testset or 'mos2000' in self.testset:
             self.volt_list_cv = np.arange(
                 self.config['measurements']['CV']['range']['v_start'],

@@ -39,9 +39,7 @@ try:
           #subprocess.run(['python', '.\main.py', 'Diode_{n}_m20C_{b}kGy'.format(n=sensorName, b=step), cmd, '-c', args.config], check=True)
     
         targetDose = irradiationSteps[istep+1]
-        ## then first run the obelix irradiation step, followed by the measurements
         obelix       = subprocess.run(['python', '.\obelixControl_Strip.py', str(step), str(targetDose), 'yes'], check=True)
-        #measurements = subprocess.run(['python', '.\main.py', 'Diode_{n}_m20C_{b}kGy'.format(n=sensorName, b=targetDose), cmd, '-c', args.config], check=True)
         measurements = runMeasurements(sensorName,targetDose,cmd,args.config,useStripCode)
 
 ## if anything exits with anything other than exit(0), 
