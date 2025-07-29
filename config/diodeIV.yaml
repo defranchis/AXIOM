@@ -1,0 +1,32 @@
+devices:
+  sourcemeter_1:
+    model: 'ke2410'  
+    address: 25
+    correction_count: 5
+    lim_cur: 1.0e-3    # compliance in [A]
+
+  switch:
+    model: 'ke7001'
+    address: 7
+
+  picoammeter_1:
+    model: 'ke6487'
+    address: 15
+
+  picoammeter_2:
+    model: 'ke6487'
+    address: 23
+
+
+measurements:
+  IV:
+    measurement_range:
+      v_start: -0.5
+      v_end: 0.5
+      step_size: 0.1
+    bias_range:
+      v_start: -10  
+      v_end: -800
+      step_size: -20
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
