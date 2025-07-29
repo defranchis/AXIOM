@@ -14,9 +14,9 @@ devices:
   switch:
     model: 'ke7001'
     address: 7
-    # connections:
-    #   lcrmeter: 1
-    #   picoammeter: 3
+    connections:
+      lcrmeter: 1
+      picoammeter: 3
 
   lcrmeter:
     model: 'agilent_4263b'
@@ -36,6 +36,7 @@ measurements:
     lcr_amplitude: 0.5
     frequencies: [10000, 100000]  # needs to be integers otherwise the plotting utils complain
     delay: 5
+    
   IV:
     measurement_range:
       v_start: -1

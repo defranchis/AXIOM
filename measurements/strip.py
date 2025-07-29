@@ -418,7 +418,7 @@ class strip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
-                    lineCV = self.CVpoint(v, f, 1) #TODO: READ CHANNEL DYANMICALLY FROM CONFIG
+                    lineCV = self.CVpoint(v, f, self.config['devices']['switch']['connections']['lcrmeter'])
                     outCVs[idx].append(lineCV)
                     biasVs[idx].append(lineCV[0])
                     Rs_LCRs[idx].append(lineCV[3])
@@ -470,7 +470,7 @@ class strip(measurement):
 
         try:
             # Do IV Scan
-            self.switch.close_channel(3)
+            self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])  
             self.sourcemeter_1.set_output_on()
         
             #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
