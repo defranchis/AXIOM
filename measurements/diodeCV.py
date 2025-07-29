@@ -47,7 +47,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
     return line
 
-class testEF_fullDiode(measurement): 
+class diodeCV(measurement): 
     
     def __init__(self, ide, config_path):
         super().__init__(ide)

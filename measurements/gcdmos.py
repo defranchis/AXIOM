@@ -60,7 +60,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
     return line
 
 
-class testMD_fullSensorMeasurements(measurement):
+class gcdmos(measurement):
 
     def __init__(self, ide, config_path):
         super().__init__(ide)  

@@ -41,3 +41,4 @@ irradiation:
   dose_rate: 14.257  ## value taken on Aug 31st 2023
   voltage: 40  # the voltage of the tube in kV
   current: 50  # the current of the tube in mA
+  biasing: false  # whether to bias the sample during irradiation

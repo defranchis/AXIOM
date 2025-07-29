@@ -390,14 +390,14 @@ if __name__ == '__main__':
     args = sys.argv
 
     if args[-1] == 'killObelix':
-        if statusRead4():
+        # if statusRead4():
             # print('OBELIX: SOMEBODY WANTS TO KILL ME!!!')
             # print('OBELIX: KILLING IT ALLLLLLLL')
             # port.write('CS:3\r'.encode())
             # port.write('HV:0\r'.encode())
             # print('exiting after keyboard interrupt')
             # biasMOS2000_OFF(channel=3)
-            exit(0)
+        exit(0)
     else:
         config_path = args[1]
         with open(config_path, 'r') as f:
@@ -417,18 +417,19 @@ if __name__ == '__main__':
     print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=target_dose - current_dose))
     time.sleep(2)
     
-    # switch = getattr(devices, config['devices']['switch']['model'])(config['devices']['switch']['address'])
-    # switch.reset(1)
-    # switch.get_idn()
-    # switch.open_all()
+    if config['irradiation']['biasing'] :
+        switch = getattr(devices, config['devices']['switch']['model'])(config['devices']['switch']['address'])
+        switch.reset(1)
+        switch.get_idn()
+        switch.open_all()
 
-    # sourcemeter_1 = getattr(devices, config['devices']['sourcemeter_1']['model'])(config['devices']['sourcemeter_1']['address'])
-    # sourcemeter_1.reset()
-    # sourcemeter_1.set_source('voltage')
-    # sourcemeter_1.set_sense('current')
-    # sourcemeter_1.set_current_limit(config['devices']['sourcemeter_1']['lim_cur'])
-    # sourcemeter_1.set_voltage(0)
-    # sourcemeter_1.set_terminal('rear')
+        sourcemeter_1 = getattr(devices, config['devices']['sourcemeter_1']['model'])(config['devices']['sourcemeter_1']['address'])
+        sourcemeter_1.reset()
+        sourcemeter_1.set_source('voltage')
+        sourcemeter_1.set_sense('current')
+        sourcemeter_1.set_current_limit(config['devices']['sourcemeter_1']['lim_cur'])
+        sourcemeter_1.set_voltage(0)
+        sourcemeter_1.set_terminal('rear')
 
     # _overrideUserInput = 'yes'
 
@@ -449,7 +450,8 @@ if __name__ == '__main__':
     #     remainingTimeInSeconds = readExposureTimerActualValue(3)
 
     #     turnHVOn()
-    #     biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
     #     openShutter(3, _overrideUserInput) #int(shutterNumber))
 
     #     while(remainingTimeInSeconds):
@@ -463,13 +465,15 @@ if __name__ == '__main__':
     #         if ret == -1:
     #             pass
     #         time.sleep(1)
-    #     biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
     
     # except: #Exception as e:
     #     print('OBELIX: EXCEPTION RAISED!!!')
     #     port.write('CS:3\r'.encode())
     #     port.write('HV:0\r'.encode())
     #     print('exiting after keyboard interrupt')
-    #     biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
     #     exit(1)
     

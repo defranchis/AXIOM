@@ -40,7 +40,6 @@ class measurement(object):
         self.logging = logging.getLogger('root')
         self.logging.setLevel(logging.DEBUG)
 
-        # ✅ Only add handlers once
         if not self.logging.handlers:
             ## Add coloring
             if platform.system() != 'Windows':
