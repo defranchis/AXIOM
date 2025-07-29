@@ -3,6 +3,7 @@ import time
 import getpass
 import socket
 import glob
+import yaml
 import logging
 import platform
 import numpy as np
@@ -19,7 +20,7 @@ def mkdir(d):
 class measurement(object):
     """ Abstract measurement class. """
 
-    def __init__(self, ide="", dire=""):
+    def __init__(self, ide="", dire="", config_path=None):
         self.id = ide
         self.base = dire
 
@@ -55,6 +56,48 @@ class measurement(object):
             fileHandler.setFormatter(logFormatter)
             self.logging.addHandler(fileHandler)
 
+        with open(config_path, 'r') as file:
+            self.config = yaml.safe_load(file)
+            self.logging.info(yaml.dump(self.config))
+
+        
+    def _initialise_devices(self, config: dict):
+        """
+        Dynamically initializes all devices listed in the config file.
+
+        This function iterates through the 'devices' section of the provided
+        config, instantiates the corresponding device class with its
+        parameters, and attaches it as an attribute to the measurement instance.
+        """
+        self.logging.info("--- Initialising devices from config ---")
+        if 'devices' not in config:
+            self.logging.warning("No 'devices' section found in the config file.")
+            return
+
+        for device_name, params in config['devices'].items():
+            try:
+                model_name = params['model']
+                # Copy params to pass as keyword arguments, removing 'model'
+                init_params = params.copy()
+                del init_params['model']
+
+                # Get the class from the 'devices' module
+                device_class = getattr(devices, model_name)
+
+                # Instantiate the class with its parameters
+                device_instance = device_class(**init_params)
+
+                # Attach the instance to self (e.g., self.sourcemeter_1 = <ke2410 object>)
+                setattr(self, device_name, device_instance)
+                self.logging.info(f"Successfully initialised '{device_name}' (Model: {model_name})")
+
+            except AttributeError:
+                self.logging.error(f"Device model '{model_name}' not found in the devices module.")
+            except KeyError:
+                self.logging.error(f"Device '{device_name}' is missing the 'model' key in the config.")
+            except Exception as e:
+                self.logging.error(f"Failed to initialise device '{device_name}': {e}")
+        self.logging.info("------------------------------------")
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())
 

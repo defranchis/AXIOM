@@ -64,14 +64,9 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 class diodeIV(measurement):
 
     def __init__(self, ide, config_path):
-        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
-        self.config_path = config_path
+        super().__init__(ide, config_path= config_path)
 
     def initialise(self):
-
-        with open(self.config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(self.config)
 
         self.logging.info("\t")
         self.logging.info("------------------------------------------")

@@ -82,15 +82,9 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 class strip(measurement):
 
     def __init__(self, ide, config_path):
-        super().__init__(ide)    
-        self.config_path = config_path 
+        super().__init__(ide, config_path= config_path)
 
     def initialise(self):
-
-        with open(self.config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(self.config)
-
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
         self.logging.info("Running test: %s" % self.__class__.__name__)

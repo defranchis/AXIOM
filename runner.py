@@ -10,6 +10,8 @@ def format_name(sample_type, sample_id, dose = None):
 
 def main():
 
+
+    # TODO: remove option parser and just get an argument form the CLI since supplying the config file is mandatory.
     parser = OptionParser()
     parser.add_option("-c", "--config", dest="config_path", help="Path to YAML config file")
     (options, args) = parser.parse_args()
@@ -61,6 +63,6 @@ def main():
 
 
 
-    
+
 if __name__=="__main__":
     main()
