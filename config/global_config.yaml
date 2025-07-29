@@ -1,58 +1,44 @@
-measurement_type: 'gcdmos'
+measurement_type: 'diodeIV'
 sample:
-  type: 'gcdmos'
+  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
   id: 1337420  #TODO:: this should always be requested from the cli
   preirradiated: true
   current_dose: 3        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
 
+
 devices:
   sourcemeter_1:
     model: 'ke2410'  
-    address: 8
-    lim_cur: 1.0e-3 # compliance current in [A]
-
-  sourcemeter_2:
-    model: 'ke2410'  
     address: 25
-    lim_cur: 1.0e-3 # compliance current in [A]
-    
+    correction_count: 5
+    lim_cur: 1.0e-3    # compliance in [A]
+
   switch:
     model: 'ke7001'
     address: 7
-    connections:
-      lcrmeter: 3
-      picoammeter: 9
 
-  lcrmeter:
-    model: 'agilent_4263b'
-    address: 17
-
-  picoammeter:
+  picoammeter_1:
     model: 'ke6487'
     address: 15
-    lim_cur: 100.0e-9    # compliance in [A] for the GCD, this should be 10 nA
+
+  picoammeter_2:
+    model: 'ke6487'
+    address: 23
 
 
-measurements: 
-  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
-  CV:
-    range:
-      v_start: 0.   #  -50 if '120um' in self.id else -100
-      v_end: -9   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-      step_size: -3
-    sample_size: 5
-    lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
-    lcr_frequency: 10000  # ac voltage frequency in [Hz]
-    delay: 0.3 # delay in [s] between setting the voltage and executing the measurement
-
+measurements:
   IV:
-    range:
-      v_start: 10
-      v_end: -100
-      step_size: -10
-    sample_size: 30
-    gcd_diode_bias: 10.0  # [V] bias voltage applied to the GCD diode
-    delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
+    measurement_range:
+      v_start: -0.5
+      v_end: 0.5
+      step_size: 0.1
+    bias_range:
+      v_start: -10  
+      v_end: -800
+      step_size: -20
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
+
 
 irradiation:
   doselist: [0,1,2,5,10]

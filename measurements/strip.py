@@ -7,7 +7,6 @@ import time, math
 import numpy as np
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
-
 from measurements import measurement
 
 

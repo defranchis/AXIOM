@@ -22,6 +22,7 @@ def main():
     config_path = options.config_path
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
+        print(yaml.dump(config, default_flow_style=False))
 
     test = getattr(measurements, config['measurement_type'])
 

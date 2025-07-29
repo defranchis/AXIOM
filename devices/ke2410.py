@@ -25,7 +25,6 @@ class ke2410(device):
     def __init__(self, address, lim_cur=1.0e-3, **kwargs):
         device.__init__(self, address=address)
         self.ctrl.write("*RST")
-        time.sleep(2)
         self.ctrl.write(":SENS:CURR:PROT %f" % lim_cur)
 
     def print_idn(self, debug=0):

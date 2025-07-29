@@ -402,8 +402,8 @@ if __name__ == '__main__':
         config_path = args[1]
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
-            print("Loaded config:")
-            print(yaml.dump(config, default_flow_style=False))
+            # print("Loaded config:")
+            # print(yaml.dump(config, default_flow_style=False))
 
 
     current_dose = float(args[2])

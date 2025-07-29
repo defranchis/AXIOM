@@ -2,6 +2,7 @@ sample:
   preirradiated: true
   current_dose: 3        #TODO: GET FROM PARSER/RUNNER INSTEAD OF STATIC CONFIG 
 
+
 devices:
   sourcemeter_1:
     model: 'ke2410'  
@@ -13,7 +14,7 @@ devices:
     address: 25
     lim_cur: 1.0e-3 # compliance current in [A]
     
-  switch:
+  switch:           #if the switch is specified, it will try to initialize and use it. if directly connecting to devices, comment switch out.
     model: 'ke7001'
     address: 7
     connections:
