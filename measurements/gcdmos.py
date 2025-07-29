@@ -4,13 +4,9 @@ plt.style.use('ggplot')
 import time, math, os
 import numpy as np
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
-import yaml
 
 # Module structure import
 from measurements import measurement
-import devices
-
-
 
 def init_liveplot():
     plt.ion()
@@ -62,8 +58,10 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class gcdmos(measurement):
 
-    def __init__(self, ide, config_path):
+    def __init__(self, ide, config_path, current_dose = None, **kwargs):
         super().__init__(ide, config_path= config_path)
+        # for testing, if no dose if provided, use the one from the config file
+        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('current_dose', 0) 
 
     def initialise(self):
         self.logging.info("\t")
@@ -360,12 +358,12 @@ class gcdmos(measurement):
 
         cutOffVoltage = -85
 
-        if self.config['sample']['current_dose'] <=1: cutOffVoltage = -30
-        elif self.config['sample']['current_dose'] <=2: cutOffVoltage = -40 
-        elif self.config['sample']['current_dose'] <=5: cutOffVoltage = -55 
-        elif self.config['sample']['current_dose'] <=10: cutOffVoltage = -65 
-        elif self.config['sample']['current_dose'] <=20: cutOffVoltage = -70 
-        elif self.config['sample']['current_dose'] <=40: cutOffVoltage = -75 
+        if self.current_dose <=1: cutOffVoltage = -30
+        elif self.current_dose <=2: cutOffVoltage = -40 
+        elif self.current_dose <=5: cutOffVoltage = -55 
+        elif self.current_dose <=10: cutOffVoltage = -65 
+        elif self.current_dose <=20: cutOffVoltage = -70 
+        elif self.current_dose <=40: cutOffVoltage = -75 
 
         print('cut-off voltage = {} V'.format(cutOffVoltage))
 

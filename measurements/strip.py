@@ -5,12 +5,10 @@ from matplotlib.ticker import AutoMinorLocator, MaxNLocator
 plt.style.use('ggplot')
 import time, math
 import numpy as np
-import yaml
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
 
 from measurements import measurement
-import devices
 
 
 
@@ -81,7 +79,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class strip(measurement):
 
-    def __init__(self, ide, config_path):
+    def __init__(self, ide, config_path, **kwargs):
         super().__init__(ide, config_path= config_path)
 
     def initialise(self):

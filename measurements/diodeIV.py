@@ -4,13 +4,11 @@ matplotlib.use('Qt5Agg')  # TODO:    THIS SHOULD REALLY BE MOVED TO THE BASE MEA
 plt.style.use('ggplot')
 import time, math
 import numpy as np
-import yaml
 
 #TODO: move general imports to base measurement class
 
 # Module structure import
 from measurements import measurement
-import devices
 
 def init_liveplot():
     plt.ion()
@@ -63,7 +61,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class diodeIV(measurement):
 
-    def __init__(self, ide, config_path):
+    def __init__(self, ide, config_path, **kwargs):
         super().__init__(ide, config_path= config_path)
 
     def initialise(self):

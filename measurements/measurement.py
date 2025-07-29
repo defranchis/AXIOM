@@ -99,6 +99,7 @@ class measurement(object):
             except Exception as e:
                 self.logging.error(f"Failed to initialise device '{device_name}': {e}")
         self.logging.info("------------------------------------")
+        
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())
 

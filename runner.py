@@ -23,7 +23,7 @@ def main():
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
-    test = getattr(measurements, config['test_name'])
+    test = getattr(measurements, config['measurement_type'])
 
     # if irradiation is present in config, run for loop with irradiation steps + measurement. 
     if "irradiation" in config:
@@ -43,7 +43,7 @@ def main():
                 ], check=True)
                 current_dose = target_dose 
 
-                msr = test(ide=format_name(config['sample_type'], config['sample_id'], current_dose), config_path=config_path)
+                msr = test(ide=format_name(config['sample']['type'], config['sample']['id'], current_dose), config_path=config_path, current_dose=current_dose)
                 msr.initialise()
                 msr.execute()
                 msr.finalise()
@@ -56,7 +56,7 @@ def main():
 
     # if irradiation is not present, run measurement only.
     else:
-        msr = test(ide=format_name(config['sample_type'], config['sample_id']), config_path=config_path)
+        msr = test(ide=format_name(config['sample']['type'], config['sample']['id']), config_path=config_path)
         msr.initialise()
         msr.execute()
         msr.finalise()

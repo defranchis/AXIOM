@@ -1,10 +1,9 @@
-test_name: 'gcdmos'
-sample_type: 'gcdmos'
-sample_id: 1337420  #TODO:: this should always be requested from the cli
-
+measurement_type: 'gcdmos'
 sample:
+  type: 'gcdmos'
+  id: 1337420  #TODO:: this should always be requested from the cli
   preirradiated: true
-  current_dose: 3        #TODO: GET FROM PARSER/RUNNER INSTEAD OF STATIC CONFIG 
+  current_dose: 3        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
 
 devices:
   sourcemeter_1:
@@ -35,11 +34,11 @@ devices:
 
 
 measurements: 
-  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued,  and which devices initialized
+  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   CV:
     range:
       v_start: 0.   #  -50 if '120um' in self.id else -100
-      v_end: -90   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      v_end: -9   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
       step_size: -3
     sample_size: 5
     lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
@@ -50,14 +49,14 @@ measurements:
     range:
       v_start: 10
       v_end: -100
-      step_size: -3
+      step_size: -10
     sample_size: 30
     gcd_diode_bias: 10.0  # [V] bias voltage applied to the GCD diode
     delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
 
-# irradiation:
-#   doselist: [0,1,2,5,10]
-#   dose_rate: 14.257  ## value taken on Aug 31st 2023
-#   voltage: 40  # the voltage of the tube in kV
-#   current: 50  # the current of the tube in mA
-#   biasing: false  # whether to bias the sample during irradiation
+irradiation:
+  doselist: [0,1,2,5,10]
+  dose_rate: 14.257  ## value taken on Aug 31st 2023
+  voltage: 40  # the voltage of the tube in kV
+  current: 50  # the current of the tube in mA
+  biasing: false  # whether to bias the sample during irradiation

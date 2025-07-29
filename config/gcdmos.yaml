@@ -31,7 +31,7 @@ devices:
 
 
 measurements: 
-  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued,  and which devices initialized
+  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   CV:
     range:
       v_start: 0.   #  -50 if '120um' in self.id else -100
