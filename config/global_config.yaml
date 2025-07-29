@@ -1,4 +1,4 @@
-test_name: 'testMD_DiodeGR'
+test_name: 'diodeIV'
 sample_type: 'diode'
 sample_id: 102364  #TODO:: this should always be requested from the cli
 
