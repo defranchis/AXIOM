@@ -15,7 +15,7 @@ class ke7001(device):
     dev.reset()
     """
 
-    def __init__(self, address):
+    def __init__(self, address, **kwargs):
         device.__init__(self, address=address)
         self.ctrl.write("*RST")
 

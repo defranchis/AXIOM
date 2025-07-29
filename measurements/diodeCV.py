@@ -63,21 +63,29 @@ class diodeCV(measurement):
 
         self._initialise() # base class initialisation
 
+        self._initialise_devices() # initialise devices from config
+
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
+
+
         self.volt_list_CV = [round(v, 1) for v in np.arange(self.config['measurements']['CV']['range']['v_start'],
                                                             self.config['measurements']['CV']['range']['v_end'] +
                                                             self.config['measurements']['CV']['range']['step_size'],
                                                             self.config['measurements']['CV']['range']['step_size'])]  # Voltage range
             
 
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        self.reset_switch() 
+
+        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        # self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        # self.reset_switch() 
         
-        self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
-        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
+        # self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        # self.lcrmeter.reset()
+        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        # self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        # self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
 
         # # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
         # self.timer = time.time()

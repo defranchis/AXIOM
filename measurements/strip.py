@@ -93,6 +93,9 @@ class strip(measurement):
         self.logging.info("\t")
 
         self._initialise()
+        self._initialise_devices()
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode('RX')
 
         # CV measurement voltage list from config
         self.volt_list_bias_CV = np.arange(
@@ -115,19 +118,19 @@ class strip(measurement):
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
+        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        # self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
-        self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        self.reset_switch()
+        # self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        # self.reset_switch()
 
-        ## Set up lcr meter
-        self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode('RX')
+        # ## Set up lcr meter
+        # self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        # self.lcrmeter.reset()
+        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        # self.lcrmeter.set_mode('RX')
 
-        self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
+        # self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
     def reset_power_supplies(self):
 

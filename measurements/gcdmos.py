@@ -74,17 +74,9 @@ class gcdmos(measurement):
         self.logging.info("\t")
 
         self._initialise()
+        self._initialise_devices()
 
         self.testset = self.config['measurements'].get('testset', [])  #to detemrine which tests to run and which devices to initialize. 
-
-        # sourcemeter_1 is always used
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-
-
-        #TODO:  Change behaviour such that devices are initialized, if they are declared in the config.
-        #       which requires a check when gcd is present with mos or moshalf, to verify that a switch is declared in the config.
-        #       This should be default behavour accross files. 
-
 
         if 'moshalf' in self.testset or 'mos2000' in self.testset:
             self.volt_list_cv = np.arange(
@@ -92,9 +84,6 @@ class gcdmos(measurement):
                 self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
                 self.config['measurements']['CV']['range']['step_size']
             )
-            ## Set up lcr meter
-            self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-            self.lcrmeter.reset()
             self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
             self.lcrmeter.set_mode('RX')
         
@@ -105,15 +94,6 @@ class gcdmos(measurement):
                 self.config['measurements']['IV']['range']['v_end'] +  self.config['measurements']['IV']['range']['step_size'],
                 self.config['measurements']['IV']['range']['step_size']
             )
-
-            self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
-            self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
-        
-        self.switch_active = False
-        if 'moshalf' in self.testset or 'mos2000' in self.testset and 'gcd' in self.testset:
-            self.switch_active = True
-            self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-
 
 
     def reset_power_supplies(self):
@@ -151,7 +131,7 @@ class gcdmos(measurement):
 
     def reset_switch(self):
         # only reset switch if actually used in current configuration
-        if self.switch_active: 
+        if self.switch: 
             self.switch.reset(1)
             self.switch.get_idn()
             self.switch.open_all()
@@ -214,7 +194,7 @@ class gcdmos(measurement):
     def doCVScan(self, channel, ax, name=''): 
 
 
-        if self.switch_active: self.switch.close_channel(channel)
+        if self.switch: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
 
         ## Check settings
@@ -332,7 +312,7 @@ class gcdmos(measurement):
 
     def doIVScan(self, channel, ax, name=''):
 
-        if self.switch_active: self.switch.close_channel(channel)
+        if self.switch: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
         self.sourcemeter_2.set_output_on()
 

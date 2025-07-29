@@ -76,7 +76,8 @@ class diodeIV(measurement):
         self.logging.info("\t")
 
         self._initialise()
-
+        self._initialise_devices()
+        
         # IV measurement voltage sweep range
         self.volt_list_iv = np.arange(
             self.config['measurements']['IV']['measurement_range']['v_start'],
@@ -91,12 +92,12 @@ class diodeIV(measurement):
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 
-        ## Set up sourcemeter
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        # ## Set up sourcemeter
+        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
 
-        ## Set up volt meters
-        self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
-        self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
+        # ## Set up volt meters
+        # self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
+        # self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
 
     #TODO: refactor since it also resets the picoammeters
     def reset_power_supplies(self):

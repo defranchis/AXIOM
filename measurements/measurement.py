@@ -9,6 +9,7 @@ import platform
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import devices
 from utils.tools import add_coloring_to_emit_ansi
 
 
@@ -61,7 +62,7 @@ class measurement(object):
             self.logging.info(yaml.dump(self.config))
 
         
-    def _initialise_devices(self, config: dict):
+    def _initialise_devices(self):
         """
         Dynamically initializes all devices listed in the config file.
 
@@ -70,11 +71,11 @@ class measurement(object):
         parameters, and attaches it as an attribute to the measurement instance.
         """
         self.logging.info("--- Initialising devices from config ---")
-        if 'devices' not in config:
+        if 'devices' not in self.config:
             self.logging.warning("No 'devices' section found in the config file.")
             return
 
-        for device_name, params in config['devices'].items():
+        for device_name, params in self.config['devices'].items():
             try:
                 model_name = params['model']
                 # Copy params to pass as keyword arguments, removing 'model'
