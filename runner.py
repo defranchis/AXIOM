@@ -5,12 +5,14 @@ from utils.config_validator import validate_config_structure
 import time
 import datetime
 
+
 def run_measurement(msr_class, config, current_dose=None, n_annealing = None):
     """Encapsulates the repeated measurement steps."""
     msr = msr_class(config=config, current_dose=current_dose, n_annealing=n_annealing)
     msr.initialise()
     msr.execute()
     msr.finalise()
+
 
 def run_irradiation_loop(config, msr_class, config_path):
     """Handles irradiation dose steps and runs measurements."""
@@ -64,7 +66,6 @@ def run_annealing_loop(config, msr_class):
 
     except KeyboardInterrupt:
         print("\nAnnealing loop interrupted by user (Ctrl+C).")
-
 
 
 def main():

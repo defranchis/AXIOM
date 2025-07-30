@@ -110,7 +110,7 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
 
     # Exclusivity check: cannot have both irradiation and annealing
     if 'irradiation' in config and 'annealing' in config:
-        errors.append("Invalid configuration: 'irradiation' and 'annealing' cannot both be present. Choose one.")
+        errors.append("Invalid configuration: 'irradiation' and 'annealing' cannot both be present. continuing will only run irradiation loop.")
     
     if 'annealing' in config:
         if not isinstance(config['annealing'], dict):
