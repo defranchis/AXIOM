@@ -547,9 +547,6 @@ class strip(measurement):
             self.logging.info(line)
 
         self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
-        # print("-------------------------------------------------------------------------------")
-        # print("---------------- CURRENTLY ONLY RUNNING THE IV MEASUREMENTS -------------------")
-        # print("-------------------------------------------------------------------------------")
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
    
     def finalise(self):

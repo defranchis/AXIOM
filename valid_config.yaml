@@ -1,0 +1,18 @@
+
+measurement_type: diodeIV
+sample:
+    type: 'p-type'
+    id: 'W1-P1'
+    preirradiated: false
+    current_dose: 0
+devices:
+    sourcemeter_1: {model: 'ke2410', address: 24, lim_cur: 1e-3}
+    switch: {model: 'ke7001', address: 7}
+    picoammeter_1: {model: 'ke6487', address: 15}
+    picoammeter_2: {model: 'ke6487', address: 16}
+measurements:
+    IV:
+        measurement_range: {v_start: -100, v_end: 100, step_size: 1}
+        bias_range: {v_start: -100, v_end: -500, step_size: -50}
+        delay: 0.5
+        sample_size: 10

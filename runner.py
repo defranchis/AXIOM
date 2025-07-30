@@ -2,7 +2,7 @@ import measurements
 from optparse import OptionParser
 import yaml
 import subprocess
-
+from config_validator import validate_config_structure
 
 
 def format_name(sample_type, sample_id, dose = None):
@@ -19,13 +19,31 @@ def main():
     if not options.config_path:
         parser.error("The --config option must be specified.")
 
+
+    #TODO: consolidate the config loading and validation logic.
     config_path = options.config_path
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         print(yaml.dump(config, default_flow_style=False))
 
+    is_valid, warnings = validate_config_structure(config_path)
+
+    if not is_valid:
+        print("Configuration file has errors:")
+        for warning in warnings:
+            print(f"- {warning}")
+            a = input('config has errors, would you like to continue? (y/n): ')
+        if a.lower() != 'y':
+            print("Exiting due to configuration errors.")
+            return
+    else:
+        print("Configuration is valid, proceeding with measurement.")
+
+
     test = getattr(measurements, config['measurement_type'])
 
+
+    #TODO: improve loop logic to avoid code duplication. DRY principle.
     # if irradiation is present in config, run for loop with irradiation steps + measurement. 
     if "irradiation" in config:
         irradiation = config["irradiation"]
