@@ -10,6 +10,14 @@ BASE_SCHEMA = {
     }
 }
 
+IRRADIATION_SCHEMA = {
+    'doselist': None,   # List of doses
+    'dose_rate': None,  # Float
+    'voltage': None,    # Integer (in kV)
+    'current': None,    # Integer (in mA)
+    'biasing': None     # Boolean
+}
+
 DIODE_IV_SCHEMA = {
     'devices': {
         'sourcemeter_1': {'model': None, 'address': None, 'lim_cur': None},

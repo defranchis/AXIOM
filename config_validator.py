@@ -3,6 +3,14 @@ from typing import Dict, Any, List, Tuple
 from default_schemas import *
 
 
+    # 2. Select and validate against the specific schema
+schemas = {
+        'diodeIV': DIODE_IV_SCHEMA,
+        'diodeCV': DIODE_CV_SCHEMA,
+        'gcdmos': GCDMOS_SCHEMA,
+        'strip': STRIP_SCHEMA
+    }
+
 def _check_keys_recursively(config: Dict[str, Any], schema: Dict[str, Any], path: str = "") -> List[str]:
     """Helper function to recursively check for missing keys."""
     missing = []
@@ -46,21 +54,15 @@ def validate_config_structure(file_path: str) -> Tuple[bool, List[str]]:
         return False, errors
 
     measurement_type = config.get('measurement_type')
-    
-    # 2. Select and validate against the specific schema
-    schemas = {
-        'diodeIV': DIODE_IV_SCHEMA,
-        'diodeCV': DIODE_CV_SCHEMA,
-        'gcdmos': GCDMOS_SCHEMA,
-        'strip': STRIP_SCHEMA
-    }
 
     if measurement_type in schemas:
         errors.extend(_check_keys_recursively(config, schemas[measurement_type]))
     else:
         errors.append(f"Warning: No validation schema found for measurement_type '{measurement_type}'.")
 
-    # 3. Apply special logical checks for 'gcdmos'
+
+
+    # gcd mos logic to allow for operation without switch 
     if measurement_type == 'gcdmos':
         measurements = config.get('measurements', {})
         devices = config.get('devices', {})
@@ -84,6 +86,14 @@ def validate_config_structure(file_path: str) -> Tuple[bool, List[str]]:
                 errors.append("For 'gcdmos' with 'gcd' and MOS in testset, 'measurements.CV' is required.")
             if 'switch' not in devices:
                 errors.append("For 'gcdmos' with 'gcd' and MOS in testset, 'devices.switch' is required.")
+
+    # check irradiation schema if present
+    if 'irradiation' in config:
+        if not isinstance(config['irradiation'], dict):
+            errors.append("'irradiation' should be a dictionary.")
+        else:
+            errors.extend(_check_keys_recursively(config['irradiation'], IRRADIATION_SCHEMA, path='irradiation'))
+
 
     if not errors:
         return True, []
