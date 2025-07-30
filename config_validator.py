@@ -1,15 +1,27 @@
 import yaml
 from typing import Dict, Any, List, Tuple
 from default_schemas import *
+import sys
 
 
-    # 2. Select and validate against the specific schema
 schemas = {
         'diodeIV': DIODE_IV_SCHEMA,
         'diodeCV': DIODE_CV_SCHEMA,
         'gcdmos': GCDMOS_SCHEMA,
         'strip': STRIP_SCHEMA
     }
+
+
+def _handle_errors(errors: List[str]):
+    print("Configuration file has errors:")
+    for e in errors:
+        print(f"- Missing key: {e}")
+
+    a = input("Config has errors. Would you like to continue anyway? (y/n): ")
+    if a.lower() != 'y':
+        print("Exiting due to configuration errors.")
+        sys.exit(1)
+
 
 def _check_keys_recursively(config: Dict[str, Any], schema: Dict[str, Any], path: str = "") -> List[str]:
     """Helper function to recursively check for missing keys."""
@@ -23,82 +35,83 @@ def _check_keys_recursively(config: Dict[str, Any], schema: Dict[str, Any], path
             missing.extend(_check_keys_recursively(config[key], sub_schema, path=current_path))
     return missing
 
-def validate_config_structure(file_path: str) -> Tuple[bool, List[str]]:
+
+def validate_config_structure(file_path: str) -> Dict[str, Any]:
     """
-    Validates the structure of a YAML configuration file based on its 'measurement_type'.
+    Loads and validates a YAML configuration file. Interacts with user if errors are found.
 
     Args:
         file_path (str): The path to the YAML configuration file.
 
     Returns:
-        Tuple[bool, List[str]]: A tuple containing a boolean indicating validity
-                                 and a list of human-readable error messages.
+        Dict[str, Any]: The parsed configuration dictionary if valid or approved by user.
     """
     errors = []
+
     try:
         with open(file_path, 'r') as f:
             config = yaml.safe_load(f)
         if not isinstance(config, dict):
-            return False, ["YAML content is not a valid dictionary."]
+            print("YAML content is not a valid dictionary.")
+            sys.exit(1)
     except FileNotFoundError:
-        return False, [f"File not found at '{file_path}'."]
+        print(f"File not found at '{file_path}'.")
+        sys.exit(1)
     except yaml.YAMLError as e:
-        return False, [f"Error parsing YAML file: {e}"]
+        print(f"Error parsing YAML file: {e}")
+        sys.exit(1)
 
-    # 1. Validate against the base structure required for all types
+    # Print YAML nicely
+    print("Parsed configuration:\n")
+    print(yaml.dump(config, default_flow_style=False))
+
+    # Validate against base schema
     errors.extend(_check_keys_recursively(config, BASE_SCHEMA))
 
-    # Stop if fundamental keys are missing
     if 'measurement_type' not in config:
         errors.append("Critical: 'measurement_type' key is missing. Cannot proceed with validation.")
-        return False, errors
+        _handle_errors(errors)
 
     measurement_type = config.get('measurement_type')
-
     if measurement_type in schemas:
         errors.extend(_check_keys_recursively(config, schemas[measurement_type]))
     else:
         errors.append(f"Warning: No validation schema found for measurement_type '{measurement_type}'.")
 
-
-
-    # gcd mos logic to allow for operation without switch 
+    # GCDMOS logic
     if measurement_type == 'gcdmos':
         measurements = config.get('measurements', {})
         devices = config.get('devices', {})
         testset = measurements.get('testset', [])
-        
+
         has_gcd = 'gcd' in testset
         has_mos = 'mos2000' in testset or 'moshalf' in testset
 
-        if has_gcd and not has_mos: # Only GCD
+        if has_gcd and not has_mos:
             if 'IV' not in measurements:
                 errors.append("For 'gcdmos' with 'gcd' in testset, 'measurements.IV' is required.")
-        
-        if has_mos and not has_gcd: # Only MOS
+        if has_mos and not has_gcd:
             if 'CV' not in measurements:
                 errors.append("For 'gcdmos' with 'mos2000' or 'moshalf' in testset, 'measurements.CV' is required.")
-
-        if has_gcd and has_mos: # Both
+        if has_gcd and has_mos:
             if 'IV' not in measurements:
-                errors.append("For 'gcdmos' with 'gcd' and MOS in testset, 'measurements.IV' is required.")
+                errors.append("For 'gcdmos' with both, 'measurements.IV' is required.")
             if 'CV' not in measurements:
-                errors.append("For 'gcdmos' with 'gcd' and MOS in testset, 'measurements.CV' is required.")
+                errors.append("For 'gcdmos' with both, 'measurements.CV' is required.")
             if 'switch' not in devices:
-                errors.append("For 'gcdmos' with 'gcd' and MOS in testset, 'devices.switch' is required.")
+                errors.append("For 'gcdmos' with both, 'devices.switch' is required.")
 
-    # check irradiation schema if present
+    # Irradiation
     if 'irradiation' in config:
         if not isinstance(config['irradiation'], dict):
             errors.append("'irradiation' should be a dictionary.")
         else:
             errors.extend(_check_keys_recursively(config['irradiation'], IRRADIATION_SCHEMA, path='irradiation'))
 
-
-    if not errors:
-        return True, []
+    # Final error handling
+    if errors:
+        _handle_errors(errors)
     else:
-        # Prepend "Missing key:" to make it clearer
-        return False, [f"Missing key: {e}" for e in errors]
+        print("Configuration matches schema. Proceeding.")
 
-
+    return config  # return parsed config for later use

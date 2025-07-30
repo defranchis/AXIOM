@@ -2,7 +2,6 @@ devices:
   sourcemeter_1:
     model: 'ke2410'  
     address: 8
-    correction_count: 5
     lim_cur: 1.0e-3                 # compliance in [A]
 
   switch:

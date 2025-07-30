@@ -1,12 +1,17 @@
-# schemas.py
+# -----------------------------------------------------------------------------------------------------------
+# These schemas are used to validate the configuration files
+# Changing these is only required if you want to add verifications and will not infuence the code logic,  
+#    (besides having to press yes to continue when the config doesn't match the schema.)
+# -----------------------------------------------------------------------------------------------------------
+
 
 BASE_SCHEMA = {
-    'measurement_type': None,
+    'measurement_type': None,  # used to select which schema to validate, and which measurement class to execute
     'sample': {
-        'type': None,
-        'id': None,
-        'preirradiated': None,
-        'current_dose': None
+        'type': None,           # only used for naming the files  / logs
+        'id': None,             # only used for naming the files  / logs
+        'preirradiated': None,  # used by gcdmos to determine some voltage logic
+        'current_dose': None    # only used when no dose is communicated by the obelix control, for debugging purposes. 
     }
 }
 
@@ -37,7 +42,7 @@ DIODE_IV_SCHEMA = {
 
 DIODE_CV_SCHEMA = {
     'devices': {
-        'sourcemeter_1': {'model': None, 'address': None, 'correction_count': None, 'lim_cur': None},
+        'sourcemeter_1': {'model': None, 'address': None, 'lim_cur': None},
         'switch': {'model': None, 'address': None},
         'lcrmeter': {'model': None, 'address': None, 'mode': None, 'approx_open_corr': None}
     },

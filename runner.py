@@ -1,6 +1,5 @@
 import measurements
-from optparse import OptionParser
-import yaml
+import argparse
 import subprocess
 from config_validator import validate_config_structure
 
@@ -10,35 +9,10 @@ def format_name(sample_type, sample_id, dose = None):
 
 def main():
 
-
-    # TODO: remove option parser and just get an argument form the CLI since supplying the config file is mandatory.
-    parser = OptionParser()
-    parser.add_option("-c", "--config", dest="config_path", help="Path to YAML config file")
-    (options, args) = parser.parse_args()
-
-    if not options.config_path:
-        parser.error("The --config option must be specified.")
-
-
-    #TODO: consolidate the config loading and validation logic.
-    config_path = options.config_path
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-        print(yaml.dump(config, default_flow_style=False))
-
-    is_valid, warnings = validate_config_structure(config_path)
-
-    if not is_valid:
-        print("Configuration file has errors:")
-        for warning in warnings:
-            print(f"- {warning}")
-            a = input('config has errors, would you like to continue? (y/n): ')
-        if a.lower() != 'y':
-            print("Exiting due to configuration errors.")
-            return
-    else:
-        print("Configuration is valid, proceeding with measurement.")
-
+    parser = argparse.ArgumentParser(description="Validate YAML configuration file.")
+    parser.add_argument("config_path", help="Path to the YAML config file")
+    args = parser.parse_args()
+    config = validate_config_structure(args.config_path)
 
     test = getattr(measurements, config['measurement_type'])
 
@@ -56,13 +30,13 @@ def main():
                 subprocess.run([
                     'python',
                     './obelixControl.py',
-                    config_path,
+                    args.config_path,
                     str(current_dose),
                     str(target_dose)
                 ], check=True)
                 current_dose = target_dose 
 
-                msr = test(ide=format_name(config['sample']['type'], config['sample']['id'], current_dose), config_path=config_path, current_dose=current_dose)
+                msr = test(ide=format_name(config['sample']['type'], config['sample']['id'], current_dose), config_path=args.config_path, current_dose=current_dose)
                 msr.initialise()
                 msr.execute()
                 msr.finalise()
