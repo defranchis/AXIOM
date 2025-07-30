@@ -21,43 +21,59 @@ def mkdir(d):
 class measurement(object):
     """ Abstract measurement class. """
 
-    def __init__(self, dire="", config=None, current_dose=None):
-
-        self.config = config 
-        self.id =  '{t}_{n}_{d}kGy'.format(t=config['sample']['type'], n=config['sample']['id'], d=current_dose)
+    def __init__(self, dire="", config=None, current_dose=None, n_annealing=None):
+        self.config = config
         self.base = dire
 
-        ## Create log directory
-        self.ldir = "%slogs/%s" % (self.base, self.id)
+        # TODO: remove this dependency, this is only required for gcdmos and should be changed 
+        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('current_dose', 0) 
+
+        # 1. Handle dose fallback
+        if current_dose is None:
+            current_dose = config['sample'].get('current_dose', 0)
+
+        # 2. Construct ID base
+        self.id = f"{config['sample']['type']}_{config['sample']['id']}_{current_dose}kGy"
+
+        # 3. Append annealing info if applicable
+        if "annealing" in config and n_annealing is not None:
+            period = config["annealing"].get("period", "X")
+            self.id += f"_annealStep{n_annealing}_p{period}min"
+
+        # --- Directory setup ---
+        self.ldir = f"{self.base}logs/{self.id}"
         mkdir(self.ldir)
 
-        ## Create run directory
         self.nrun = self.get_run_id(self.id)
-        self.rdir = "%s/%s" % (self.ldir, self.nrun)
+        self.rdir = f"{self.ldir}/{self.nrun}"
         mkdir(self.rdir)
 
-        ## Set log file
         self.logfile = f"{self.rdir}/log.txt"
 
-        ## Create logger and formatter
+        # --- Logger setup ---
         logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s", datefmt='%H:%M:%S')
         self.logging = logging.getLogger('root')
         self.logging.setLevel(logging.DEBUG)
 
         if not self.logging.handlers:
-            ## Add coloring
             if platform.system() != 'Windows':
                 logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
-            ## Console handler
             consoleHandler = logging.StreamHandler()
             consoleHandler.setFormatter(logFormatter)
             self.logging.addHandler(consoleHandler)
 
-            ## File handler
             fileHandler = logging.FileHandler(filename=self.logfile)
             fileHandler.setFormatter(logFormatter)
             self.logging.addHandler(fileHandler)
+
+        # --- Log header ---
+        self.logging.info("\t")
+        self.logging.info("------------------------------------------")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
+        self.logging.info("------------------------------------------")
+        self.logging.info("\t")
+
 
         
     def _initialise_devices(self):

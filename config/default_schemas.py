@@ -23,6 +23,10 @@ IRRADIATION_SCHEMA = {
     'biasing': None     # Boolean
 }
 
+ANNEALING_SCHEMA = {
+    'period': None  # Integer (in minutes)
+}
+
 DIODE_IV_SCHEMA = {
     'devices': {
         'sourcemeter_1': {'model': None, 'address': None, 'lim_cur': None},

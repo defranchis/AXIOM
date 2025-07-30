@@ -61,18 +61,18 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class diodeIV(measurement):
 
-    def __init__(self, config=None, current_dose=None, **kwargs):
-        super().__init__(config=config, current_dose=current_dose)
+    def __init__(self, config=None, current_dose=None, n_annealing = None, **kwargs):
+        super().__init__(config=config, current_dose=current_dose, n_annealing=n_annealing)
         
 
     def initialise(self):
 
-        self.logging.info("\t")
-        self.logging.info("------------------------------------------")
-        self.logging.info("Running test: %s" % self.__class__.__name__)
-        self.logging.info("------------------------------------------")
-        self.logging.info(self.__doc__)
-        self.logging.info("\t")
+        # self.logging.info("\t")
+        # self.logging.info("------------------------------------------")
+        # self.logging.info("Running test: %s" % self.__class__.__name__)
+        # self.logging.info("------------------------------------------")
+        # self.logging.info(self.__doc__)
+        # self.logging.info("\t")
 
         self._initialise()
         self._initialise_devices()

@@ -108,6 +108,16 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
         else:
             errors.extend(_check_keys_recursively(config['irradiation'], IRRADIATION_SCHEMA, path='irradiation'))
 
+    # Exclusivity check: cannot have both irradiation and annealing
+    if 'irradiation' in config and 'annealing' in config:
+        errors.append("Invalid configuration: 'irradiation' and 'annealing' cannot both be present. Choose one.")
+    
+    if 'annealing' in config:
+        if not isinstance(config['annealing'], dict):
+            errors.append("'annealing' should be a dictionary.")
+        else:
+            errors.extend(_check_keys_recursively(config['annealing'], ANNEALING_SCHEMA, path='annealing'))
+
     # Final error handling
     if errors:
         _handle_errors(errors)
