@@ -1,7 +1,7 @@
 import measurements
 import argparse
 import subprocess
-from config_validator import validate_config_structure
+from utils.config_validator import validate_config_structure 
 
 def run_measurement(msr_class, config, current_dose=None):
     """Encapsulates the repeated measurement steps."""
@@ -31,6 +31,9 @@ def run_irradiation_loop(config, msr_class, config_path):
     except Exception as e:
         subprocess.run(['python', './obelixControl.py', 'killObelix'])
         print(f"Unexpected error: {e}")
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Validate YAML configuration file.")

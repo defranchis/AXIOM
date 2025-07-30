@@ -1,6 +1,6 @@
 import yaml
 from typing import Dict, Any, List, Tuple
-from default_schemas import *
+from config.default_schemas import *
 import sys
 
 
