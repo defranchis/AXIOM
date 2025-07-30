@@ -3,7 +3,6 @@ plt.style.use('ggplot')
 import time, math
 import numpy as np
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
-
 #TODO: move general imports to base measurement class
 
 # Module structure import
@@ -47,9 +46,9 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class diodeCV(measurement): 
     
-    def __init__(self, ide, config_path, **kwargs):
-        super().__init__(ide, config_path= config_path)
-
+    def __init__(self, config=None, current_dose=None, **kwargs):
+        super().__init__(config=config, current_dose=current_dose)
+        
     def initialise(self):
         
         self.logging.info("\t")

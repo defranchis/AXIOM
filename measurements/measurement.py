@@ -21,8 +21,10 @@ def mkdir(d):
 class measurement(object):
     """ Abstract measurement class. """
 
-    def __init__(self, ide="", dire="", config_path=None):
-        self.id = ide
+    def __init__(self, dire="", config=None, current_dose=None):
+
+        self.config = config 
+        self.id =  '{t}_{n}_{d}kGy'.format(t=config['sample']['type'], n=config['sample']['id'], d=current_dose)
         self.base = dire
 
         ## Create log directory
@@ -56,10 +58,6 @@ class measurement(object):
             fileHandler = logging.FileHandler(filename=self.logfile)
             fileHandler.setFormatter(logFormatter)
             self.logging.addHandler(fileHandler)
-
-        with open(config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(yaml.dump(self.config))
 
         
     def _initialise_devices(self):

@@ -78,8 +78,8 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class strip(measurement):
 
-    def __init__(self, ide, config_path, **kwargs):
-        super().__init__(ide, config_path= config_path)
+    def __init__(self, ide, config=None, **kwargs):
+        super().__init__(ide, config=config)
 
     def initialise(self):
         self.logging.info("\t")

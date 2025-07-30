@@ -58,8 +58,8 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k
 
 class gcdmos(measurement):
 
-    def __init__(self, ide, config_path, current_dose = None, **kwargs):
-        super().__init__(ide, config_path= config_path)
+    def __init__(self, ide, config=None, current_dose = None, **kwargs):
+        super().__init__(ide, config = config)
         # for testing, if no dose if provided, use the one from the config file
         self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('current_dose', 0) 
 

@@ -1,3 +1,11 @@
+measurement_type: 'diodeCV'
+sample:
+  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
+  id: 1337420  #TODO:: this should always be requested from the cli
+  preirradiated: true
+  current_dose: 3        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
+
+
 devices:
   sourcemeter_1:
     model: 'ke2410'  
