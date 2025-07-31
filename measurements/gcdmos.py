@@ -128,7 +128,7 @@ class gcdmos(measurement):
 
     def reset_switch(self):
         # only reset switch if actually used in current configuration
-        if self.switch: 
+        if hasattr(self, 'switch'): 
             self.switch.reset(1)
             self.switch.get_idn()
             self.switch.open_all()
@@ -188,10 +188,10 @@ class gcdmos(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-    def doCVScan(self, channel, ax, name=''): 
+    def doCVScan(self, ax, name=''): 
 
 
-        if self.switch: self.switch.close_channel(channel)
+        if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['lcrmeter'])
         self.sourcemeter_1.set_output_on()
 
         ## Check settings
@@ -307,9 +307,9 @@ class gcdmos(measurement):
         return out
         ## end of CV scan
 
-    def doIVScan(self, channel, ax, name=''):
+    def doIVScan(self, ax, name=''):
 
-        if self.switch: self.switch.close_channel(channel)
+        if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])
         self.sourcemeter_1.set_output_on()
         self.sourcemeter_2.set_output_on()
 
@@ -465,17 +465,17 @@ class gcdmos(measurement):
         plots = {}
         
         if 'moshalf' in self.testset:
-            plots_cv_moshalf = self.doCVScan(self.config['devices']['switch']['connections']['lcrmeter'], ax0, name='MOShalf')
+            plots_cv_moshalf = self.doCVScan(ax0, name='MOShalf')
             plots["cv_moshalf"] = plots_cv_moshalf
             self.reset_power_supplies()
             self.reset_switch()
         if 'mos2000' in self.testset:
-            plots_cv_mos2000 = self.doCVScan(self.config['devices']['switch']['connections']['lcrmeter'], ax1, name='MOS2000')
+            plots_cv_mos2000 = self.doCVScan(ax1, name='MOS2000')
             plots["cv_mos2000"] = plots_cv_mos2000
             self.reset_power_supplies()
             self.reset_switch()
         if 'gcd' in self.testset:
-            plots_iv_gcd = self.doIVScan(self.config['devices']['switch']['connections']['picoammeter'], ax2, name='GCD')
+            plots_iv_gcd = self.doIVScan(ax2, name='GCD')
             plots["iv_gcd"] = plots_iv_gcd
             self.reset_power_supplies()
             self.reset_switch()

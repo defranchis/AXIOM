@@ -3,7 +3,6 @@ import time
 import getpass
 import socket
 import glob
-import yaml
 import logging
 import platform
 import numpy as np

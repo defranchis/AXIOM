@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------------------------------------
 # These schemas are used to validate the configuration files
-# Changing these is only required if you want to add verifications and will not infuence the code logic,  
+# Changing these is only required if you want to add verifications and will not influence the code logic,  
 #    (besides having to press yes to continue when the config doesn't match the schema.)
 # -----------------------------------------------------------------------------------------------------------
 
