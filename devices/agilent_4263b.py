@@ -7,7 +7,7 @@ from devices.pyvisa_device import device
 
 class agilent_4263b(device):
 
-    def __init__(self, address):
+    def __init__(self, address, **kwargs):
         """ Constructor for the Agilent 4263B LCR meter.
         """
         device.__init__(self, address=address)

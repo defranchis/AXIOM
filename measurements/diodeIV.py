@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Qt5Agg')  # TODO:    THIS SHOULD REALLY BE MOVED TO THE BASE MEASUREMENT CLASS SO THAT EVERY MEASUREMENT USES QT5Agg
 plt.style.use('ggplot')
 import time, math
 import numpy as np
-import yaml
 
 #TODO: move general imports to base measurement class
 
 # Module structure import
 from measurements import measurement
-import devices
 
 def init_liveplot():
     plt.ion()
@@ -17,7 +16,10 @@ def init_liveplot():
     ax0 = fig.add_subplot(121)
     ax1 = fig.add_subplot(122)
     figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    # Maximize window depending on backend
+    # The is caused by of the lack of a virtual environment, if we used that we could completely avoid these random inconsistencies.
+    figManager.window.showMaximized()  # This works for Qt5Agg backend
+    # Add more backends as needed
 
     return fig, ax0, ax1
 
@@ -56,27 +58,24 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
     # No need to return a line object
     return None
 
-class testMD_DiodeGR(measurement):
+class diodeIV(measurement):
 
-    def __init__(self, ide, config_path):
-        super().__init__(ide)    #initialize using the base class initializer, before setting the config path. 
-        self.config_path = config_path
+    def __init__(self, config=None, current_dose=None, n_annealing = None, **kwargs):
+        super().__init__(config=config, current_dose=current_dose, n_annealing=n_annealing)
+        
 
     def initialise(self):
 
-        with open(self.config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(self.config)
-
-        self.logging.info("\t")
-        self.logging.info("------------------------------------------")
-        self.logging.info("Running test: %s" % self.__class__.__name__)
-        self.logging.info("------------------------------------------")
-        self.logging.info(self.__doc__)
-        self.logging.info("\t")
+        # self.logging.info("\t")
+        # self.logging.info("------------------------------------------")
+        # self.logging.info("Running test: %s" % self.__class__.__name__)
+        # self.logging.info("------------------------------------------")
+        # self.logging.info(self.__doc__)
+        # self.logging.info("\t")
 
         self._initialise()
-
+        self._initialise_devices()
+        
         # IV measurement voltage sweep range
         self.volt_list_iv = np.arange(
             self.config['measurements']['IV']['measurement_range']['v_start'],
@@ -91,12 +90,12 @@ class testMD_DiodeGR(measurement):
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 
-        ## Set up sourcemeter
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        # ## Set up sourcemeter
+        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
 
-        ## Set up volt meters
-        self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
-        self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
+        # ## Set up volt meters
+        # self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
+        # self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
 
     #TODO: refactor since it also resets the picoammeters
     def reset_power_supplies(self):

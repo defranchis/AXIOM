@@ -1,6 +1,10 @@
+measurement_type: 'gcdmos'
 sample:
+  type: 'gcdmos' #TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
+  id: 1337420  #TODO:: this should always be requested from the cli
   preirradiated: true
-  current_dose: 3
+  current_dose: 3        # this is only used if no dose is provided by the runner (when running msr without obelix)
+
 
 devices:
   sourcemeter_1:
@@ -13,7 +17,7 @@ devices:
     address: 25
     lim_cur: 1.0e-3 # compliance current in [A]
     
-  switch:
+  switch:           #if the switch is specified, it will try to initialize and use it. if directly connecting to devices, comment switch out.
     model: 'ke7001'
     address: 7
     connections:
@@ -31,7 +35,7 @@ devices:
 
 
 measurements: 
-  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued,  and which devices initialized
+  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   CV:
     range:
       v_start: 0.   #  -50 if '120um' in self.id else -100

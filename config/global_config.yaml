@@ -1,0 +1,52 @@
+measurement_type: 'diodeIV'
+sample:
+  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
+  id: 1337420  #TODO:: this should always be requested from the cli
+  preirradiated: true
+  current_dose: 3        # enter the value of the total integrated irradiation of the sample. this is only used if no dose is provided by the runner,
+
+
+devices:
+  sourcemeter_1:
+    model: 'ke2410'  
+    address: 25
+    lim_cur: 1.0e-3    # compliance in [A]
+
+  switch:
+    model: 'ke7001'
+    address: 7
+
+  picoammeter_1:
+    model: 'ke6487'
+    address: 15
+
+  picoammeter_2:
+    model: 'ke6487'
+    address: 23
+
+
+measurements:
+  IV:
+    measurement_range:
+      v_start: -0.5
+      v_end: 0.5
+      step_size: 0.1
+    bias_range:
+      v_start: -10  
+      v_end: -800
+      step_size: -20
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
+
+
+irradiation:
+  doselist: [0,1,2,5,10]
+  dose_rate: 14.257  ## value taken on Aug 31st 2023
+  voltage: 40  # the voltage of the tube in kV
+  current: 50  # the current of the tube in mA
+  biasing: false  # whether to bias the sample during irradiation
+
+
+
+annealing:
+  period: 60  # time in [m] between measurements

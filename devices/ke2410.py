@@ -22,9 +22,10 @@ class ke2410(device):
     dev.reset()
     """
 
-    def __init__(self, address):
+    def __init__(self, address, lim_cur=1.0e-3, **kwargs):
         device.__init__(self, address=address)
-        #self.ctrl.write("*RST")
+        self.ctrl.write("*RST")
+        self.ctrl.write(":SENS:CURR:PROT %f" % lim_cur)
 
     def print_idn(self, debug=0):
         if debug == 1:

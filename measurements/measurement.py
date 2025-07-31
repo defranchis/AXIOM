@@ -8,6 +8,7 @@ import platform
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import devices
 from utils.tools import add_coloring_to_emit_ansi
 
 
@@ -19,44 +20,99 @@ def mkdir(d):
 class measurement(object):
     """ Abstract measurement class. """
 
-    def __init__(self, ide="", dire=""):
-        self.id = ide
+    def __init__(self, dire="", config=None, current_dose=None, n_annealing=None):
+        self.config = config
         self.base = dire
 
-        ## Create log directory
-        self.ldir = "%slogs/%s" % (self.base, self.id)
+        # TODO: remove this dependency, this is only required for gcdmos and should be changed 
+        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('current_dose', 0) 
+
+        # 1. Handle dose fallback
+        if current_dose is None:
+            current_dose = config['sample'].get('current_dose', 0)
+
+        # 2. Construct ID base
+        self.id = f"{config['sample']['type']}_{config['sample']['id']}_{current_dose}kGy"
+
+        # 3. Append annealing info if applicable
+        if "annealing" in config and n_annealing is not None:
+            period = config["annealing"].get("period", "X")
+            self.id += f"_annealStep{n_annealing}_p{period}min"
+
+        # --- Directory setup ---
+        self.ldir = f"{self.base}logs/{self.id}"
         mkdir(self.ldir)
 
-        ## Create run directory
         self.nrun = self.get_run_id(self.id)
-        self.rdir = "%s/%s" % (self.ldir, self.nrun)
+        self.rdir = f"{self.ldir}/{self.nrun}"
         mkdir(self.rdir)
 
-        ## Set log file
-        self.logfile = '%s/log.txt' % (self.rdir)
+        self.logfile = f"{self.rdir}/log.txt"
 
-        ## Create logger and formater
+        # --- Logger setup ---
         logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s", datefmt='%H:%M:%S')
         self.logging = logging.getLogger('root')
         self.logging.setLevel(logging.DEBUG)
 
-        ## Add colours
-        if platform.system() == 'Windows':
-            # logging.StreamHandler.emit = add_coloring_to_emit_windows(logging.StreamHandler.emit)
-            pass
-        else:
-            logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
+        if not self.logging.handlers:
+            if platform.system() != 'Windows':
+                logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
-        ## Add logging to console
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setFormatter(logFormatter)
-        self.logging.addHandler(consoleHandler)
+            consoleHandler = logging.StreamHandler()
+            consoleHandler.setFormatter(logFormatter)
+            self.logging.addHandler(consoleHandler)
 
-        ## Add logging to file
-        fileHandler = logging.FileHandler(filename=self.logfile)
-        fileHandler.setFormatter(logFormatter)
-        self.logging.addHandler(fileHandler)
+            fileHandler = logging.FileHandler(filename=self.logfile)
+            fileHandler.setFormatter(logFormatter)
+            self.logging.addHandler(fileHandler)
 
+        # --- Log header ---
+        self.logging.info("\t")
+        self.logging.info("------------------------------------------")
+        self.logging.info("Running test: %s" % self.__class__.__name__)
+        self.logging.info("------------------------------------------")
+        self.logging.info("\t")
+
+
+        
+    def _initialise_devices(self):
+        """
+        Dynamically initializes all devices listed in the config file.
+
+        This function iterates through the 'devices' section of the provided
+        config, instantiates the corresponding device class with its
+        parameters, and attaches it as an attribute to the measurement instance.
+        """
+        self.logging.info("--- Initialising devices from config ---")
+        if 'devices' not in self.config:
+            self.logging.warning("No 'devices' section found in the config file.")
+            return
+
+        for device_name, params in self.config['devices'].items():
+            try:
+                model_name = params['model']
+                # Copy params to pass as keyword arguments, removing 'model'
+                init_params = params.copy()
+                del init_params['model']
+
+                # Get the class from the 'devices' module
+                device_class = getattr(devices, model_name)
+
+                # Instantiate the class with its parameters
+                device_instance = device_class(**init_params)
+
+                # Attach the instance to self (e.g., self.sourcemeter_1 = <ke2410 object>)
+                setattr(self, device_name, device_instance)
+                self.logging.info(f"Successfully initialised '{device_name}' (Model: {model_name})")
+
+            except AttributeError:
+                self.logging.error(f"Device model '{model_name}' not found in the devices module.")
+            except KeyError:
+                self.logging.error(f"Device '{device_name}' is missing the 'model' key in the config.")
+            except Exception as e:
+                self.logging.error(f"Failed to initialise device '{device_name}': {e}")
+        self.logging.info("------------------------------------")
+        
     def get_time(self):
         return time.strftime("%H:%M:%S", time.localtime())
 

@@ -2,14 +2,11 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import time, math
 import numpy as np
-import yaml
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
-
 #TODO: move general imports to base measurement class
 
 # Module structure import
 from measurements import measurement
-import devices 
 
 def init_liveplot():
     plt.ion()
@@ -45,45 +42,26 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
     # No need to return the line object anymore
     return None
 
-class testEF_fullDiode(measurement): 
+class diodeCV(measurement): 
     
-    def __init__(self, ide, config_path):
-        super().__init__(ide)
-        self.config_path = config_path
-
-    def initialise(self):
+    def __init__(self, config=None, current_dose=None, n_annealing = None, **kwargs):
+        super().__init__(config=config, current_dose=current_dose, n_annealing=n_annealing)
         
-        with open(self.config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(self.config)
-
-        self.logging.info("\t")
-        self.logging.info("------------------------------------------")
-        self.logging.info("Running test: %s" % self.__class__.__name__)
-        self.logging.info("------------------------------------------")
-        self.logging.info(self.__doc__)
-        self.logging.info("\t")
-
+    def initialise(self):
         self._initialise() # base class initialisation
+
+        self._initialise_devices() # initialise devices from config
+
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
+        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
+
 
         self.volt_list_CV = [round(v, 1) for v in np.arange(self.config['measurements']['CV']['range']['v_start'],
                                                             self.config['measurements']['CV']['range']['v_end'] +
                                                             self.config['measurements']['CV']['range']['step_size'],
                                                             self.config['measurements']['CV']['range']['step_size'])]  # Voltage range
             
-
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        self.switch = getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        self.reset_switch() 
-        
-        self.lcrmeter = getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode(self.config['devices']['lcrmeter']['mode'])
-        self.lcrmeter.set_frequency(self.config['measurements']['CV']['lcr_frequency'])
-
-        # self.logging.info(" ----TIMER ----device init took", time.time() - self.timer, "seconds")
-        self.timer = time.time()
         
     def reset_power_supplies(self):
         ## Reset power supply for CV measurement
@@ -278,7 +256,7 @@ class testEF_fullDiode(measurement):
         self.logging.info('\n\n CV SCAN FINISHED\n\n')
 
     def execute(self):
-        # Name of files
+    #     Name of files
         name =  self.__class__.__name__
 
         # Create plots

@@ -1,40 +1,19 @@
 import serial
 import datetime, time
 import sys
-import os
-from time import gmtime, strftime
 import re
+import yaml
+
 from obelixWarnings import generalWarnings
 
-from devices.ke2410 import *
-from devices.ke7001 import *
-
-## Set up the switch
-switch = ke7001(7)
-switch.reset(1)
-switch.get_idn()
-switch.open_all()
-
-pow_supply = ke2410(25) ## address of the power supply to bias the MOS
-pow_supply.reset()
-pow_supply.set_source('voltage')
-pow_supply.set_sense('current')
-pow_supply.set_current_limit(0.0002)
-pow_supply.set_voltage(0)
-pow_supply.set_terminal('rear')
+import devices
 
 
-def convertkGyToTime(nkGy):
-    ## the dose rate anne is 24.26389 kGy per hour
-    ## that means anne kGy per 3600 seconds
-    ## that in turn means 3600/anne = 148.36862514625642 seconds per kGy
 
-    ## doseRate = 24.26389 ## this is at 19.6 cm
-    #doseRate = 13.2465  ## this is at 24.6 cm
-    ## used for N4789-12_UL doseRate = 39.1895  ## value taken on november 1st 2021
-    doseRate = 14.257  ## value taken on Aug 31st 2023
-    doseRate = doseRate ##
-    nSeconds = int(3600./doseRate * nkGy)
+
+
+def convertkGyToTime(nkGy, dose_rate=None):
+    nSeconds = int(3600./dose_rate * nkGy)
     hms = str(datetime.timedelta(seconds=nSeconds))
     hms = [int(i) for i in hms.split(':')]
     return hms[0], hms[1], hms[2]
@@ -52,18 +31,18 @@ def biasMOS2000_ON(channel=3):
     print('OBELIX: now turning the MOS2000 bias ON...')
     switch.open_all()
     switch.close_channel(channel)
-    pow_supply.set_output_on()
-    pow_supply.ramp_voltage(getCalibratedVoltage(10))
-    #pow_supply.ramp_voltage(7.)
+    sourcemeter_1.set_output_on()
+    sourcemeter_1.ramp_voltage(getCalibratedVoltage(10))
+    #sourcemeter_1.ramp_voltage(7.)
     time.sleep(2)
 
 def biasMOS2000_OFF(channel=3):
     print('OBELIX: now turning the MOS2000 bias OFF...')
-    pow_supply.ramp_voltage(0)
+    sourcemeter_1.ramp_voltage(0)
     time.sleep(2)
     switch.open_all()
-    pow_supply.set_output_off()
-    pow_supply.reset()
+    sourcemeter_1.set_output_off()
+    sourcemeter_1.reset()
 
 def convertToBinary(word):
     word = word[1:];
@@ -126,7 +105,6 @@ def statusRead4():    #status window 3 and 4
         print ("OBELIX: all irradiation parameters look okay")
         return 1
 
-
 def testCurrent(int_current_mA):
     if(int_current_mA < 2 or int_current_mA > 80 or type(int_current_mA) != int):
         return False;    
@@ -141,7 +119,6 @@ def nominalCurrent():
     answerCN = int(answerCN[1:]);#Delete*in the front of the answer
     return int(answerCN/1000);
 
-
 def actualCurrent():
     port.readlines()
     port.write( 'CA\r'.encode() );    #Request actual current
@@ -149,7 +126,6 @@ def actualCurrent():
     answerCA = port.readline(12);
     answerCA = int(answerCA[1:]);
     return int(answerCA/1000);
-
 
 def setCurrent(int_current_mA):
     if(testCurrent(int_current_mA) == False):
@@ -180,13 +156,10 @@ def setCurrent(int_current_mA):
     print (">> Actual current has reached {0}mA".format(int_current_mA));
     return answerCN;
 
-
-
 def testVoltage(int_voltage_kV):
     if(int_voltage_kV < 2 or int_voltage_kV > 60 or type(int_voltage_kV) != int):
         return False;
     return True;
-
 
 def nominalVoltage():
     port.readlines()
@@ -195,7 +168,6 @@ def nominalVoltage():
     answerVN = port.readline(12);
     answerVN = int(answerVN[1:]);    #Delete * in the front of the answer
     return int(answerVN/1000);
-
 
 def actualVoltage():
     port.readlines()
@@ -260,7 +232,6 @@ def turnHVOn():
     print('OBELIX: the actual voltage is', act_volt)
     print('OBELIX: the actual current is', act_curr)
     
-
 def openShutter(int_shutternumber, override=''):
     if not override:
         a = input('ATTENTION: are you sure you want to start irradiation (type "yes" if so)? ')
@@ -291,7 +262,6 @@ def openShutter(int_shutternumber, override=''):
     if(int_shutternumber == 3):
         return statusRead4();
 
-
 def closeShutter(int_shutternumber):
     while(int_shutternumber != 2 and int_shutternumber != 3 or type(int_shutternumber) != int):
         int_shutternumber = input("OBELIX: Please choose a correct shutternumber to close (2 (back) or 3 (down)... ");
@@ -301,7 +271,6 @@ def closeShutter(int_shutternumber):
     time.sleep(3);
     if(int_shutternumber == 3):
         return(not statusRead4());
-
 
 def validateSetTimerString(setTimerString):
     reg = re.match(r'([ ]*)([0-9]{1}) ([0-9]{2}) ([0-9]{2}) ([0-9]{2})([ ]*)',setTimerString)
@@ -322,10 +291,6 @@ def validateSetTimerString(setTimerString):
         else:
             print('>> Timer string validated')
             return [int(reg.group(2)), int(reg.group(3)), int(reg.group(4)), int(reg.group(5))]
-            
-
-
-
 
 def exposureTimerOn (n):
     port.write('SR:02\n'.encode())
@@ -350,14 +315,11 @@ def exposureTimerOn (n):
         return True
     return False
 
-
-
 def nominalExposureTimer(n):
     port.write(('TN:%1d\r' %n).encode())
     time.sleep(1)
     answerNET = port.readline(12)
     return answerNET[1:]
-
 
 def actualExposureTimer(n):
     port.write(('TA:%1d\r' %n).encode())
@@ -365,8 +327,6 @@ def actualExposureTimer(n):
     answerAET = port.readline(12)
     return answerAET[1:]
 
-
-## timer number 3!
 def setExposureTimer(n,hours,minutes,seconds):
 
     print('OBELIX: setting the exposure timer to {h} hours, {m} minutes, and {s} seconds'.format(h=hours,m=minutes,s=seconds))
@@ -406,7 +366,6 @@ def setExposureTimer(n,hours,minutes,seconds):
     #else:
     #    print("This timer is already On")
 
-
 def secondsToHoursMinutesAndSeconds(seconds):
     
     hours = seconds/3600
@@ -414,7 +373,6 @@ def secondsToHoursMinutesAndSeconds(seconds):
     seconds = ((seconds % 3600) % 60)
 
     return [hours, minutes, seconds]
-
 
 def readExposureTimerActualValue(n):
 
@@ -425,77 +383,97 @@ def readExposureTimerActualValue(n):
     exposureTimerSeconds = exposureTimerSeconds[1:(len(exposureTimerSeconds)-1)]
     return int(exposureTimerSeconds)
     
-
-
 if __name__ == '__main__':
 
-    #From now on it's the main code
-    
-    port = serial.Serial('COM3',baudrate = 9600,timeout=1)
+    # port = serial.Serial('COM3',baudrate = 9600,timeout=1)
 
     args = sys.argv
 
     if args[-1] == 'killObelix':
-        if statusRead4():
-            print('OBELIX: SOMEBODY WANTS TO KILL ME!!!')
-            print('OBELIX: KILLING IT ALLLLLLLL')
-            port.write('CS:3\r'.encode())
-            port.write('HV:0\r'.encode())
-            print('exiting after keyboard interrupt')
-            biasMOS2000_OFF(channel=3)
-            exit(0)
+        # if statusRead4():
+            # print('OBELIX: SOMEBODY WANTS TO KILL ME!!!')
+            # print('OBELIX: KILLING IT ALLLLLLLL')
+            # port.write('CS:3\r'.encode())
+            # port.write('HV:0\r'.encode())
+            # print('exiting after keyboard interrupt')
+            # biasMOS2000_OFF(channel=3)
+        exit(0)
+    else:
+        config_path = args[1]
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            # print("Loaded config:")
+            # print(yaml.dump(config, default_flow_style=False))
 
-    _currentDose = float(args[1])
-    _targetDose  = float(args[2])
 
-        
+    current_dose = float(args[2])
+    target_dose  = float(args[3])
+    if current_dose == target_dose:
+        print("CURRENT DOSE  == TARGET DOSE, NO WORK TO DO, EXITING")
+        exit(0)
+    else:
+        print(f"going from {current_dose} to {target_dose}")
 
-    _overrideUserInput = ''
-    if len(args) > 3:
-        _overrideUserInput = args[3]
+    print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=target_dose - current_dose))
+    time.sleep(2)
+    
+    if config['irradiation']['biasing'] :
+        switch = getattr(devices, config['devices']['switch']['model'])(config['devices']['switch']['address'])
+        switch.reset(1)
+        switch.get_idn()
+        switch.open_all()
+
+        sourcemeter_1 = getattr(devices, config['devices']['sourcemeter_1']['model'])(config['devices']['sourcemeter_1']['address'])
+        sourcemeter_1.reset()
+        sourcemeter_1.set_source('voltage')
+        sourcemeter_1.set_sense('current')
+        sourcemeter_1.set_current_limit(config['devices']['sourcemeter_1']['lim_cur'])
+        sourcemeter_1.set_voltage(0)
+        sourcemeter_1.set_terminal('rear')
+
+    # _overrideUserInput = 'yes'
+
     
     
-    try:
-        #inputVoltage = input("Enter the voltage of the tube in kV ") 
-        nom_volt = setVoltage(40) #int(inputVoltage))
-        #inputCurrent = input("Enter the current of the tube in mA ")
-        nom_curr = setCurrent(50) #int(inputCurrent))
-        validateSetTimerStringRet = None
-        ##while(validateSetTimerStringRet == None):
-        ##    setTimerString = input("Enter the exposure timer number, the hours, minutes and seconds (use spaces between values) ")
-        ##    validateSetTimerStringRet = validateSetTimerString(setTimerString)
+    # try:
+    #     nom_volt = setVoltage(config['irradiation']['voltage']) 
+    #     nom_curr = setCurrent(config['irradiation']['current']) 
 
-        dose_current = _currentDose #float(input('OBELIX: enter the CURRENT dose of the sample'))
-        dose_target  = _targetDose  #float(input('OBELIX: enter the TARGET  dose of the sample'))
-        dose_toirr  = dose_target - dose_current
+    #     validateSetTimerStringRet = None
+
+    #     dose_toirr  = target_dose - current_dose
   
-        print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=dose_current, b=dose_target, c=dose_toirr))
-        hours, minutes, seconds = convertkGyToTime(dose_toirr)
-        setExposureTimer(3, hours, minutes, seconds)
-        #remainingTimeInSeconds = (int(validateSetTimerStringRet[1]) * 3600 + int(validateSetTimerStringRet[2]) * 60 + int(validateSetTimerStringRet[3]))
-        #shutterNumber = input("Enter the shutter number ")
-        remainingTimeInSeconds = readExposureTimerActualValue(3)
-        turnHVOn()
-        biasMOS2000_ON(channel=3)
-        openShutter(3, _overrideUserInput) #int(shutterNumber))
-        while(remainingTimeInSeconds):
-            remainingTimeInSeconds = readExposureTimerActualValue(3)
-            hours, minutes, seconds = secondsToHoursMinutesAndSeconds(remainingTimeInSeconds)
-            #print('>> Elapsed Time in Seconds: %d' %elapsedTimeInSeconds)
-            print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time: {h}h {m}m {s}s'.format(a=dose_current,b=dose_target,h=hours,m=minutes,s=seconds))
-            print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours,minutes,seconds))
-            generalWarnings(port)
-            ret = statusRead4()
-            if ret == -1:
-                pass
-            time.sleep(1)
-        biasMOS2000_OFF(channel=3)
+    #     print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=dose_toirr))
+    #     hours, minutes, seconds = convertkGyToTime(dose_toirr, dose_rate=config['irradiation']['dose_rate'])
+    #     setExposureTimer(3, hours, minutes, seconds)
+
+    #     remainingTimeInSeconds = readExposureTimerActualValue(3)
+
+    #     turnHVOn()
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
+    #     openShutter(3, _overrideUserInput) #int(shutterNumber))
+
+    #     while(remainingTimeInSeconds):
+    #         remainingTimeInSeconds = readExposureTimerActualValue(3)
+    #         hours, minutes, seconds = secondsToHoursMinutesAndSeconds(remainingTimeInSeconds)
+    #         #print('>> Elapsed Time in Seconds: %d' %elapsedTimeInSeconds)
+    #         print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time: {h}h {m}m {s}s'.format(a=current_dose,b=target_dose,h=hours,m=minutes,s=seconds))
+    #         print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours,minutes,seconds))
+    #         generalWarnings(port)
+    #         ret = statusRead4()
+    #         if ret == -1:
+    #             pass
+    #         time.sleep(1)
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
     
-    except: #Exception as e:
-        print('OBELIX: EXCEPTION RAISED!!!')
-        port.write('CS:3\r'.encode())
-        port.write('HV:0\r'.encode())
-        print('exiting after keyboard interrupt')
-        biasMOS2000_OFF(channel=3)
-        exit(1)
+    # except: #Exception as e:
+    #     print('OBELIX: EXCEPTION RAISED!!!')
+    #     port.write('CS:3\r'.encode())
+    #     port.write('HV:0\r'.encode())
+    #     print('exiting after keyboard interrupt')
+    #     if config['irradiation']['biasing'] :
+    #         biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
+    #     exit(1)
     

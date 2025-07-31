@@ -5,12 +5,9 @@ from matplotlib.ticker import AutoMinorLocator, MaxNLocator
 plt.style.use('ggplot')
 import time, math
 import numpy as np
-import yaml
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
-
 from measurements import measurement
-import devices
 
 
 
@@ -75,26 +72,24 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
     # No need to return a line object
     return None
 
-class testMD_fullStrip(measurement):
+class strip(measurement):
 
-    def __init__(self, ide, config_path):
-        super().__init__(ide)    
-        self.config_path = config_path 
+    def __init__(self, config=None, current_dose=None, n_annealing = None, **kwargs):
+        super().__init__(config=config, current_dose=current_dose, n_annealing=n_annealing)
+        
 
     def initialise(self):
-
-        with open(self.config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
-            self.logging.info(self.config)
-
-        self.logging.info("\t")
-        self.logging.info("------------------------------------------")
-        self.logging.info("Running test: %s" % self.__class__.__name__)
-        self.logging.info("------------------------------------------")
-        self.logging.info(self.__doc__)
-        self.logging.info("\t")
+        # self.logging.info("\t")
+        # self.logging.info("------------------------------------------")
+        # self.logging.info("Running test: %s" % self.__class__.__name__)
+        # self.logging.info("------------------------------------------")
+        # self.logging.info(self.__doc__)
+        # self.logging.info("\t")
 
         self._initialise()
+        self._initialise_devices()
+        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        self.lcrmeter.set_mode('RX')
 
         # CV measurement voltage list from config
         self.volt_list_bias_CV = np.arange(
@@ -117,19 +112,19 @@ class testMD_fullStrip(measurement):
             self.config['measurements']['IV']['bias_range']['step_size']
         )
 
-        self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-        self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
+        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
+        # self.sourcemeter_2 = getattr(devices, self.config['devices']['sourcemeter_2']['model'])(self.config['devices']['sourcemeter_2']['address'])
 
-        self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
-        self.reset_switch()
+        # self.switch =  getattr(devices, self.config['devices']['switch']['model'])(self.config['devices']['switch']['address'])
+        # self.reset_switch()
 
-        ## Set up lcr meter
-        self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
-        self.lcrmeter.reset()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode('RX')
+        # ## Set up lcr meter
+        # self.lcrmeter =  getattr(devices, self.config['devices']['lcrmeter']['model'])(self.config['devices']['lcrmeter']['address'])
+        # self.lcrmeter.reset()
+        # self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+        # self.lcrmeter.set_mode('RX')
 
-        self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
+        # self.picoammeter =  getattr(devices, self.config['devices']['picoammeter']['model'])(self.config['devices']['picoammeter']['address'])
 
     def reset_power_supplies(self):
 
@@ -414,16 +409,7 @@ class testMD_fullStrip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
-                    lineCV = self.CVpoint(v, f, 1) #TODO: READ CHANNEL DYNAMICALLY FROM CONFIG
-                    
-                    # lineCV = [biasV, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
-                    r, dr = lineCV[3], lineCV[4]
-                    x, dx = lineCV[5], lineCV[6]
-                    cp = lineCV[8]
-
-                    # Calculate error for parallel capacitance (Cp)
-                    dcp = abs(cp / x) * dx if x != 0 else 0
-
+                    lineCV = self.CVpoint(v, f, self.config['devices']['switch']['connections']['lcrmeter'])
                     outCVs[idx].append(lineCV)
                     biasVs[idx].append(lineCV[0])
                     Rs_LCRs[idx].append(r)
@@ -476,7 +462,7 @@ class testMD_fullStrip(measurement):
 
         try:
             # Do IV Scan
-            self.switch.close_channel(3)
+            self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])  
             self.sourcemeter_1.set_output_on()
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
