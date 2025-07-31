@@ -410,6 +410,15 @@ class strip(measurement):
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
                     lineCV = self.CVpoint(v, f, self.config['devices']['switch']['connections']['lcrmeter'])
+                    
+                    # lineCV = [biasV, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                    r, dr = lineCV[3], lineCV[4]
+                    x, dx = lineCV[5], lineCV[6]
+                    cp = lineCV[8]
+
+                    # Calculate error for parallel capacitance (Cp)
+                    dcp = abs(cp / x) * dx if x != 0 else 0
+
                     outCVs[idx].append(lineCV)
                     biasVs[idx].append(lineCV[0])
                     Rs_LCRs[idx].append(r)
