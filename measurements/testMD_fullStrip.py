@@ -41,43 +41,39 @@ def mypause(interval):
             canvas.start_event_loop(interval)
             return
 
-def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k',pause_time=0.1):
-    if line == []:
-        #plt.ion()
-        ax.clear()
-        plt.cla()
+def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k',pause_time=0.1):
+    # Clear the axis completely on each call
+    ax.clear()
 
-        line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
+    # Plot the data with error bars, providing a fallback for missing error data
+    if y_err_vec is None or not y_err_vec:
+        y_err_vec = np.zeros_like(y_vec)
 
-        ax.set_title(identifier)
-        #update plot label/title
-        ax.set_ylabel(yaxis_title)
-        ax.set_xlabel('voltage')
-        plt.show()
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
+    ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
 
-    line.set_xdata(x_vec)
-    line.set_ydata(y_vec)
+    # Set titles and labels
+    ax.set_title(identifier)
+    ax.set_ylabel(yaxis_title)
+    ax.set_xlabel('Voltage [V]')
+    ax.legend(loc='best') # Show legend for identifier
 
-    '''
-    # adjust limits if new data goes beyond bounds
-    if np.min(y_vec)<=line.axes.get_ylim()[0] or np.max(y_vec)>=line.axes.get_ylim()[1]:
-        ax.set_ylim([np.min(y_vec)-np.std(y_vec),np.max(y_vec)+np.std(y_vec)])
-    if np.min(x_vec)<=line.axes.get_xlim()[0] or np.max(x_vec)>=line.axes.get_xlim()[1]:
-        ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
-    '''
-    
-    
-    ax.set_ylim([np.min(y_vec)-0.005*abs(np.min(y_vec)),np.max(y_vec)+0.005*abs(np.max(y_vec))])
-    #ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
-    ax.set_xlim([np.min(x_vec)-0.5,np.max(x_vec)+0.5])
+    # Adjust plot limits dynamically
+    if x_vec and y_vec:
+        y_min, y_max = np.min(y_vec), np.max(y_vec)
+        y_range = y_max - y_min if y_max > y_min else abs(y_max)
+        if y_range > 0:
+            ax.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
 
-    # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
+        x_min, x_max = np.min(x_vec), np.max(x_vec)
+        x_range = x_max - x_min if x_max > x_min else abs(x_max)
+        if x_range > 0:
+            ax.set_xlim(x_min - 0.1 * x_range, x_max + 0.1 * x_range)
+
+    # This pauses the data so the figure/axis can catch up
     plt.pause(pause_time)
-    #mypause(pause_time)
 
-    return line
+    # No need to return a line object
+    return None
 
 class testMD_fullStrip(measurement):
 
@@ -398,18 +394,18 @@ class testMD_fullStrip(measurement):
         freq_list = self.config['measurements']['CV']['frequencies']
         num_freqs = len(freq_list)
 
-        # Prepare containers for each frequency
+        # Prepare containers for each frequency, including errors
         biasVs = [[] for _ in range(num_freqs)]
         Rs_LCRs = [[] for _ in range(num_freqs)]
+        Rs_LCRs_err = [[] for _ in range(num_freqs)] # For R errors
         Cs_LCRs = [[] for _ in range(num_freqs)]
-        lines_R = [[] for _ in range(num_freqs)]
-        lines_C = [[] for _ in range(num_freqs)]
+        Cs_LCRs_err = [[] for _ in range(num_freqs)] # For C errors
         outCVs = [[] for _ in range(num_freqs)]
         colors = ['b', 'r', 'g']
         axes_R = [ax0, ax4, ax6]
         axes_C = [ax1, ax5, ax7]
-        tmp_id_y_R = r'$R$'
-        tmp_id_y_C = r'$C$'
+        tmp_id_y_R = r'Resistance R [$\Omega$]'
+        tmp_id_y_C = r'Capacitance C [F]'
 
         self.reset_power_supplies()
         self.reset_switch()
@@ -418,18 +414,30 @@ class testMD_fullStrip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
-                    lineCV = self.CVpoint(v, f, 1) #TODO: READ CHANNEL DYANMICALLY FROM CONFIG
+                    lineCV = self.CVpoint(v, f, 1) #TODO: READ CHANNEL DYNAMICALLY FROM CONFIG
+                    
+                    # lineCV = [biasV, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
+                    r, dr = lineCV[3], lineCV[4]
+                    x, dx = lineCV[5], lineCV[6]
+                    cp = lineCV[8]
+
+                    # Calculate error for parallel capacitance (Cp)
+                    dcp = abs(cp / x) * dx if x != 0 else 0
+
                     outCVs[idx].append(lineCV)
                     biasVs[idx].append(lineCV[0])
-                    Rs_LCRs[idx].append(lineCV[3])
-                    Cs_LCRs[idx].append(lineCV[8])
+                    Rs_LCRs[idx].append(r)
+                    Rs_LCRs_err[idx].append(dr) # Store R error
+                    Cs_LCRs[idx].append(cp)
+                    Cs_LCRs_err[idx].append(dcp) # Store C error
+
                     if idx < len(colors):  # Only plot if color/axes available
-                        lines_R[idx] = live_plotter(
-                            biasVs[idx], Rs_LCRs[idx], axes_R[idx], lines_R[idx],
+                        live_plotter(
+                            biasVs[idx], Rs_LCRs[idx], Rs_LCRs_err[idx], axes_R[idx],
                             identifier=f"RV curve (LCR) {f:.0f}Hz", yaxis_title=tmp_id_y_R, color=colors[idx]
                         )
-                        lines_C[idx] = live_plotter(
-                            biasVs[idx], Cs_LCRs[idx], axes_C[idx], lines_C[idx],
+                        live_plotter(
+                            biasVs[idx], Cs_LCRs[idx], Cs_LCRs_err[idx], axes_C[idx],
                             identifier=f"CV curve {f:.0f}Hz", yaxis_title=tmp_id_y_C, color=colors[idx]
                         )
 
@@ -444,7 +452,7 @@ class testMD_fullStrip(measurement):
 
         # Save plots and data for each frequency
         for idx, f in enumerate(freq_list):
-            if idx < len(colors):  # Only save if axes available
+            if idx < len(colors):
                 self.saveSinglePlot(fig, axes_C[idx], f"{f:.0f}Hz_cv_LCR_{self.id}_{name}.png")
                 self.saveSinglePlot(fig, axes_R[idx], f"{f:.0f}Hz_rv_LCR_{self.id}_{name}.png")
             self.save_list(outCVs[idx], f"{f:.0f}Hz_" + fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
@@ -455,29 +463,24 @@ class testMD_fullStrip(measurement):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
         self.reset_power_supplies()
-        self.reset_switch()#TODO: this should be outside of the IVscan function to allow usage without switch when doing only IV or CV
+        self.reset_switch()
         fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
         fname_out_RV = '_'.join(['rv', self.id, name]) + '.dat'
-        tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
-        tmp_id_y_R     = r'$R$'
-        tmp_id_y     = 'current'
+        tmp_id_y_R = r'Resistance R [$\Omega$]'
+        tmp_id_y_I = 'Current [A]'
 
         biasVs = []
-        line2 = []
         outRV = []
         Rs_amp = []
-        
+        Rs_amp_err = [] # For R errors (will be zero)
 
         try:
             # Do IV Scan
             self.switch.close_channel(3)
             self.sourcemeter_1.set_output_on()
-        
-            #self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t')
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
             for v in self.volt_list_bias_IV:
-
                 start_time = time.time()
                 
                 self.sourcemeter_1.ramp_up(v)
@@ -485,46 +488,53 @@ class testMD_fullStrip(measurement):
                 self.sourcemeter_2.set_output_on()
                 time.sleep(self.config['measurements']['IV']['delay'])
 
-
-                if(not self.sourcemeter_1.check_compliance()):
+                if not self.sourcemeter_1.check_compliance():
                     self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)
 
-                line3 = []
+                # Initialize lists for the inner loop IV curve
                 Vs_amp = []
                 Is_amp = []
+                Is_amp_err = [] # For I errors
                 outIV_oneBias = []
-                
 
                 for measV in self.volt_list_iv:
                     lineIV = self.IVpoint(v, measV)
                     outIV_oneBias.append(lineIV)
-                    # Recall that lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs]
+                    # lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs, cur_totSmall]
                     Vs_amp.append(lineIV[4])
                     Is_amp.append(lineIV[5])
-                    line3 = live_plotter(
-                        Vs_amp, Is_amp, ax3, line3,
-                        identifier=f"IV Curve (Bias {v} V)", yaxis_title=tmp_id_y, color='g'
+                    Is_amp_err.append(lineIV[6]) # Store I error
+                    
+                    # Live plot the inner IV curve with error bars
+                    live_plotter(
+                        Vs_amp, Is_amp, Is_amp_err, ax3,
+                        identifier=f"IV Curve (Bias {v} V)", yaxis_title=tmp_id_y_I, color='g'
                     )
             
                 self.sourcemeter_2.ramp_down_slow()
-                # time.sleep(self.config['measurements']['IV']['step_delay'])
                 self.sourcemeter_2.set_output_off()
+                
                 biasVs.append(v)
-                fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
-                self.save_list(outIV_oneBias, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
-                self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
+                fname_out_IV_bias = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'
+                self.save_list(outIV_oneBias, fname_out_IV_bias, fmt="%.5E", header="\n".join(hdIV))
+                self.saveSinglePlot(fig, ax3, "iv_{a}_{b}_{c}.png".format(a=self.id, b=name, c=v))
 
+                # Note: retrieveR does not calculate error, so we pass zero error for the RV plot.
                 [R_amp, Iq_amp] = self.retrieveR(Vs_amp, Is_amp)
                 outRV.append([v, R_amp])
                 Rs_amp.append(R_amp)
-            
-                line2 = live_plotter(biasVs, Rs_amp, ax2, line2, identifier="RV Curve (Amp)", yaxis_title=tmp_id_y_R, color='r')
+                Rs_amp_err.append(0) # No error calculated for R from fit
+
+                # Live plot the outer RV curve (without error bars)
+                live_plotter(
+                    biasVs, Rs_amp, Rs_amp_err, ax2,
+                    identifier="RV Curve (from IV fit)", yaxis_title=tmp_id_y_R, color='r'
+                )
 
                 elapsed_time = time.time() - start_time
-                self.logging.info("Elapsed time:")
-                self.logging.info(elapsed_time)
+                self.logging.info(f"Elapsed time for bias {v}V: {elapsed_time:.2f}s")
         
-        except BaseException as e: #KeyboardInterrupt:
+        except BaseException as e:
             self.logging.info('EXCEPTION RAISED IN IV SCAN:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
@@ -534,7 +544,7 @@ class testMD_fullStrip(measurement):
         self.reset_switch()
         
         ## Save
-        self.saveSinglePlot(fig, ax2,"rv_{a}_{b}.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax2, "rv_{a}_{b}.png".format(a=self.id, b=name))
         self.save_list(outRV, fname_out_RV, fmt="%.5E", header="\n".join(hdRV))
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
@@ -553,9 +563,6 @@ class testMD_fullStrip(measurement):
             self.logging.info(line)
 
         self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
-        # print("-------------------------------------------------------------------------------")
-        # print("---------------- CURRENTLY ONLY RUNNING THE IV MEASUREMENTS -------------------")
-        # print("-------------------------------------------------------------------------------")
         self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
    
     def finalise(self):

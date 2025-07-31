@@ -30,7 +30,7 @@ measurements:
   CV:
     range:
       v_start: -100   #  -50 if '120um' in self.id else -100
-      v_end: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      v_end: -300   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
       step_size: -50
     sample_size: 20
     lcr_amplitude: 0.5
@@ -43,7 +43,7 @@ measurements:
       step_size: 0.2
     bias_range:
       v_start: -100
-      v_end: -400
+      v_end: -300
       step_size: -50
     sample_size: 10 # default = 10
     delay: 5
