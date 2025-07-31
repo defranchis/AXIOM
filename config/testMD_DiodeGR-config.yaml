@@ -6,10 +6,6 @@ devices:
     correction_count: 5
     lim_cur: 1.0e-3    # compliance in [A]
 
-  switch:
-    model: 'ke7001'
-    address: 7
-
   picoammeter_1:
     model: 'ke6487'
     address: 15

@@ -32,34 +32,29 @@ def mypause(interval):
             canvas.start_event_loop(interval)
             return
 
-def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k',pause_time=0.1):
-    if line == []:
-        #plt.ion()
-        ax.clear()
-        #plt.cla()
-
-        line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
-
-        ax.set_title(identifier)
-        #update plot label/title
-        ax.set_ylabel(yaxis_title)
-        ax.set_xlabel('voltage')
-        plt.show()
-        figManager = plt.get_current_fig_manager()
-        #figManager.window.showMaximized()
-        # figManager.window.state('zoomed')
-
-    line.set_xdata(x_vec)
-    line.set_ydata(y_vec) 
+def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k', pause_time=0.1):
+    # Clear the axis completely on each call
+    ax.clear()
     
-    ax.set_ylim([np.min(y_vec)-0.005*abs(np.min(y_vec)),np.max(y_vec)+0.005*abs(np.max(y_vec))])
-    ax.set_xlim([np.min(x_vec)-0.5,np.max(x_vec)+0.5])
+    # Plot the data with error bars using the specified color and a marker
+    ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
 
-    # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
+    # Set titles and labels
+    ax.set_title(identifier)
+    ax.set_ylabel(yaxis_title)
+    ax.set_xlabel('bias voltage [V]')
+    
+    # Adjust plot limits dynamically to fit the data
+    if len(y_vec) > 0:
+        ax.set_ylim([np.min(y_vec) - 0.05 * abs(np.min(y_vec)), np.max(y_vec) + 0.05 * abs(np.max(y_vec))])
+    if len(x_vec) > 0:
+        ax.set_xlim([np.min(x_vec) - 0.5, np.max(x_vec) + 0.5])
+    
+    # Pause to allow the plot to update
     plt.pause(pause_time)
-    #mypause(pause_time)
 
-    return line
+    # No need to return a line object
+    return None
 
 class testMD_DiodeGR(measurement):
 
@@ -198,12 +193,14 @@ class testMD_DiodeGR(measurement):
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
         self.reset_power_supplies()
         fname_out_IV = '_'.join(['iv', self.id, name]) + '.dat'
-        tmp_id_y     = 'current'
+        tmp_id_y     = 'current [A]' # Updated y-axis title for clarity
 
+        # Initialize lists to store plotting data, including errors
         biasVs = []
-        line2 = []
         I_diode = []
+        I_diode_err = [] # <-- Add list for diode current error
         I_GR = []
+        I_GR_err = []    # <-- Add list for GR current error
 
         try:
             # Do IV Scan
@@ -221,29 +218,19 @@ class testMD_DiodeGR(measurement):
                 if(not self.sourcemeter_1.check_compliance()):
                     self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)
 
-                line3 = []
-                Vs_amp = []
-                Is_amp = []
-                Is_amp2 = []
-                outIV_oneBias = []
-                
                 lineIV = self.IVpoint(v)
-                
-                outIV_oneBias.append(lineIV)
                 data_save.append(lineIV)
-
-                # Recall that lineIV = [biasV, vol, cur_tot, measV, volSmall, means, errs]
-                Vs_amp.append(lineIV[1])
-                Is_amp.append(lineIV[3])
-                Is_amp2.append(lineIV[5])
+                # lineIV = [biasV, vol, cur_tot, means, errs, means_2, errs_2]
+                # Extract currents AND their corresponding errors
+                biasVs.append(lineIV[0])
+                I_diode.append(lineIV[3])
+                I_diode_err.append(lineIV[4]) # <-- Capture diode error
+                I_GR.append(lineIV[5])
+                I_GR_err.append(lineIV[6])    # <-- Capture GR error
             
-                biasVs.append(v)
-                fname_out_IV = '_'.join(['iv', self.id, name, str(v), 'V']) + '.dat'    
-                I_GR.append(Is_amp2)
-                I_diode.append(Is_amp)
-            
-                line2 = live_plotter(biasVs, I_GR, ax2, line2, identifier="IV Curve GR", yaxis_title=tmp_id_y, color='g')
-                line3 = live_plotter(biasVs, I_diode, ax3, line3, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='g')
+                # Update the live plots with the error data
+                live_plotter(biasVs, I_GR, I_GR_err, ax2, identifier="IV Curve GR", yaxis_title=tmp_id_y, color='g')
+                live_plotter(biasVs, I_diode, I_diode_err, ax3, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='b') # Changed color for distinction
             
 
             #TODO: USE A PROFILING FUNCTION INSTEAD OF THIS MESS
