@@ -10,8 +10,8 @@ BASE_SCHEMA = {
     'sample': {
         'type': None,           # only used for naming the files  / logs
         'id': None,             # only used for naming the files  / logs
-        'preirradiated': None,  # used by gcdmos to determine some voltage logic
-        'current_dose': None    # only used when no dose is communicated by the obelix control, for debugging purposes. 
+        'preirradiated': None,  # used by gcdmos to determine some voltage logic (?) #TODO: remove this dependency since it can be inferred from current_dose
+        'current_dose': None    #value of the total integrated irradiation of the sample. this is only used if no dose is provided by the runner,
     }
 }
 
