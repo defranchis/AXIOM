@@ -33,32 +33,34 @@ def mypause(interval):
             canvas.start_event_loop(interval)
             return
 
-def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k',pause_time=0.1):
-    if line == []:
-        #plt.ion()
-        line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
+def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k',pause_time=0.1):
+    # Clear the axis completely on each call
+    ax.clear()
 
-        ax.set_title(identifier)
-        #update plot label/title
-        ax.set_ylabel(yaxis_title)
-        ax.set_xlabel('voltage')
-        plt.show()
+    # Plot the data with error bars
+    ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
 
-    line.set_xdata(x_vec)
-    line.set_ydata(y_vec)
+    # Set titles and labels
+    ax.set_title(identifier)
+    ax.set_ylabel(yaxis_title)
+    ax.set_xlabel('voltage [V]') # Standardized label
+    ax.legend() # Show legend for identifier
 
-    # adjust limits if new data goes beyond bounds
-    if np.min(y_vec)<=line.axes.get_ylim()[0] or np.max(y_vec)>=line.axes.get_ylim()[1]:
-        ax.set_ylim([np.min(y_vec)-np.std(y_vec),np.max(y_vec)+np.std(y_vec)])
-    if np.min(x_vec)<=line.axes.get_xlim()[0] or np.max(x_vec)>=line.axes.get_xlim()[1]:
-        ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
+    # Adjust plot limits dynamically
+    if x_vec and y_vec:
+        y_min, y_max = np.min(y_vec), np.max(y_vec)
+        y_range = y_max - y_min if y_max > y_min else abs(y_max)
+        ax.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
 
-    # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
+        x_min, x_max = np.min(x_vec), np.max(x_vec)
+        x_range = x_max - x_min if x_max > x_min else abs(x_max)
+        ax.set_xlim(x_min - 0.1 * x_range, x_max + 0.1 * x_range)
+
+    # This pauses the data so the figure/axis can catch up
     plt.pause(pause_time)
-    #mypause(pause_time)
 
-    return line
-
+    # No need to return a line object
+    return None
 
 class testMD_fullSensorMeasurements(measurement):
 
@@ -210,21 +212,17 @@ class testMD_fullSensorMeasurements(measurement):
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-    def doCVScan(self, channel, ax, name=''): 
-
+    def doCVScan(self, channel, ax, name=''):
 
         if self.switch_active: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
 
-        ## Check settings
         lim_vol  = self.sourcemeter_1.check_voltage_limit()
         lim_cur  = self.sourcemeter_1.check_current_limit()
         lcr_vol  = float(self.lcrmeter.check_voltage())
         lcr_freq = float(self.lcrmeter.check_frequency())
-
-        ## Header
         hd = [
-            'Single CV\n', 
+            'Single CV\n',
             'Power Supply voltage limit:      %8.2E V' % lim_vol,
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
@@ -233,26 +231,19 @@ class testMD_fullSensorMeasurements(measurement):
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
-
-        ## Print Info
-        for line in hd[1:-2]:
-            self.logging.info(line)
-        self.logging.info("\t")
-        self.logging.info("\t")
-        self.logging.info(hd[-1])
-        self.logging.info("-" * int(1.2 * len(hd[-1])))
+        for line in hd[1:-2]: self.logging.info(line)
+        self.logging.info("\t\n\t" + hd[-1] + "\n" + "-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
 
         ## for plotting
         tmp_id_title = 'CV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p',' +').replace('_',' ')
-        tmp_id_y     = 'capacitance'
+        tmp_id_y     = 'Capacitance [F]' # More specific y-axis title
         color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
-        tmp_x, tmp_y = [], []
-        line0 = []
+        tmp_x, tmp_y, tmp_y_err = [], [], [] # Add list for y-errors
 
-        c_baseline = 0. ## this will be the baseline of the first 10 voltages
+        c_baseline = 0.
         rolling_avg = []
 
         try:
@@ -281,31 +272,29 @@ class testMD_fullSensorMeasurements(measurement):
                 r_s, c_s, l_s, D = lcr_series_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
                 r_p, c_p, l_p, D = lcr_parallel_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
 
+                # --- Calculate the error on Cs ---
+                dc_s = abs(c_s / x) * dx if x != 0 else 0
+
                 line = [v, vol, self.config['measurements']['CV']['lcr_frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
                 out.append(line)
-                #self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
                 tmp_x.append(v)
                 tmp_y.append(c_s)
+                tmp_y_err.append(dc_s) # Store the error
 
                 ## update the live plotting
-                line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
+                live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
 
-                ## check if we are in the plateau
                 if cv < 10:
                     c_baseline = c_baseline + (c_s - c_baseline)/(cv+1)
                     rolling_avg.append(c_s)
                 else:
                     rolling_avg.pop(0)
                     rolling_avg.append(c_s)
-
-                curr_avg = np.mean(rolling_avg) #np.sqrt(np.mean(rolling_avg**2))
-                rms = [i**2 for i in rolling_avg]
-                rms = math.sqrt(sum(rms)/len(rms))
-
-                if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']: ## start checking the flattening once the c_s goes above 120% of the baseline
-                    ## let's abort once the current rolling average is between the min and max of the last 10 values
+                curr_avg = np.mean(rolling_avg)
+                rms = math.sqrt(sum([i**2 for i in rolling_avg])/len(rolling_avg))
+                if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']:
                     print('this is the rms of the last 10', rms)
                     if 0.985*rms < c_s < 1.015*rms:
                         self.logging.info('it looks like the plateau is reached... ending measurement!')
@@ -315,7 +304,8 @@ class testMD_fullSensorMeasurements(measurement):
                         else:
                             self.logging.info('going on because this is a preirradiated sample or we want to go the extra mile...')
 
-        except BaseException as e: #KeyboardInterrupt:
+
+        except BaseException as e:
             self.logging.info('EXCEPTION RAISED:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
@@ -327,23 +317,17 @@ class testMD_fullSensorMeasurements(measurement):
         self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
 
         return out
-        ## end of CV scan
-
+    
     def doIVScan(self, channel, ax, name=''):
 
         if self.switch_active: self.switch.close_channel(channel)
         self.sourcemeter_1.set_output_on()
         self.sourcemeter_2.set_output_on()
 
-        ## Check settings
-        ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
-        ke6487_lim_cur = self.config['devices']['picoammeter']['lim_cur'] ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
-
-        ## Check settings
+        ke6487_lim_vol = -999.
+        ke6487_lim_cur = self.config['devices']['picoammeter']['lim_cur']
         ke2410_lim_vol  = self.sourcemeter_1.check_voltage_limit()
         ke2410_lim_cur  = self.sourcemeter_1.check_current_limit()
-
-        ## Header
         hd = [
             'Single IV\n',
             'Measurement Settings:',
@@ -355,47 +339,33 @@ class testMD_fullSensorMeasurements(measurement):
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
-
-        ## Print Info
-        for line in hd[1:-2]:
-            self.logging.info(line)
-        self.logging.info("\t")
-        self.logging.info("\t")
-        self.logging.info(hd[-1])
-        self.logging.info("-" * int(1.2 * len(hd[-1])))
+        for line in hd[1:-2]: self.logging.info(line)
+        self.logging.info("\t\n\t" + hd[-1] + "\n" + "-" * int(1.2 * len(hd[-1])))
 
         ## Prepare
         out = []
 
         ## for plotting
         tmp_id_title = 'IV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p', ' +').replace('_',' ')
-        tmp_id_y     = 'current'
+        tmp_id_y     = 'Current [A]' # More specific y-axis title
         color = 'g'
-        tmp_x, tmp_y = [], []
-        line0 = []
+        tmp_x, tmp_y, tmp_y_err = [], [], [] # Add list for y-errors
 
         self.sourcemeter_2.ramp_voltage(1*self.config['measurements']['IV']['gcd_diode_bias'])
 
-
         cutOffVoltage = -85
-
         if self.config['sample']['current_dose'] <=1: cutOffVoltage = -30
-        elif self.config['sample']['current_dose'] <=2: cutOffVoltage = -40 
-        elif self.config['sample']['current_dose'] <=5: cutOffVoltage = -55 
-        elif self.config['sample']['current_dose'] <=10: cutOffVoltage = -65 
-        elif self.config['sample']['current_dose'] <=20: cutOffVoltage = -70 
-        elif self.config['sample']['current_dose'] <=40: cutOffVoltage = -75 
-
+        elif self.config['sample']['current_dose'] <=2: cutOffVoltage = -40
+        elif self.config['sample']['current_dose'] <=5: cutOffVoltage = -55
+        elif self.config['sample']['current_dose'] <=10: cutOffVoltage = -65
+        elif self.config['sample']['current_dose'] <=20: cutOffVoltage = -70
+        elif self.config['sample']['current_dose'] <=40: cutOffVoltage = -75
         print('cut-off voltage = {} V'.format(cutOffVoltage))
 
-
         fname_out = '_'.join(['iv', self.id, name]) + '.dat'
-        i_baseline = 0. ## this will be the baseline of the first 10 voltages
-        stddev, spread = 0., 0.
-        rolling_avg = []
-        rolling_avgs = []
+        i_baseline, stddev, spread = 0., 0., 0.
+        rolling_avg, rolling_avgs = [], []
         nowBelow = False
-        #cutOffVoltage = -80
         minCurrent = 100000.
         crossOver = 9999
         try:
@@ -414,7 +384,7 @@ class testMD_fullSensorMeasurements(measurement):
                 errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['IV']['sample_size'])
 
                 i = means
-                di = errs
+                di = errs 
 
                 if i < minCurrent:
                     minCurrent = i
@@ -424,9 +394,12 @@ class testMD_fullSensorMeasurements(measurement):
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
                 tmp_x.append(v)
-                tmp_y.append(means)
+                tmp_y.append(i)
+                tmp_y_err.append(di) # Store the error
 
-                ## check if we are in the plateau
+                ## update the live plotting
+                live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
+
                 nFirst = 15 if not self.config['sample']['preirradiated'] else 5
                 if iv and iv < nFirst:
                     i_baseline = i_baseline + (i - i_baseline)/(iv)
@@ -436,37 +409,20 @@ class testMD_fullSensorMeasurements(measurement):
                 elif iv >=nFirst:
                     rolling_avg.pop(0)
                     rolling_avg.append(i)
-
-                if iv > 3:
-                    rolling_avgs.append(tmp_y[-3:])
-
-                if iv:
-                    curr_avg = np.mean(rolling_avg) #np.sqrt(np.mean(rolling_avg**2))
-                else:
-                    curr_avg = 0.
-
+                if iv > 3: rolling_avgs.append(tmp_y[-3:])
+                curr_avg = np.mean(rolling_avg) if iv else 0.
                 print('i baseline: {b:.3f}'.format(b=float(i_baseline*1e10)))
                 print('current average and spread: {a:.3f} +- {b:.3f}'.format(a=float(curr_avg*1e10), b=float(spread*1e10)))
-
                 if not nowBelow and iv > 9 and i < (i_baseline-5.*spread):
                     nowBelow = True
                     self.logging.info('IV scan: i have now reached the bottom of the well!!!!')
                     crossOver = v
-                #if nowBelow and i > (i_baseline+minCurrent)/2.:
-                 #   if cutOffVoltage == -80:
-                  #      cutOffVoltage = -80 #v-1.5*(crossOver-v)
-                   # self.logging.info('i have now reached close to the exit of the well again!')
-                    #self.logging.info('will set the cut-off voltage to: '+str(cutOffVoltage))
-
-                ## update the live plotting
-                line0 = live_plotter(tmp_x, tmp_y, ax, line0, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
                 if i > self.config['devices']['picoammeter']['lim_cur']:
                     self.logging.info('reached compliance in the keithley6487')
                     self.reset_power_supplies()
                     break
 
-
-        except BaseException as e: #KeyboardInterrupt:
+        except BaseException as e:
             self.logging.info('EXCEPTION RAISED:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
@@ -475,7 +431,7 @@ class testMD_fullSensorMeasurements(measurement):
         ## Save and print
         self.logging.info("\n")
         self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
-        
+
         return out
 
     def execute(self):
