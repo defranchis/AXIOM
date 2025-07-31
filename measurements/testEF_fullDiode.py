@@ -21,31 +21,29 @@ def init_liveplot():
     figManager.window.showMaximized()
     return fig, ax0, ax1, ax2
 
-def live_plotter(x_vec, y_vec, ax, line, identifier='', yaxis_title='', color='k',pause_time=0.1):
-    if line == []:
-        #plt.ion()
-        ax.clear()
-        plt.cla()
+def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k', pause_time=0.1):
+    # Clear the axis completely on each call
+    ax.clear()
+    
+    # Plot the data with error bars
+    ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
 
-        line, = ax.plot(x_vec, y_vec, color[0]+'-o', alpha=0.8)
-
-        ax.set_title(identifier)
-        ax.set_ylabel(yaxis_title)
-        ax.set_xlabel('bias voltage [V]')
-        plt.show()
-        figManager = plt.get_current_fig_manager()
-        # figManager.window.showMaximized()
-
-    line.set_xdata(x_vec)
-    line.set_ydata(y_vec)
-
-    ax.set_ylim([np.min(y_vec)-0.005*abs(np.min(y_vec)),np.max(y_vec)+0.005*abs(np.max(y_vec))])
-    ax.set_xlim([np.min(x_vec)-0.5,np.max(x_vec)+0.5])
-
-    # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
+    # Set titles and labels
+    ax.set_title(identifier)
+    ax.set_ylabel(yaxis_title)
+    ax.set_xlabel('bias voltage [V]')
+    
+    # Adjust plot limits dynamically
+    if len(y_vec) > 0:
+        ax.set_ylim([np.min(y_vec)-0.05*abs(np.min(y_vec)), np.max(y_vec)+0.05*abs(np.max(y_vec))])
+    if len(x_vec) > 0:
+        ax.set_xlim([np.min(x_vec)-0.5, np.max(x_vec)+0.5])
+    
+    # Pause to allow the plot to update
     plt.pause(pause_time)
 
-    return line
+    # No need to return the line object anymore
+    return None
 
 class testEF_fullDiode(measurement): 
     
@@ -209,14 +207,16 @@ class testEF_fullDiode(measurement):
         elif groundGR: tag = 'ground'
         fname_out_CV = '_'.join(['cv', self.id, name]) + '_{}.dat'.format(tag)
 
+        # Initialize lists to store plotting data
         biasVs = []
         Cs_LCR = []
-        line = []
-        outCV = []  
+        y_vals = [] # For 1/C^2
+        y_errs = [] # For the error on 1/C^2
+        
+        outCV = []
         if shortGR: color = 'r'
         elif groundGR: color = 'g'
         else: color = 'b'
-
 
         self.reset_power_supplies()
         self.reset_switch()
@@ -228,8 +228,6 @@ class testEF_fullDiode(measurement):
 
         self.sourcemeter_1.set_output_on()
 
-
-        # Do CV Scan
         try:            
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_CV:
@@ -237,17 +235,35 @@ class testEF_fullDiode(measurement):
 
                 outCV.append(lineCV)
                 biasVs.append(lineCV[0])
-                Cs_LCR.append(lineCV[8])
+                
+                # Extract values needed for plotting and error calculation
+                cp = lineCV[8]
+                x = lineCV[5]
+                dx = lineCV[6]
+
+                # Avoid division by zero if capacitance or reactance is zero
+                if cp != 0 and x != 0:
+                    # Calculate Y value (1/C^2)
+                    y_val = 1 / (np.abs(cp) - self.config['devices']['lcrmeter']['approx_open_corr'])**2
+                    
+                    # Calculate the error on Y
+                    y_err = abs((2 * y_val) / x) * dx
+                else:
+                    y_val = 0
+                    y_err = 0
+
+                y_vals.append(y_val)
+                y_errs.append(y_err)
+
+                # Determine the plot label
                 label = 'CV floating GR'
                 if shortGR: label = 'CV shorted GR'
                 elif groundGR: label = 'CV grounded GR'
-                line = live_plotter(biasVs, 1/(np.abs(np.array(Cs_LCR))-self.config['devices']['lcrmeter']['approx_open_corr'])**2, ax0, line, identifier=label, yaxis_title='1/Cs^2 [F^-2]', color=color)           
 
-                # self.logging.info(" ----TIMER ----parsing line after CVpoint took:  ", time.time() - self.timer, "seconds")
-                self.timer = time.time()     
+                # Call the updated live_plotter with the error data
+                live_plotter(biasVs, y_vals, y_errs, ax0, identifier=label, yaxis_title='1/Cp^2 [F^-2]', color=color)
 
-
-        except BaseException as e: #KeyboardInterrupt:
+        except BaseException as e:
             self.logging.info('EXCEPTION RAISED IN CV SCAN:', e)
             self.logging.error("EXCEPTION RAISED. Ramping down voltage and shutting down.\n")
             self.logging.error(e)
@@ -255,7 +271,6 @@ class testEF_fullDiode(measurement):
 
         self.reset_power_supplies()
         self.reset_switch()
-
 
         self.saveSinglePlot(fig, ax0, tag+"_cv_LCR_{a}_{b}.png".format(a=self.id, b=name))
         self.save_list(outCV, tag+'_'+fname_out_CV, fmt="%.5E", header="\n".join(hdCV))
