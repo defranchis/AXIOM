@@ -2,8 +2,7 @@
 import sys
 import os
 import time
-from devices.pyvisa_device import device
-
+from devices import device
 
 class agilent_4263b(device):
 
