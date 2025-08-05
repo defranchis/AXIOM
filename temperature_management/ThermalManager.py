@@ -8,8 +8,16 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, solve
+import sys
+from pathlib import Path
 
-# Import device classes from your devices module
+# This enables running the temperature monitor as a standalone script, as well as integrating it in the runner. 
+current_dir = Path(__file__).resolve().parent
+project_root = current_dir.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# all module / path dependent imports need to happen after the path adjustment. 
 import devices
 
 def R2T_PTX_ITS90(R: float, R0: float) -> float:
