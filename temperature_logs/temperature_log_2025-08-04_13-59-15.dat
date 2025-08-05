@@ -1,0 +1,9 @@
+2025-08-04 13:59:15,198 - Thermal Monitor Started
+2025-08-04 13:59:15,199 - Failed to initialize chiller: module 'devices' has no attribute 'Chiller_CC_505'
+2025-08-04 13:59:15,424 - Failed to initialize 'sourcemeter_1' (ke2410): VI_ERROR_BERR (-1073807304): Bus error occurred during transfer.
+2025-08-04 13:59:15,549 - Failed to initialize 'switch' (ke7001): VI_ERROR_BERR (-1073807304): Bus error occurred during transfer.
+2025-08-04 13:59:15,660 - Failed to initialize 'picoammeter_1' (ke6487): VI_ERROR_BERR (-1073807304): Bus error occurred during transfer.
+2025-08-04 13:59:15,787 - Failed to initialize 'picoammeter_2' (ke6487): VI_ERROR_BERR (-1073807304): Bus error occurred during transfer.
+2025-08-04 13:59:15,911 - Failed to initialize 'multimeter' (ke2001): VI_ERROR_BERR (-1073807304): Bus error occurred during transfer.
+2025-08-04 13:59:15,913 - No devices to plot. Exiting plotting setup.
+2025-08-04 13:59:15,913 - No devices configured for plotting. Aborting run.

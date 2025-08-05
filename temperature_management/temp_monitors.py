@@ -3,13 +3,12 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 import matplotlib.lines
 import mpld3, sys, datetime
-from ke2001 import *
+import devices
 from sympy import Symbol
 from sympy.solvers import solve
 
-#matplotlib.use("Qt4agg")
+# matplotlib.use("Qt4agg")
 plt.style.use('ggplot')
-#matplotlib.rc('font',family='Arial')
 pause_time = 2.000
 
 
@@ -71,32 +70,7 @@ def live_plotter(x_vec, y_vec, ax, line, identifier='', color='k',pause_time=0.0
     ax.set_ylim([-35,35])
 
     
-##    if whichSignal == 'internal':
-##        ax.legend('internal: %.02f C'%internal_temp,loc='upper left')
-##    elif whichSignal == 'external':
-##        ax.legend('external: %.02f C'%external_temp,loc='upper left')
-##    elif whichSignal == 'setpoint':
-##        ax.legend('setpoint: %.02f C'%setpoint_temp,loc='upper left')
-##    else:
-##        ax.legend('pt1000: %.02f C'%pt1000_temp,loc='upper left')
-    
-    # adjust limits if new data goes beyond bounds
-    '''
-    if np.min(y_vec)<=line.axes.get_ylim()[0] or np.max(y_vec)>=line.axes.get_ylim()[1]:
-        ax.set_ylim([np.min(y_vec)-np.std(y_vec),np.max(y_vec)+np.std(y_vec)])
-    '''
-    '''
-    if np.min(x_vec)<=line.axes.get_xlim()[0] or np.max(x_vec)>=line.axes.get_xlim()[1]:
-        ax.set_xlim([np.min(x_vec)-np.std(x_vec),np.max(x_vec)+np.std(x_vec)])
-    '''
-    # this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
-    
-    #plt.pause(pause_time)
     return line
-
-# orange external green internal
-
-
 
 def R2T_PTX_ITS90(R,R0):
     #PTX (X=R0) calibration with ITS-90 standard
@@ -137,7 +111,7 @@ ax3 = fig.add_subplot(223)
 ax4 = fig.add_subplot(224)
 pt1000_connected = True
 try:
-    multimeter = ke2001(16)
+    multimeter = devices.ke2001(16)
     multimeter.reset()
     multimeter.set_sense('resistance')
     multimeter.set_terminal('rear')
@@ -145,9 +119,6 @@ try:
 except:
     multimeter = 0
     pt1000_connected = False
-
-#if not pt1000_connected:
-#    inp = input('PT 1000 not found ... check your setup or type "yes" to move on without it.')
 
 i = 0
 plt.ion()
@@ -157,30 +128,6 @@ setpoint_temperature = 20
 if len(sys.argv) > 1:
     setpoint_temperature = int(sys.argv[1])
 
-#com.send('SP@{temp}\r\ni'.format(temp=int(setpoint_temperature*100)))
-#com.send('TM@+0001\r\n')
-#com.send('SP?\r\n')
-#com.recv()
-#a=input('user input required. arbitrary')
-## marc com.send('TM@+0001\r\n')
-## marc com.send('TM?\r\n')
-## marc time.sleep(1)
-## marc com.recv()
-
-#'''
-
-## marc com.send('SP@{temp}\r\n'.format(temp=int(setpoint_temperature*100)))
-## marc com.send('SP?\r\n')
-## marc com.recv()
-## marc time.sleep(2)
-## marc com.send('CA@+0001\r\n')
-## marc com.send('CA?\r\n')
-## marc com.recv()
-## marc com.send('TM@+0001\r\n')
-## marc com.send('TM?\r\n')
-## marc com.recv()
-## marc time.sleep(2)
-#'''
 
 initialTimeSec = time.time()
 today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -243,22 +190,4 @@ while (True):
         logfile.write('\n END: Keyboard Interrupt (or some other exception)\n\n')
         break
 logfile.close()
-#com.send('CA@+0000\r\n')
 
-#pp.request("TI")
-##pp.check_range("TI", 500, 6000)
-##pp.request("TE")
-##pp.check_range("TE", 0, 7000)
-#p.change_to("CA", 1)
-#time.sleep(20)
-##pp.request("TP")
-#pp.send("SP",  1000)
-#
-### to get the internal temperature:
-#print('this is the internal temperature')
-#p.request_echo("TI")
-#print('this is the setpoint .... maybe')
-#p.request_echo("SP")
-#print('this is the external temperature')
-#p.request_echo("TE")
-#com.close()
