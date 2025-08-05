@@ -15,20 +15,24 @@ import devices
 def R2T_PTX_ITS90(R: float, R0: float) -> float:
     """
     Converts resistance to temperature for a PTX sensor using the ITS-90 standard.
-    A more lightweight numerical solver could replace sympy for production code.
+    Filters out complex roots and returns the first real root.
     """
     t = Symbol('t')
     A = 3.9083E-3
     B = -5.7750E-7
     C = -4.183E-12 if R > R0 else 0.0
     try:
-        # ITS-90 formula
         solution = solve(R - R0 * (1 + A * t + B * t**2 + C * (t - 100) * t**3), t)
-        return float(solution[0])
-    except (IndexError, TypeError):
+        real_solutions = [s.evalf() for s in solution if s.is_real]
+        if not real_solutions:
+            raise ValueError(f"No real solution for R={R}, R0={R0}")
+        return float(real_solutions[0])
+    except Exception as e:
+        logging.error(f"error in R2T_PTX conversion: {e}")
         return float('nan')
 
-class temperature_management:
+
+class ThermalManager:
     def __init__(self, config_path: str):
         """Initializes the monitor, devices, logging, and plots based on a config file."""
         with open(config_path, 'r') as file:
@@ -47,7 +51,7 @@ class temperature_management:
 
     def _setup_logging(self):
         """Configures file-based logging."""
-        log_dir = Path(self.config['logging']['directory'])
+        log_dir = Path(self.config['temperature_management']['logging']['directory'])
         log_dir.mkdir(exist_ok=True)
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         self.log_file_path = log_dir / f'temperature_log_{timestamp}.dat'
@@ -133,9 +137,11 @@ class temperature_management:
         readings = {}
         if self.devices.get('multimeter'):
             try:
-                r0 = self.config['devices']['multimeter']['sensor_r0']
-                resistance = self.devices['multimeter'].read_resistance()
-                readings['pt1000'] = R2T_PTX_ITS90(resistance, r0)
+                r0 = float(self.config['devices']['multimeter']['sensor_r0']           )
+                resistance = float(self.devices['multimeter'].read_resistance().split(',')[0].replace('OOHM',''))
+                conversion = R2T_PTX_ITS90(resistance, r0)
+                logging.info(f"conversion: {conversion}")
+                readings['pt1000'] = conversion
             except Exception as e:
                 logging.warning(f"Could not read multimeter: {e}")
                 readings['pt1000'] = float('nan')
@@ -205,7 +211,7 @@ class temperature_management:
         self.is_running = False
         for device in self.devices.values():
             if device:
-                device.close()
+                device.reset()
         plt.ioff()
         logging.info("All connections closed. Application terminated.")
 
@@ -219,5 +225,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     
-    monitor = ThermalMonitor(config_path=args.config)
+    monitor = ThermalManager(config_path=args.config)
     monitor.run()

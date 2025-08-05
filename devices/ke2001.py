@@ -135,6 +135,8 @@ class ke2001(device):
         self.ctrl.write(":SENS:VOLT:NPLC %d" % nplc)
         return 0
 
+
+    #TODO: this mentions setting up an ammeter, is this code still relevant or should be removed? investigate
     def setup_ammeter(self, nplc=1, dig=9, rang=0, debug=0):
         if debug == 1: 
             self.logging.info("Setting up device for current measurements. Setting range %E, nplc %d and %d digits resolution." % (rang, nplc, dig))
@@ -177,7 +179,7 @@ class ke2001(device):
 
     def read_resistance(self):
         val = self.ctrl.query(":MEAS:RES?")
-        return float(val)
+        return val
 
     def read_temperature(self):
         val = self.ctrl.query(":MEAS:TEMP?")

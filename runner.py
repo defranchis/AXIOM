@@ -5,6 +5,7 @@ from utils.config_validator import validate_config_structure
 import time
 import datetime
 
+from temperature_management import ThermalManager as TM
 
 def run_measurement(msr_class, config, current_dose=None, n_annealing = None):
     """Encapsulates the repeated measurement steps."""
@@ -38,11 +39,7 @@ def run_irradiation_loop(config, msr_class, config_path):
 
 
 def run_annealing_loop(config, msr_class):
-    """
-    Runs repeated measurements during annealing steps at a configured time interval.
-    
-    Assumes the annealing period is given in minutes.
-    """
+    """ Runs repeated measurements during annealing steps at a configured time interval. """
     period_min = config["annealing"].get("period", 60)
     period_sec = period_min * 60
     n_annealing = 0
@@ -68,6 +65,10 @@ def run_annealing_loop(config, msr_class):
         print("\nAnnealing loop interrupted by user (Ctrl+C).")
 
 
+# def run_temperature_management(config_path):
+
+#     return
+
 def main():
     parser = argparse.ArgumentParser(description="Validate YAML configuration file.")
     parser.add_argument("config_path", help="Path to the YAML config file")
@@ -76,12 +77,14 @@ def main():
     config = validate_config_structure(args.config_path)
     msr_class = getattr(measurements, config['measurement_type'])
 
-    if "irradiation" in config:
-        run_irradiation_loop(config, msr_class, args.config_path)
-    elif "annealing" in config:
-        run_annealing_loop(config, msr_class)
-    else:
-        run_measurement(msr_class, config)
+    monitor = TM.ThermalManager(args.config_path)
+    monitor.run()
+    # if "irradiation" in config:
+    #     run_irradiation_loop(config, msr_class, args.config_path)
+    # elif "annealing" in config:
+    #     run_annealing_loop(config, msr_class)
+    # else:
+    #     run_measurement(msr_class, config)
 
 if __name__ == "__main__":
     main()

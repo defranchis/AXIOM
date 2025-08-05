@@ -54,7 +54,7 @@ irradiation:
 
 temperature_management:
   chiller:
-    enabled: true
+    enabled: false
     # model: 'Chiller_CC_505'
     port: 'COM10'
 
@@ -64,5 +64,5 @@ temperature_management:
   plotting:
     update_interval_sec: 2 # plotting update frequency in seconds
 
-annealing:
-  period: 60  # time in [m] between measurements
+# annealing:
+#   period: 60  # time in [m] between measurements

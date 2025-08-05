@@ -3,7 +3,7 @@ from time import time
 import numpy as np
 
 
-class Chiller_CC_505:
+class chiller_cc_505:
     """
     This class enables the communication between Python and the Huber CC-505 chiller.
 
