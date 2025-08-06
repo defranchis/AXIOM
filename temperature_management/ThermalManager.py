@@ -146,10 +146,11 @@ class ThermalManager:
         if self.devices.get('multimeter'):
             try:
                 r0 = float(self.config['devices']['multimeter']['sensor_r0']           )
-                resistance = float(self.devices['multimeter'].read_resistance().split(',')[0].replace('OOHM',''))
-                conversion = R2T_PTX_ITS90(resistance, r0)
-                logging.info(f"conversion: {conversion}")
-                readings['pt1000'] = conversion
+                mm_reply = self.devices['multimeter'].read_resistance()
+                if 'OOHM' in mm_reply: 
+                    logging.warning(f"multimeter in overflow, reply: {mm_reply}")
+                resistance = float(mm_reply.split(',')[0].replace('NOHM',''))
+                readings['pt1000'] = R2T_PTX_ITS90(resistance, r0)
             except Exception as e:
                 logging.warning(f"Could not read multimeter: {e}")
                 readings['pt1000'] = float('nan')
