@@ -65,13 +65,6 @@ class gcdmos(measurement):
 
 
     def initialise(self):
-        # self.logging.info("\t")
-        # self.logging.info("------------------------------------------")
-        # self.logging.info("Running test: %s" % self.__class__.__name__)
-        # self.logging.info("------------------------------------------")
-        # self.logging.info(self.__doc__)
-        # self.logging.info("\t")
-
         self._initialise()
         self._initialise_devices()
 

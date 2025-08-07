@@ -49,7 +49,6 @@ class diodeCV(measurement):
         
     def initialise(self):
         self._initialise() # base class initialisation
-
         self._initialise_devices() # initialise devices from config
 
         self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
