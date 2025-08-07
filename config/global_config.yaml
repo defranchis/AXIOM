@@ -44,18 +44,18 @@ measurements:
     sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
 
 
-irradiation:
-  doselist: [0,1,2,5,10]
-  dose_rate: 14.257  ## value taken on Aug 31st 2023
-  voltage: 40  # the voltage of the tube in kV
-  current: 50  # the current of the tube in mA
-  biasing: false  # whether to bias the sample during irradiation
+# irradiation:
+#   doselist: [0,1,2,5,10]
+#   dose_rate: 14.257  ## value taken on Aug 31st 2023
+#   voltage: 40  # the voltage of the tube in kV
+#   current: 50  # the current of the tube in mA
+#   biasing: false  # whether to bias the sample during irradiation
 
 
 temperature_management:
   chiller:
     enabled: false
-    # model: 'Chiller_CC_505'
+    # model: 'chiller_cc_505'
     port: 'COM10'
 
   logging:

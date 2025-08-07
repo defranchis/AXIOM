@@ -89,6 +89,8 @@ class measurement(object):
             return
 
         for device_name, params in self.config['devices'].items():
+            if device_name =="multimeter": # since the multimeter is only used for the PT1000, we shouldn't initialize it here to avoid conflicts
+                continue
             try:
                 model_name = params['model']
                 # Copy params to pass as keyword arguments, removing 'model'

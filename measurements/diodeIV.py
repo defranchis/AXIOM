@@ -65,14 +65,6 @@ class diodeIV(measurement):
         
 
     def initialise(self):
-
-        # self.logging.info("\t")
-        # self.logging.info("------------------------------------------")
-        # self.logging.info("Running test: %s" % self.__class__.__name__)
-        # self.logging.info("------------------------------------------")
-        # self.logging.info(self.__doc__)
-        # self.logging.info("\t")
-
         self._initialise()
         self._initialise_devices()
         
@@ -89,13 +81,6 @@ class diodeIV(measurement):
             self.config['measurements']['IV']['bias_range']['v_end'] + self.config['measurements']['IV']['bias_range']['step_size'],
             self.config['measurements']['IV']['bias_range']['step_size']
         )
-
-        # ## Set up sourcemeter
-        # self.sourcemeter_1 = getattr(devices, self.config['devices']['sourcemeter_1']['model'])(self.config['devices']['sourcemeter_1']['address'])
-
-        # ## Set up volt meters
-        # self.picoammeter_1 = getattr(devices, self.config['devices']['picoammeter_1']['model'])(self.config['devices']['picoammeter_1']['address'])
-        # self.picoammeter_2 = getattr(devices, self.config['devices']['picoammeter_2']['model'])(self.config['devices']['picoammeter_2']['address'])
 
     #TODO: refactor since it also resets the picoammeters
     def reset_power_supplies(self):
