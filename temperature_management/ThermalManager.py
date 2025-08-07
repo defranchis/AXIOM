@@ -48,7 +48,7 @@ class ThermalManager:
             self.config_path = config_path 
             self.config = yaml.safe_load(file)
         
-        self.command_queue = command_queue 
+        self.command_queue = command_queue  # IF cmdqueue is None, we're running without chiller enabled, or running as a standalone program. 
         self._setup_logging()
         self.is_running = True
         self.devices = {}

@@ -1,95 +1,93 @@
-import serial
-from time import time
-import numpy as np
-
+import time
+import random
 
 class chiller_cc_505:
     """
-    This class enables the communication between Python and the Huber CC-505 chiller.
-
-    Manual: https://www.huber-online.com/fileadmin/user_upload/huber-online.com/Downloads/Handb%C3%BCcher_Software/Handbuch_Datenkommunikation_PB_en.pdf
+    Dummy class for the Huber CC-505 chiller to simulate its behavior
+    for testing the ThermalManager without the actual hardware.
+    It perfectly mirrors the public methods and behavior of the real class.
     """
 
     def __init__(self, port: str = 'COM5'):
-        """
-        This constructor sets up the communication to the Huber CC-505 chiller.
-
-        :param port: string; The name of the serial port to the ciller.
-        """
-
-        self.chiller_start_time = None
-
-        self.ser = serial.Serial(port=port, baudrate=9600, timeout=1)
-        self.ser.reset_input_buffer()
+        """Initializes the simulated chiller's state."""
+        print(f"✅ DummyChiller: Initialized on fake port '{port}'.")
+        self.port = port
+        
+        # --- Internal State Simulation ---
+        self._is_on = False
+        self._start_time = None
+        self._setpoint = 20.0  # Default setpoint in °C
+        self._internal_temp = 22.0 # Start at a typical ambient temperature
+        self._ambient_temp = 22.0 # The temperature the chiller drifts towards when off
+        
+        # --- Simulation Parameters ---
+        self._cooling_factor = 0.1 # Determines how fast the temp changes towards setpoint
+        self._noise_amplitude = 0.05 # Creates realistic small fluctuations
 
     def turn_on_off(self, mode: str, min_runtime: int = 300):
-        """
-        This method can turn the chiller on or off. If it is called to turn the chiller off and the
-        chiller has not been on for the minimum runtime, the method waits until the chiller can be turned off.
-
-        :param mode: string; This parameter can be set to "on" or "off".
-        :param min_runtime: integer; The minimum runtime of the chiller in seconds.
-
-        :return: Optional[string]; If an error occured, a string with information is returned. Otherwise, None is returned.
-        """
-
-        if mode == 'on':
-            self.chiller_start_time = time()
-            self._send_value(command_type='14', value=1)
-
-        elif mode == 'off':
-            if self.chiller_start_time is None or (time() - self.chiller_start_time) > min_runtime:
-                self._send_value(command_type='14', value=0)
-            else:
-                return 'The minimum run-time of the chiller is not yet lapsed!'
-
+        """Simulates turning the chiller on or off, respecting min_runtime."""
+        if mode.lower() == 'on':
+            if not self._is_on:
+                print("💡 DummyChiller: Turning ON.")
+                self._is_on = True
+                self._start_time = time.time()
+            return None # No error
+            
+        elif mode.lower() == 'off':
+            if self._start_time and (time.time() - self._start_time) < min_runtime:
+                remaining = min_runtime - (time.time() - self._start_time)
+                msg = f'The minimum run-time of the chiller is not yet lapsed! Wait {remaining:.1f}s.'
+                print(f"⚠️ DummyChiller: {msg}")
+                return msg # Mimic error message
+            
+            if self._is_on:
+                print("💡 DummyChiller: Turning OFF.")
+                self._is_on = False
+                self._start_time = None
+            return None # No error
+            
         else:
-            print('The value for the parameter "mode" can only be "on" or "off"!')
+            print(f'❌ DummyChiller: Invalid mode "{mode}". Use "on" or "off".')
 
     def set_point(self, setpoint_temperature: int):
-        """
-        This method sets a new temperature setpoint for the chiller.
+        """Sets a new simulated temperature setpoint."""
+        # The real class expects temp*100, but the ThermalManager provides the direct temp.
+        # We just store the direct temperature.
+        self._setpoint = float(setpoint_temperature)
+        print(f"🎯 DummyChiller: New setpoint received -> {self._setpoint}°C")
 
-        :param setpoint_temperature: integer; The new temperature in °C.
-        """
+    def _simulate_temperature_change(self):
+        """Private method to update internal temperatures based on state."""
+        noise = random.uniform(-self._noise_amplitude, self._noise_amplitude)
 
-        self._send_value(command_type='00', value=setpoint_temperature*100)
+        if self._is_on:
+            # If on, move temperature towards the setpoint (simple first-order dynamics)
+            diff = self._setpoint - self._internal_temp
+            self._internal_temp += diff * self._cooling_factor + noise
+        else:
+            # If off, drift slowly towards ambient temperature
+            diff = self._ambient_temp - self._internal_temp
+            self._internal_temp += diff * (self. _cooling_factor / 2) + noise
 
     def read_setpoint(self):
-        return self._request_value(command_type='00')/100
+        """Returns the current simulated setpoint."""
+        return self._setpoint
 
     def read_internal_temperature(self):
-        return self._request_value(command_type='01')/100
+        """Reads the simulated internal temperature, updating it in the process."""
+        self._simulate_temperature_change()
+        return self._internal_temp
 
     def read_external_temperature(self):
-        return self._request_value(command_type='07')/100
-    
+        """Reads a simulated external temperature, which just follows the internal one."""
+        # For simplicity, external temp is just internal temp with a slight offset.
+        return self._internal_temp - 0.2 + (random.uniform(-0.1, 0.1))
+
     def check_status(self):
-        return self._request_value(command_type='14')
-    
+        """Returns the simulated status: 1 for ON, 0 for OFF."""
+        return 1 if self._is_on else 0
+
     def close(self):
-        self.ser.close()
-    
-    def _send_value(self, command_type: str, value: float) -> bytes:
-        if not len(command_type) == 2:
-            raise ValueError('The command_type must consist of 2 characters!')
-
-        command = '{M' + command_type + format(np.uint16(value), 'X').zfill(4) + '\r\n'
-        self.ser.write(command.encode())
-
-        return self.ser.read(size=10)
-    
-    def _request_value(self, command_type: str):
-        if not len(command_type) == 2:
-            raise ValueError('The command_type must consist of 2 characters!')
-
-        command = '{M' + command_type + '****\r\n'
-        self.ser.write(command.encode())
-
-        value = self.ser.read(size=10)
-        try:
-            numeric_value = np.int16(int(value.decode()[4:8], 16))
-        except ValueError:
-            numeric_value = float('nan')
-
-        return numeric_value
+        """Simulates closing the connection."""
+        print(f"✅ DummyChiller: Closing connection on fake port '{self.port}'.")
+        self._is_on = False

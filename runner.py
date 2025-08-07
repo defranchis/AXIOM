@@ -8,7 +8,7 @@ from utils.config_validator import validate_config_structure
 import multiprocessing
 from temperature_management import ThermalManager as TM 
 
-def run_measurement(msr_class, config, current_dose=None, n_annealing = None):
+def run_measurement(msr_class, config, current_dose=None, n_annealing = None, tm_queue= None):
     """Encapsulates the repeated measurement steps."""
     msr = msr_class(config=config, current_dose=current_dose, n_annealing=n_annealing)
     msr.initialise()
@@ -112,11 +112,11 @@ def main():
         time.sleep(2)
 
     if "irradiation" in config:
-        run_irradiation_loop(config, msr_class, config_path, tm_queue)
+        run_irradiation_loop(config, msr_class, config_path, tm_queue=tm_queue)
     elif "annealing" in config:
-        run_annealing_loop(config, msr_class, tm_queue)
+        run_annealing_loop(config, msr_class, tm_queue=tm_queue)
     else:
-        run_measurement(msr_class, config, tm_queue)
+        run_measurement(msr_class, config, tm_queue=tm_queue)
 
     #TODO: ADD PROPER PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC. IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
 
