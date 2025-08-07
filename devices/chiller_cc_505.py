@@ -10,7 +10,7 @@ class chiller_cc_505:
 
     def __init__(self, port: str = 'COM5'):
         """Initializes the simulated chiller's state."""
-        print(f"✅ DummyChiller: Initialized on fake port '{port}'.")
+        print(f" DummyChiller: Initialized on fake port '{port}'.")
         self.port = port
         
         # --- Internal State Simulation ---
@@ -28,7 +28,7 @@ class chiller_cc_505:
         """Simulates turning the chiller on or off, respecting min_runtime."""
         if mode.lower() == 'on':
             if not self._is_on:
-                print("💡 DummyChiller: Turning ON.")
+                print(" DummyChiller: Turning ON.")
                 self._is_on = True
                 self._start_time = time.time()
             return None # No error
@@ -37,24 +37,24 @@ class chiller_cc_505:
             if self._start_time and (time.time() - self._start_time) < min_runtime:
                 remaining = min_runtime - (time.time() - self._start_time)
                 msg = f'The minimum run-time of the chiller is not yet lapsed! Wait {remaining:.1f}s.'
-                print(f"⚠️ DummyChiller: {msg}")
+                print(f" DummyChiller: {msg}")
                 return msg # Mimic error message
             
             if self._is_on:
-                print("💡 DummyChiller: Turning OFF.")
+                print(" DummyChiller: Turning OFF.")
                 self._is_on = False
                 self._start_time = None
             return None # No error
             
         else:
-            print(f'❌ DummyChiller: Invalid mode "{mode}". Use "on" or "off".')
+            print(f' DummyChiller: Invalid mode "{mode}". Use "on" or "off".')
 
     def set_point(self, setpoint_temperature: int):
         """Sets a new simulated temperature setpoint."""
         # The real class expects temp*100, but the ThermalManager provides the direct temp.
         # We just store the direct temperature.
         self._setpoint = float(setpoint_temperature)
-        print(f"🎯 DummyChiller: New setpoint received -> {self._setpoint}°C")
+        print(f" DummyChiller: New setpoint received -> {self._setpoint}°C")
 
     def _simulate_temperature_change(self):
         """Private method to update internal temperatures based on state."""
@@ -89,5 +89,5 @@ class chiller_cc_505:
 
     def close(self):
         """Simulates closing the connection."""
-        print(f"✅ DummyChiller: Closing connection on fake port '{self.port}'.")
+        print(f" DummyChiller: Closing connection on fake port '{self.port}'.")
         self._is_on = False

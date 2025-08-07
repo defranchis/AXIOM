@@ -38,25 +38,29 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
         subprocess.run(['python', './obelixControl.py', 'killObelix'])
         print(f"Unexpected error: {e}")
 
-
+#TODO: wait with starting measurement until sample is at desired temperature. 
 def run_annealing_loop(config, msr_class, tm_queue = None):
     """ Runs repeated measurements during annealing steps at a configured time interval. """
     period_min = config["annealing"].get("period", 60)
     period_sec = period_min * 60
-    n_annealing = 0
 
     print(f"[{datetime.datetime.now().isoformat()}] Starting annealing loop every {period_min} min.")
 
     try:
-        while True:
+        for n_annealing in range(config['annealing']['n_iterations']):
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"[{timestamp}] Running annealing measurement step {n_annealing}...")
 
             try:
+                if tm_queue is not None:
+                    tm_queue.put(config['annealing']['measur_temp'])
                 run_measurement(msr_class, config, n_annealing=n_annealing)
             except Exception as e:
                 print(f"[{timestamp}] Error during measurement step {n_annealing}: {e}")
                 break
+
+            if tm_queue is not None:
+                tm_queue.put(config['annealing']['anneal_temp'])
 
             n_annealing += 1
             print(f"[{timestamp}] Sleeping for {period_min} minutes...")
@@ -64,18 +68,6 @@ def run_annealing_loop(config, msr_class, tm_queue = None):
 
     except KeyboardInterrupt:
         print("\nAnnealing loop interrupted by user (Ctrl+C).")
-
-
-
-# def run_temperature_management(config_path):
-#     """This function will be the target for our new process."""
-#     try:
-#         subprocess.run(
-#             ['python', './temperature_management/ThermalManager.py', '--config', config_path], 
-#             check=True
-#         )
-#     except Exception as e:
-#         print(f'Exception during temperature management execution: {e}')
 
 
 def temperature_worker(config_path, command_queue):

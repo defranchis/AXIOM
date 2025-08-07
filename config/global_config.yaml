@@ -38,8 +38,8 @@ measurements:
       step_size: 0.1
     bias_range:
       v_start: -10  
-      v_end: -800
-      step_size: -20
+      v_end: -50
+      step_size: -10
     delay: 3  # delay between setting voltage and executing measurement in [s]
     sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
 
@@ -66,5 +66,8 @@ temperature_management:
   plotting:
     update_interval_sec: 2 # plotting update frequency in seconds
 
-# annealing:
-#   period: 60  # time in [m] between measurements
+annealing:
+  n_iterations: 10
+  period: 1  # time in [m] between measurements
+  anneal_temp: 30
+  measur_temp: 10
