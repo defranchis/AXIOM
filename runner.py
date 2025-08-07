@@ -2,13 +2,11 @@ import argparse
 import measurements
 import subprocess
 import time
+import queue
 import datetime
 from utils.config_validator import validate_config_structure 
-
-# Add this import at the top of your file
 import multiprocessing
-
-from temperature_management import ThermalManager as TM
+from temperature_management import ThermalManager as TM 
 
 def run_measurement(msr_class, config, current_dose=None, n_annealing = None):
     """Encapsulates the repeated measurement steps."""
@@ -18,7 +16,7 @@ def run_measurement(msr_class, config, current_dose=None, n_annealing = None):
     msr.finalise()
 
 
-def run_irradiation_loop(config, msr_class, config_path):
+def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
     """Handles irradiation dose steps and runs measurements."""
     irradiation = config["irradiation"]
     dose_steps = irradiation.get("doselist", [])
@@ -41,7 +39,7 @@ def run_irradiation_loop(config, msr_class, config_path):
         print(f"Unexpected error: {e}")
 
 
-def run_annealing_loop(config, msr_class):
+def run_annealing_loop(config, msr_class, tm_queue = None):
     """ Runs repeated measurements during annealing steps at a configured time interval. """
     period_min = config["annealing"].get("period", 60)
     period_sec = period_min * 60
@@ -69,47 +67,58 @@ def run_annealing_loop(config, msr_class):
 
 
 
-def run_temperature_management(config_path):
-    """This function will be the target for our new process."""
-    try:
-        # Use subprocess.run here as before, it's now inside the parallel process
-        subprocess.run(
-            ['python', './temperature_management/ThermalManager.py', '--config', config_path], 
-            check=True
-        )
-    except Exception as e:
-        print(f'Exception during temperature management execution: {e}')
+# def run_temperature_management(config_path):
+#     """This function will be the target for our new process."""
+#     try:
+#         subprocess.run(
+#             ['python', './temperature_management/ThermalManager.py', '--config', config_path], 
+#             check=True
+#         )
+#     except Exception as e:
+#         print(f'Exception during temperature management execution: {e}')
+
+
+def temperature_worker(config_path, command_queue):
+    """
+    This function runs in the background process. It initializes and runs the manager.
+    need to pass config_path since the tm can also run standalone. 
+    """
+    manager = TM.ThermalManager(config_path = config_path, command_queue=command_queue)
+    manager.run()
 
 def main():
     parser = argparse.ArgumentParser(description="Validate YAML configuration file.")
     parser.add_argument("config_path", help="Path to the YAML config file")
     args = parser.parse_args()
-
-    config = validate_config_structure(args.config_path)
+    config_path = args.config_path
+    config = validate_config_structure(config_path)
     msr_class = getattr(measurements, config['measurement_type'])
 
-    # --- MODIFIED SECTION ---
-    print("Starting temperature management in the background...")
-    # Create a Process object targeting our function
-    tm_process = multiprocessing.Process(
-        target=run_temperature_management, 
-        args=(args.config_path,)
-    )
-    # Set as a daemon process to exit when the main script exits
-    tm_process.daemon = True 
-    tm_process.start() # Start the process
-    # --- END MODIFIED SECTION ---
+    tm_queue = None # preinit to ensure correct parsing when running without chiller, when tm_process has tm_queue = None, 
 
-    # Your main script continues immediately to this part
+    if "temperature_management" in config:
+        #TODO: why not always run with a cmd queue, even when executing without a chiller? (maybe to enable standalone execution logic? )
+        if config['temperature_management']['chiller']['enabled']:
+            tm_queue = multiprocessing.Queue()  
+
+        # 2. Create and start the background process
+        print("Starting temperature management in the background...")
+        tm_process = multiprocessing.Process(
+            target=temperature_worker, 
+            args=(config_path, tm_queue) # Pass config and queue
+        )
+        tm_process.daemon = True 
+        tm_process.start()
+        time.sleep(2)
+
     if "irradiation" in config:
-        run_irradiation_loop(config, msr_class, args.config_path)
+        run_irradiation_loop(config, msr_class, config_path, tm_queue)
     elif "annealing" in config:
-        run_annealing_loop(config, msr_class)
+        run_annealing_loop(config, msr_class, tm_queue)
     else:
-        run_measurement(msr_class, config)
+        run_measurement(msr_class, config, tm_queue)
 
-    print("Main measurement task finished.")
-    # No need to explicitly stop the daemon process, it will be terminated.
+    #TODO: ADD PROPER PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC. IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
 
 if __name__ == "__main__":
     main()

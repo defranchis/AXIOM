@@ -57,6 +57,8 @@ temperature_management:
     enabled: false
     # model: 'chiller_cc_505'
     port: 'COM10'
+    default_temperature: 20 # this temp is what is used to setup the chiller, 
+    update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
 
   logging:
     directory: 'temperature_logs' # Directory to save log files

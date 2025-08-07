@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from sympy import Symbol, solve
 import sys
 from pathlib import Path
+import queue # Import the queue module for the 'Empty' exception
 
 # This enables running the temperature monitor as a standalone script, as well as integrating it in the runner. 
 current_dir = Path(__file__).resolve().parent
@@ -39,14 +40,15 @@ def R2T_PTX_ITS90(R: float, R0: float) -> float:
         logging.error(f"error in R2T_PTX conversion: {e}")
         return float('nan')
 
-
 class ThermalManager:
-    def __init__(self, config_path: str):
+
+    def __init__(self, config_path: str, command_queue=None):
         """Initializes the monitor, devices, logging, and plots based on a config file."""
         with open(config_path, 'r') as file:
-            self.config_path = config_path #TODO: remove this arbitrary initialisation
+            self.config_path = config_path 
             self.config = yaml.safe_load(file)
-
+        
+        self.command_queue = command_queue 
         self._setup_logging()
         self.is_running = True
         self.devices = {}
@@ -96,6 +98,9 @@ class ThermalManager:
                 chiller_conf = self.config['temperature_management']['chiller']
                 chiller_class = getattr(devices, chiller_conf['model'])
                 self.devices['chiller'] = chiller_class(chiller_conf['port'])
+                self.temperature_setpoint = chiller_conf['default_temperature']
+                self.devices['chiller'].set_point(self.temperature_setpoint)
+                
             except Exception as e:
                 logging.error(f"Failed to initialize chiller: {e}")
                 self.devices['chiller'] = None
@@ -187,7 +192,7 @@ class ThermalManager:
     def run(self):
         """Main application loop for monitoring, logging, and plotting."""
         initial_time = time.time()
-        last_log_time = initial_time
+        last_log_time = last_cmd_time = initial_time
         
         header = "\t".join(["Timestamp"] + list(self._get_plot_map().keys()))
         logging.info(header)
@@ -207,20 +212,35 @@ class ThermalManager:
                 
                 # Update the real-time plot
                 self._update_plot(current_time, readings)
-                
                 plt.pause(self.config['temperature_management']['plotting']['update_interval_sec'])
 
+                # parsing potential temperature updates from the runner, only if a command queue was initialized. 
+                if self.command_queue != None and (time.time() - last_cmd_time) >= self.config['temperature_management']['chiller']['update_frequency']:
+                    try:
+                        last_cmd_time = time.time()
+                        new_command = self.command_queue.get_nowait() #always use non blocking
+                        self.temperature_setpoint = new_command
+                        self.devices['chiller'].set_point(self.temperature_setpoint) #this ensures that we only send setpoints when we receive cmds
+                        print(f"ThermalManager received command: {new_command}")
+
+                        if new_command is None: # A way to signal shutdown
+                            self.is_running = False
+                            continue
+                    except queue.Empty: #empty queue = no new commands sent
+                        pass 
+                
         except KeyboardInterrupt:
             logging.info("Keyboard interrupt detected. Shutting down.")
         finally:
             self.close()
+
 
     def close(self):
         """Gracefully closes all hardware connections."""
         self.is_running = False
         for device in self.devices.values():
             if device:
-                device.reset()
+                device.close()
         plt.ioff()
         logging.info("All connections closed. Application terminated.")
 
@@ -234,5 +254,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     
-    monitor = ThermalManager(config_path=args.config)
+    monitor = ThermalManager(config_path=args.config, command_queue= None)
     monitor.run()

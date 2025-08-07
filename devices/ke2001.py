@@ -38,6 +38,13 @@ class ke2001(device):
         self.ctrl.write("*RST")
         return 0
     
+    # same functionality as RST, but required for device dict compatibility when used in conjunction with the chiller. 
+    def close(self, debug=0):
+        if debug == 1: 
+            self.logging.info("Reseting device by CLS""")
+        self.ctrl.write("*RST")
+        return 0
+    
     def clear_status(self, debug=0):
         if debug == 1: 
             self.logging("Clearing all status bits.")
