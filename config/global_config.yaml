@@ -1,47 +1,65 @@
-measurement_type: 'diodeIV'
+measurement_type: 'gcdmos'
 sample:
-  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
-  id: 1337420  #TODO:: this should always be requested from the cli
+  type: 'gcdmos' #TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
+  id: 100410  #TODO:: this should always be requested from the cli
   preirradiated: true
-  current_dose: 3        # enter the value of the total integrated irradiation of the sample. this is only used if no dose is provided by the runner,
+  current_dose: 0        # this is only used if no dose is provided by the runner (when running msr without obelix)
 
 
 devices:
   sourcemeter_1:
     model: 'ke2410'  
-    address: 25
-    lim_cur: 1.0e-3    # compliance in [A]
+    address: 8
+    lim_cur: 1.0e-3 # compliance current in [A]
 
-  switch:
+  sourcemeter_2:
+    model: 'ke2410'  
+    address: 25
+    lim_cur: 1.0e-3 # compliance current in [A]
+    
+  switch:           #if the switch is specified, it will try to initialize and use it. if directly connecting to devices, comment switch out.
     model: 'ke7001'
     address: 7
+    connections:
+      lcrmeter: 3
+      picoammeter: 9
 
-  picoammeter_1:
+  lcrmeter:
+    model: 'agilent_4263b'
+    address: 17
+
+  picoammeter:
     model: 'ke6487'
     address: 15
-
-  picoammeter_2:
-    model: 'ke6487'
-    address: 23
+    lim_cur: 100.0e-9    # compliance in [A] for the GCD, this should be 10 nA
 
   multimeter:
     model: 'ke2001'
     address: 16
     sensor_r0: 1000
 
+measurements: 
+  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
+  CV:
+    range:
+      v_start: 0.   #  -50 if '120um' in self.id else -100
+      v_end: -5   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      step_size: -0.1
+    sample_size: 10
+    lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
+    lcr_frequency: 10000  # ac voltage frequency in [Hz]
+    delay: 0.3 # delay in [s] between setting the voltage and executing the measurement
 
-measurements:
   IV:
-    measurement_range:
-      v_start: -0.5
-      v_end: 0.5
-      step_size: 0.1
-    bias_range:
-      v_start: -10  
-      v_end: -50
-      step_size: -10
-    delay: 3  # delay between setting voltage and executing measurement in [s]
-    sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
+    range:
+      v_start: 10
+      v_end: -10
+      step_size: -1
+    sample_size: 30
+    gcd_diode_bias: 5.0  # [V] bias voltage applied to the GCD diode
+    delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
+
+
 
 
 # irradiation:
@@ -56,8 +74,8 @@ temperature_management:
   chiller:
     enabled: true
     model: 'chiller_cc_505'
-    port: 'COM10'
-    default_temperature: 20 # this temp is what is used to setup the chiller, 
+    port: 'COM11'
+    default_temperature: -25 # this temp is what is used to setup the chiller, 
     update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
 
   logging:
@@ -66,8 +84,8 @@ temperature_management:
   plotting:
     update_interval_sec: 2 # plotting update frequency in seconds
 
-annealing:
-  n_iterations: 10
-  period: 1  # time in [m] between measurements
-  anneal_temp: 30
-  measur_temp: 10
+# annealing:
+#   n_iterations: 10
+#   period: 1  # time in [m] between measurements
+#   anneal_temp: 30
+#   measur_temp: 10

@@ -198,6 +198,7 @@ class ThermalManager:
         logging.info(header)
 
         try:
+            self.devices['chiller'].turn_on_off('on')
             while self.is_running:
                 current_time = time.time() - initial_time
                 
@@ -237,6 +238,7 @@ class ThermalManager:
 
     def close(self):
         """Gracefully closes all hardware connections."""
+        self.devices['chiller'].turn_on_off('off')
         self.is_running = False
         for device in self.devices.values():
             if device:

@@ -38,7 +38,6 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
         subprocess.run(['python', './obelixControl.py', 'killObelix'])
         print(f"Unexpected error: {e}")
 
-#TODO: wait with starting measurement until sample is at desired temperature. 
 def run_annealing_loop(config, msr_class, tm_queue = None):
     """ Runs repeated measurements during annealing steps at a configured time interval. """
     period_min = config["annealing"].get("period", 60)
@@ -102,6 +101,7 @@ def main():
         tm_process.daemon = True 
         tm_process.start()
         time.sleep(2)
+        input("Temperature management initialized. Press ENTER to continue")
 
     if "irradiation" in config:
         run_irradiation_loop(config, msr_class, config_path, tm_queue=tm_queue)
@@ -111,6 +111,7 @@ def main():
         run_measurement(msr_class, config, tm_queue=tm_queue)
 
     #TODO: ADD PROPER PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC. IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
+    #TODO: this is to avoid the somewhat rare behaviour of rampdown not being triggered by a keyboard interrupt.  
 
 if __name__ == "__main__":
     main()
