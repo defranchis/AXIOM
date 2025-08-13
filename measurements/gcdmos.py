@@ -128,41 +128,6 @@ class gcdmos(measurement):
             self.switch.reset(1)
             self.switch.get_idn()
             self.switch.open_all()
-    
-    # #TODO: refactor, this is consolidation of concerns. refactor or potentially remove scanning behaviour 
-    # def getReferenceCapacitance(self, name):
-    #     elms = self.id.split('_')
-    #     newelms = []
-    #     for e in elms:
-    #         if 'kGy'in e:
-    #             newelms.append('0kGy')
-    #         elif 'annealing' in e:
-    #             continue
-    #         else:
-    #             newelms.append(e)
-
-    #     basename = '_'.join(newelms)
-
-    #     basefilename = '{ci}_{bn}_{name}.dat'.format(bn=basename, ci = 'cv' if 'MOS' in name else 'iv', name=name)
-
-    #     allbasefiles = []
-
-    #     for root, dirs, files in os.walk("logs/"+basename+"/", topdown = False):
-    #         for name in files:
-    #             if basefilename in os.path.join(root,name):
-    #                 self.logging.info('found the reference file for capacistances: '+str(os.path.join(root, name)))
-    #                 allbasefiles.append(os.path.join(root, name))
-
-    #     allbasefiles = sorted(allbasefiles)
-
-    #     f = open( allbasefiles[-1], 'r')
-    #     f_l = f.readlines()
-    #     ref_cap = float(f_l[-1].split()[-3])
-    #     self.logging.info('this is my reference capacitance: '+str(ref_cap))
-    #     f.close()
-
-    #     return ref_cap
-
 
     def getReferenceCapacitance(self, name):
         """
@@ -224,7 +189,6 @@ class gcdmos(measurement):
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
     def doCVScan(self, ax, name=''): 
-
 
         if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['lcrmeter'])
         self.sourcemeter_1.set_output_on()
@@ -309,11 +273,11 @@ class gcdmos(measurement):
 
                 # Plateau detection:
                 if c_s > 0.9*reference_capacitance and self.current_dose > 0:  # if our current series capacitance is within reach of the reference, and our sample is irradiated
-                    print('this is the rms of the last 10', rms)
+                    # print('this is the rms of the last 10', rms)
                     if 0.985*rms < c_s < 1.015*rms:                            # checks the slope of the current c_s by bounding it between the rms + magic number bounds
-                        self.logging.info('it looks like the plateau is reached... ending measurement!')
+                        self.logging.info(f"it looks like the plateau is reached at rms: {rms}, c_s: {rms}, v: {v} and plateau voltage: {plateauVoltage}")
                         if plateauVoltage > 0: plateauVoltage = v              # update global plateau voltage to determine if the measurement needs to be terminated. 
-                        if self.current_dose > 0 and v < 1.2*plateauVoltage:
+                        if self.current_dose > 0 and v < 1.2*plateauVoltage:   # go beyond known plateau voltage
                             break
                         else:
                             self.logging.info('going on because this is an irradiated sample OR we want to go the extra mile... ? ')
@@ -427,9 +391,9 @@ class gcdmos(measurement):
                     rolling_avg.pop(0)
                     rolling_avg.append(i)
                 if iv > 3: rolling_avgs.append(tmp_y[-3:])
-                curr_avg = np.mean(rolling_avg) if iv else 0.
-                print('i baseline: {b:.3f}'.format(b=float(i_baseline*1e10)))
-                print('current average and spread: {a:.3f} +- {b:.3f}'.format(a=float(curr_avg*1e10), b=float(spread*1e10)))
+                # curr_avg = np.mean(rolling_avg) if iv else 0.
+                # print('i baseline: {b:.3f}'.format(b=float(i_baseline*1e10)))
+                # print('current average and spread: {a:.3f} +- {b:.3f}'.format(a=float(curr_avg*1e10), b=float(spread*1e10)))
                 
                 if not nowBelow and iv > 9 and i < (i_baseline-5.*spread):
                     nowBelow = True
