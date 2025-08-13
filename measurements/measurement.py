@@ -21,18 +21,17 @@ class measurement(object):
     """ Abstract measurement class. """
 
     def __init__(self, dire="", config=None, current_dose=None, n_annealing=None):
-        self.config = config
         self.base = dire
+        self.config = config or {}
 
-        # TODO: remove this dependency, this is only required for gcdmos and should be changed 
-        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('preexisting_dose', 0) 
+        preexisting_dose = self.config['sample']['preexisting_dose']
 
-        # 1. Handle dose fallback
-        if current_dose is None:
-            current_dose = config['sample'].get('preexisting_dose', 0)
+        # summing the dose that is supplied by obelix with the preexisting dose. 
+        self.current_dose = (current_dose or 0) + preexisting_dose
+        # current_dose = self.current_dose #remove this dependency 
 
         # 2. Construct ID base
-        self.id = f"{config['sample']['type']}_{config['sample']['id']}_{current_dose}kGy"
+        self.id = f"{config['sample']['type']}_{config['sample']['id']}_{self.current_dose}kGy"
 
         # 3. Append annealing info if applicable
         if "annealing" in config and n_annealing is not None:
@@ -252,6 +251,7 @@ class measurement(object):
         self.logging.info("\t")
 
     def _finalise(self):
+        plt.close('all') # ensuring plots are closed at the end of every individual measurement session. 
         self.logging.info("\t")
         self.logging.info("Cleaning up.")
         self.logging.info("\t")

@@ -123,5 +123,5 @@ class agilent_4263b(device):
         if trig_delay > 0:
             time.sleep(trig_delay)
         vals = self.ctrl.query("FETC?").split(',') # Fetch the measurement data
-        print("Measurement data fetched: " + str(vals))
+        # print("Measurement data fetched: " + str(vals))
         return float(vals[1]), float(vals[2])

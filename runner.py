@@ -25,17 +25,17 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
     try:
         for target_dose in dose_steps:
             subprocess.run(
-                ['python', './obelixControl.py', config_path, str(current_dose), str(target_dose)],
+                ['python', './MOCK_obelixControl.py', config_path, str(current_dose), str(target_dose)],
                 check=True
             )
             current_dose = target_dose
             run_measurement(msr_class, config, current_dose=current_dose)
 
     except subprocess.CalledProcessError as e:
-        subprocess.run(['python', './obelixControl.py', 'killObelix'])
+        subprocess.run(['python', './MOCK_obelixControl.py', 'killObelix'])
         print(f"obelixControl failed: {e}")
     except Exception as e:
-        subprocess.run(['python', './obelixControl.py', 'killObelix'])
+        subprocess.run(['python', './MOCK_obelixControl.py', 'killObelix'])
         print(f"Unexpected error: {e}")
 
 def run_annealing_loop(config, msr_class, tm_queue = None):

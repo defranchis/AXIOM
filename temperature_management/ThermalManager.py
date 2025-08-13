@@ -71,7 +71,7 @@ class ThermalManager:
             format='%(asctime)s - %(message)s',
             handlers=[
                 logging.FileHandler(self.log_file_path),
-                logging.StreamHandler()
+                # logging.StreamHandler()
             ]
         )
         logging.info("Thermal Monitor Started")
