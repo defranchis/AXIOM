@@ -128,39 +128,39 @@ class gcdmos(measurement):
             self.switch.get_idn()
             self.switch.open_all()
     
-    #TODO: refactor, this is consolidation of concerns. refactor or potentially remove scanning behaviour 
-    def getReferenceCapacitance(self, name):
-        elms = self.id.split('_')
-        newelms = []
-        for e in elms:
-            if 'kGy'in e:
-                newelms.append('0kGy')
-            elif 'annealing' in e:
-                continue
-            else:
-                newelms.append(e)
+    # #TODO: refactor, this is consolidation of concerns. refactor or potentially remove scanning behaviour 
+    # def getReferenceCapacitance(self, name):
+    #     elms = self.id.split('_')
+    #     newelms = []
+    #     for e in elms:
+    #         if 'kGy'in e:
+    #             newelms.append('0kGy')
+    #         elif 'annealing' in e:
+    #             continue
+    #         else:
+    #             newelms.append(e)
 
-        basename = '_'.join(newelms)
+    #     basename = '_'.join(newelms)
 
-        basefilename = '{ci}_{bn}_{name}.dat'.format(bn=basename, ci = 'cv' if 'MOS' in name else 'iv', name=name)
+    #     basefilename = '{ci}_{bn}_{name}.dat'.format(bn=basename, ci = 'cv' if 'MOS' in name else 'iv', name=name)
 
-        allbasefiles = []
+    #     allbasefiles = []
 
-        for root, dirs, files in os.walk("logs/"+basename+"/", topdown = False):
-            for name in files:
-                if basefilename in os.path.join(root,name):
-                    self.logging.info('found the reference file for capacistances: '+str(os.path.join(root, name)))
-                    allbasefiles.append(os.path.join(root, name))
+    #     for root, dirs, files in os.walk("logs/"+basename+"/", topdown = False):
+    #         for name in files:
+    #             if basefilename in os.path.join(root,name):
+    #                 self.logging.info('found the reference file for capacistances: '+str(os.path.join(root, name)))
+    #                 allbasefiles.append(os.path.join(root, name))
 
-        allbasefiles = sorted(allbasefiles)
+    #     allbasefiles = sorted(allbasefiles)
 
-        f = open( allbasefiles[-1], 'r')
-        f_l = f.readlines()
-        ref_cap = float(f_l[-1].split()[-3])
-        self.logging.info('this is my reference capacitance: '+str(ref_cap))
-        f.close()
+    #     f = open( allbasefiles[-1], 'r')
+    #     f_l = f.readlines()
+    #     ref_cap = float(f_l[-1].split()[-3])
+    #     self.logging.info('this is my reference capacitance: '+str(ref_cap))
+    #     f.close()
 
-        return ref_cap
+    #     return ref_cap
         
     def savePlots(self, dic):
         ### Save and print
@@ -219,10 +219,10 @@ class gcdmos(measurement):
         rolling_avg = []
 
         try:
-            if not self.config['sample']['preirradiated']:
-                reference_capacitance = self.getReferenceCapacitance(name)
-            else:
-                reference_capacitance = -1
+            # if not self.config['sample']['preirradiated']:
+            #     reference_capacitance = self.getReferenceCapacitance(name)
+            # else:
+            #     reference_capacitance = -1
             plateauVoltage = 999.
             ## Loop over voltages
             for cv, v in enumerate(self.volt_list_cv):
@@ -266,15 +266,15 @@ class gcdmos(measurement):
                     rolling_avg.append(c_s)
                 curr_avg = np.mean(rolling_avg)
                 rms = math.sqrt(sum([i**2 for i in rolling_avg])/len(rolling_avg))
-                if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']:
-                    print('this is the rms of the last 10', rms)
-                    if 0.985*rms < c_s < 1.015*rms:
-                        self.logging.info('it looks like the plateau is reached... ending measurement!')
-                        if plateauVoltage > 0: plateauVoltage = v
-                        if not self.config['sample']['preirradiated'] and v < 1.2*plateauVoltage:
-                            break
-                        else:
-                            self.logging.info('going on because this is a preirradiated sample or we want to go the extra mile...')
+                # if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']:
+                #     print('this is the rms of the last 10', rms)
+                #     if 0.985*rms < c_s < 1.015*rms:
+                #         self.logging.info('it looks like the plateau is reached... ending measurement!')
+                #         if plateauVoltage > 0: plateauVoltage = v
+                #         if not self.config['sample']['preirradiated'] and v < 1.2*plateauVoltage:
+                #             break
+                #         else:
+                #             self.logging.info('going on because this is a preirradiated sample or we want to go the extra mile...')
 
 
         except BaseException as e:
@@ -324,7 +324,7 @@ class gcdmos(measurement):
         color = 'g'
         tmp_x, tmp_y, tmp_y_err = [], [], [] # Add list for y-errors
 
-        self.sourcemeter_2.ramp_voltage(1*self.config['measurements']['IV']['gcd_diode_bias'])
+        self.sourcemeter_2.ramp_voltage(self.config['measurements']['IV']['gcd_diode_bias'])
 
         cutOffVoltage = -85
 
@@ -375,7 +375,7 @@ class gcdmos(measurement):
                 ## update the live plotting
                 live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
 
-                nFirst = 15 if not self.config['sample']['preirradiated'] else 5
+                nFirst = 15 if self.config['sample']['preexisting_dose'] == 0 else 5
                 if iv and iv < nFirst:
                     i_baseline = i_baseline + (i - i_baseline)/(iv)
                     rolling_avg.append(i)
@@ -388,6 +388,7 @@ class gcdmos(measurement):
                 curr_avg = np.mean(rolling_avg) if iv else 0.
                 print('i baseline: {b:.3f}'.format(b=float(i_baseline*1e10)))
                 print('current average and spread: {a:.3f} +- {b:.3f}'.format(a=float(curr_avg*1e10), b=float(spread*1e10)))
+                
                 if not nowBelow and iv > 9 and i < (i_baseline-5.*spread):
                     nowBelow = True
                     self.logging.info('IV scan: i have now reached the bottom of the well!!!!')

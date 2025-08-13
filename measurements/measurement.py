@@ -25,11 +25,11 @@ class measurement(object):
         self.base = dire
 
         # TODO: remove this dependency, this is only required for gcdmos and should be changed 
-        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('current_dose', 0) 
+        self.current_dose = current_dose if current_dose is not None else self.config['sample'].get('preexisting_dose', 0) 
 
         # 1. Handle dose fallback
         if current_dose is None:
-            current_dose = config['sample'].get('current_dose', 0)
+            current_dose = config['sample'].get('preexisting_dose', 0)
 
         # 2. Construct ID base
         self.id = f"{config['sample']['type']}_{config['sample']['id']}_{current_dose}kGy"
