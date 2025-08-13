@@ -12,16 +12,18 @@ from measurements import measurement
 
 def init_liveplot():
     plt.ion()
-    fig = plt.figure(figsize=(13,13))
-    ax0 = fig.add_subplot(121)
-    ax1 = fig.add_subplot(122)
-    figManager = plt.get_current_fig_manager()
-    # Maximize window depending on backend
-    # The is caused by of the lack of a virtual environment, if we used that we could completely avoid these random inconsistencies.
-    figManager.window.showMaximized()  # This works for Qt5Agg backend
-    # Add more backends as needed
+    fig = plt.figure(figsize=(18, 6))
+    # first: GR alone
+    ax_gr      = fig.add_subplot(1, 3, 1)  
+    # second: diode pad alone
+    ax_diode   = fig.add_subplot(1, 3, 2)  
+    # third: combined plot
+    ax_combined = fig.add_subplot(1, 3, 3)  
 
-    return fig, ax0, ax1
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    return fig, ax_gr, ax_diode, ax_combined
+
 
 def mypause(interval):
     backend = plt.rcParams['backend']
@@ -57,6 +59,23 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
 
     # No need to return a line object
     return None
+
+def live_plotter_combined(x, y1, err1, y2, err2, ax, pause_time=0.1):
+    ax.clear()
+    # GR in green circles
+    ax.errorbar(x, y1, yerr=err1, fmt='g-o', capsize=3, alpha=0.8, label='IV Curve GR')
+    # diode pad in blue squares
+    ax.errorbar(x, y2, yerr=err2, fmt='b-s', capsize=3, alpha=0.8, label='IV Curve diode pad')
+    ax.set_title('Combined IV Curves')
+    ax.set_xlabel('Bias voltage [V]')
+    ax.set_ylabel('Current [A]')
+    ax.legend()
+    if x:
+        ax.set_xlim(min(x)-0.5, max(x)+0.5)
+    ys = (min(min(y1), min(y2)), max(max(y1), max(y2)))
+    ax.set_ylim(ys[0] - 0.05*abs(ys[0]), ys[1] + 0.05*abs(ys[1]))
+    plt.pause(pause_time)
+
 
 class diodeIV(measurement):
 
@@ -172,7 +191,7 @@ class diodeIV(measurement):
         
         return(line)
 
-    def IVscan(self, name, fig, ax2, ax3, hdIV, hdRV):
+    def IVscan(self, name, fig, ax_gr, ax_diode, ax_combined, hdIV, hdRV):
 
         self.logging.info('\n\nSTARTING IV SCAN...\n\n')
         self.reset_power_supplies()
@@ -211,10 +230,14 @@ class diodeIV(measurement):
                 I_diode_err.append(lineIV[4]) # <-- Capture diode error
                 I_GR.append(lineIV[5])
                 I_GR_err.append(lineIV[6])    # <-- Capture GR error
-            
-                # Update the live plots with the error data
-                live_plotter(biasVs, I_GR, I_GR_err, ax2, identifier="IV Curve GR", yaxis_title=tmp_id_y, color='g')
-                live_plotter(biasVs, I_diode, I_diode_err, ax3, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='b') # Changed color for distinction
+                
+                live_plotter(biasVs, I_GR, I_GR_err, ax_gr,    identifier="IV Curve GR",           yaxis_title=tmp_id_y, color='g')
+                live_plotter(biasVs, I_diode, I_diode_err, ax_diode, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='b')
+                # update combined panel
+                live_plotter_combined(biasVs, I_GR, I_GR_err, I_diode, I_diode_err, ax_combined)
+                # # Update the live plots with the error data
+                # live_plotter(biasVs, I_GR, I_GR_err, ax2, identifier="IV Curve GR", yaxis_title=tmp_id_y, color='g')
+                # live_plotter(biasVs, I_diode, I_diode_err, ax3, identifier="IV Curve diode pad", yaxis_title=tmp_id_y, color='b') # Changed color for distinction
             
 
             #TODO: USE A PROFILING FUNCTION INSTEAD OF THIS MESS
@@ -233,23 +256,28 @@ class diodeIV(measurement):
         self.reset_power_supplies()
 
         self.save_list(data_save, fname_out_IV, fmt="%.5E", header="\n".join(hdIV))
-        self.saveSinglePlot(fig, ax2,"iv_{a}_{b}_GR.png".format(a=self.id, b=name))
-        self.saveSinglePlot(fig, ax3,"iv_{a}_{b}_pad.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax_gr,"iv_{a}_{b}_GR.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax_diode,"iv_{a}_{b}_pad.png".format(a=self.id, b=name))
+        self.saveSinglePlot(fig, ax_combined,"iv_{a}_{b}_combined.png".format(a=self.id, b=name))
 
         self.logging.info('\n\n IV SCAN FINISHED\n\n')
 
     def execute(self):
+        name = self.__class__.__name__
+        fig, ax_gr, ax_diode, ax_combined = init_liveplot()
+        hdIV, hdRV = self.createHeader()
+        self.IVscan(name, fig, ax_gr, ax_diode, ax_combined, hdIV, hdRV)
 
-        # Name of files
-        name =  self.__class__.__name__
+        # # Name of files
+        # name =  self.__class__.__name__
 
-        # Create plots
-        fig, ax3, ax2 = init_liveplot()
+        # # Create plots
+        # fig, ax_gr, ax_diode, ax_combined = init_liveplot()
 
-        ## Print header
-        [hdIV, hdRV] = self.createHeader()
+        # ## Print header
+        # [hdIV, hdRV] = self.createHeader()
 
-        self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
+        # self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
     def finalise(self):
         self._finalise()

@@ -51,16 +51,16 @@ measurements:
     delay: 0.3 # delay in [s] between setting the voltage and executing the measurement
 
   IV:
-    range:
-      v_start: 10
-      v_end: -10
-      step_size: -1
-    sample_size: 30
-    gcd_diode_bias: 5.0  # [V] bias voltage applied to the GCD diode
-    delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
-
-
-
+    measurement_range:
+      v_start: -0.5
+      v_end: 0.5
+      step_size: 0.1
+    bias_range:
+      v_start: 0
+      v_end: -20
+      step_size: -10
+    delay: 3  # delay between setting voltage and executing measurement in [s]
+    sample_size: 10  # number of measurements per bias voltage (equal for each picoammeter)
 
 # irradiation:
 #   doselist: [0,1,2,5,10]
@@ -68,7 +68,6 @@ measurements:
 #   voltage: 40  # the voltage of the tube in kV
 #   current: 50  # the current of the tube in mA
 #   biasing: false  # whether to bias the sample during irradiation
-
 
 temperature_management:
   chiller:
