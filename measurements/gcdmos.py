@@ -69,28 +69,39 @@ class gcdmos(measurement):
         self._initialise()
         self._initialise_devices()
 
-        self.testset = self.config['measurements'].get('testset', [])  #to detemrine which tests to run and which devices to initialize. 
+        self.testset = self.config['measurements'].get('testset', [])
 
+        # Check if dynamic voltage ranges should be used
+        use_dynamic_ranges = self.config['measurements'].get('dynamic_voltage_range', {}).get('enabled', False)
+
+        if use_dynamic_ranges:
+            # Call the new function to set voltage lists dynamically
+            self._calculate_dynamic_voltage_ranges()
+        else:
+            # Fallback to the original static range definition from config
+            self.logging.info("Using static voltage ranges from config file.")
+            if 'moshalf' in self.testset or 'mos2000' in self.testset:
+                v_start = self.config['measurements']['CV']['range']['v_start']
+                v_end = self.config['measurements']['CV']['range']['v_end']
+                step = self.config['measurements']['CV']['range']['step_size']
+                # Create a single CV list and assign it to both measurement types
+                volt_list_cv = np.arange(v_start, v_end + step, step)
+                self.volt_list_moshalf = volt_list_cv
+                self.volt_list_mos2000 = volt_list_cv
+
+            if 'gcd' in self.testset:
+                v_start = self.config['measurements']['IV']['range']['v_start']
+                v_end = self.config['measurements']['IV']['range']['v_end']
+                step = self.config['measurements']['IV']['range']['step_size']
+                self.volt_list_gcd = np.arange(v_start, v_end + step, step)
+
+        # Common device setup
         if 'moshalf' in self.testset or 'mos2000' in self.testset:
-            self.volt_list_cv = np.arange(
-                self.config['measurements']['CV']['range']['v_start'],
-                self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
-                self.config['measurements']['CV']['range']['step_size']
-            )
             self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
             self.lcrmeter.set_mode('RX')
-        
-        if 'gcd' in self.testset:
-            # IV measurement voltage list
-            self.volt_list_iv = np.arange(
-                self.config['measurements']['IV']['range']['v_start'],
-                self.config['measurements']['IV']['range']['v_end'] +  self.config['measurements']['IV']['range']['step_size'],
-                self.config['measurements']['IV']['range']['step_size']
-            )
 
 
     def reset_power_supplies(self):
-
         ## Reset power supply for CV measurement
         self.sourcemeter_1.ramp_down()
         self.sourcemeter_1.set_output_off()
@@ -100,7 +111,6 @@ class gcdmos(measurement):
         self.sourcemeter_1.set_current_limit(self.config['devices']['sourcemeter_1']['lim_cur'])
         self.sourcemeter_1.set_voltage(0)
         self.sourcemeter_1.set_terminal('rear')
-        # MARC keithley2410.set_interlock_on()
         self.sourcemeter_1.set_output_off()
         time.sleep(1)
 
@@ -129,14 +139,61 @@ class gcdmos(measurement):
             self.switch.get_idn()
             self.switch.open_all()
 
+    def _calculate_dynamic_voltage_ranges(self):
+        """
+        Calculates voltage ranges based on the current dose using linear interpolation
+        from empirical data. This method sets the voltage lists for each test type.
+        """
+        self.logging.info("Calculating dynamic voltage ranges...")
+
+        # Empirical data: [Dose (kGy), moshalf_end, mos2000_end, gcd_end]
+        empirical_data = np.array([
+            [0,   -5,   -5,   -10],
+            [1,   -50,  -100, -20],
+            [2,   -70,  -150, -30],
+            [5,   -120, -220, -35],
+            [10,  -150, -280, -40],
+            [20,  -180, -340, -50],
+            [40,  -210, -350, -55],
+            [70,  -220, -360, -65],
+            [100, -220, -360, -75]
+        ])
+
+        doses = empirical_data[:, 0]
+        moshalf_ranges = empirical_data[:, 1]
+        mos2000_ranges = empirical_data[:, 2]
+        gcd_ranges = empirical_data[:, 3]
+
+        # Get configuration parameters from the 'dynamic_voltage_range' section
+        dynamic_config = self.config['measurements']['dynamic_voltage_range']
+        size = dynamic_config.get('voltage_array_size', 101) # Default to 101 points
+        multiplier = dynamic_config.get('range_multiplier', 1.0) # Default to 1.0 (no change)
+
+        # Interpolate to find the end voltage for the current dose.
+        # np.interp handles cases where self.current_dose is outside the range by clamping to the min/max.
+        end_moshalf = np.interp(self.current_dose, doses, moshalf_ranges) * multiplier
+        end_mos2000 = np.interp(self.current_dose, doses, mos2000_ranges) * multiplier
+        end_gcd = np.interp(self.current_dose, doses, gcd_ranges) * multiplier
+        
+        self.logging.info(f"Interpolated end voltages (multiplier: {multiplier}):")
+        self.logging.info(f"  - MOShalf: {end_moshalf:.2f} V")
+        self.logging.info(f"  - MOS2000: {end_mos2000:.2f} V")
+        self.logging.info(f"  - GCD:     {end_gcd:.2f} V")
+
+        # Generate the voltage arrays using np.linspace for a fixed number of points
+        self.volt_list_moshalf = np.linspace(0, end_moshalf, size)
+        self.volt_list_mos2000 = np.linspace(0, end_mos2000, size)
+        self.volt_list_gcd = np.linspace(10, end_gcd, size) # GCD starts at +10V
+
     def getReferenceCapacitance(self, name):
         """
         Use the 0kGy reference file regardless of self.current_dose.
         Assumes new naming: logs/{id_with_0kGy}/.../cv_{id_with_0kGy}_{name}.dat
         """
         # ensure '0kGy' is in the id (replace any existing "<num>kGy" with "0kGy")
+        id0 = self.id
         if 'kGy' in self.id:
-            id0 = re.sub(r'\d+(?:\.\d+)?kGy', '0kGy', self.id)
+            id0 = re.sub(r'\d+(\.\d+)?kGy', '0kGy', self.id)
 
         ci = 'cv' if 'MOS' in name else 'iv'
         pattern = os.path.join('logs', id0, '**', f'{ci}_{id0}_{name}.dat')
@@ -165,11 +222,10 @@ class gcdmos(measurement):
         self.logging.info(f"this is my reference capacitance: {ref_cap} (from {latest_file})")
         return ref_cap
 
-
-        
     def savePlots(self, dic):
         ### Save and print
         for name,val in dic.items():
+            if not val: continue # Skip if the measurement data is empty
             if 'cv' in name:
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 7], np.array(val)[:, 7] * 0.01, \
                                  'Bias Voltage [V]', 'Parallel Capacitance [F]',  'CV ' + self.id + ' ' +name, fn="cv_{a}_{b}.png".format(a=self.id, b=name))
@@ -181,14 +237,17 @@ class gcdmos(measurement):
             elif 'iv' in name:
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 2], np.array(val)[:, 3], \
                                  'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_{a}_{b}.png".format(a=self.id, b=name))
-                self.print_graph(np.array([val for val in val if (abs(val[0]) < 251 and abs(val[0])>-0.1)])[:, 1], \
-                                 np.array([val for val in val if (abs(val[0]) < 251 and abs(val[0])>-0.1)])[:, 2], \
-                                 np.array([val for val in val if (abs(val[0]) < 251 and abs(val[0])>-0.1)])[:, 3], \
+                self.print_graph(np.array([v for v in val if (abs(v[0]) < 251 and abs(v[0])>-0.1)])[:, 1], \
+                                 np.array([v for v in val if (abs(v[0]) < 251 and abs(v[0])>-0.1)])[:, 2], \
+                                 np.array([v for v in val if (abs(v[0]) < 251 and abs(v[0])>-0.1)])[:, 3], \
                                  'Bias Voltage [V]', 'Leakage Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_zoom_{a}_{b}.png".format(a=self.id, b=name))
                 self.print_graph(np.array(val)[:, 1], np.array(val)[:, 4], np.array(val)[:, 4]*0.01, \
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
-    def doCVScan(self, ax, name=''): 
+    def doCVScan(self, ax, name='', volt_list=None): 
+        if volt_list is None:
+            self.logging.error(f"No voltage list provided for CV scan: {name}. Skipping.")
+            return []
 
         if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['lcrmeter'])
         self.sourcemeter_1.set_output_on()
@@ -215,9 +274,9 @@ class gcdmos(measurement):
 
         ## for plotting
         tmp_id_title = 'CV '+ name+ ': ' + self.id.replace('_m',' -').replace('_p',' +').replace('_',' ')
-        tmp_id_y     = 'Capacitance [F]' # More specific y-axis title
+        tmp_id_y     = 'Capacitance [F]'
         color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
-        tmp_x, tmp_y, tmp_y_err = [], [], [] # Add list for y-errors
+        tmp_x, tmp_y, tmp_y_err = [], [], []
 
         c_baseline = 0.
         rolling_avg = []
@@ -227,9 +286,9 @@ class gcdmos(measurement):
                 reference_capacitance = self.getReferenceCapacitance(name)
             else:
                 reference_capacitance = -1
-            plateauVoltage = 999.
+            plateauVoltage = None
             ## Loop over voltages
-            for cv, v in enumerate(self.volt_list_cv):
+            for cv, v in enumerate(volt_list):
                 self.sourcemeter_1.ramp_voltage(v)
                 time.sleep(self.config['measurements']['CV']['delay'])
 
@@ -248,7 +307,6 @@ class gcdmos(measurement):
                 r_s, c_s, l_s, D = lcr_series_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
                 r_p, c_p, l_p, D = lcr_parallel_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
 
-                # --- Calculate the error on Cs ---
                 dc_s = abs(c_s / x) * dx if x != 0 else 0
 
                 line = [v, vol, self.config['measurements']['CV']['lcr_frequency'], r, dr, x, dx, c_s, c_p, cur_tot]
@@ -257,9 +315,8 @@ class gcdmos(measurement):
 
                 tmp_x.append(v)
                 tmp_y.append(c_s)
-                tmp_y_err.append(dc_s) # Store the error
+                tmp_y_err.append(dc_s)
 
-                ## update the live plotting
                 live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
 
                 if cv < 10:
@@ -271,17 +328,13 @@ class gcdmos(measurement):
                 curr_avg = np.mean(rolling_avg)
                 rms = math.sqrt(sum([i**2 for i in rolling_avg])/len(rolling_avg))
 
-                # Plateau detection:
-                if c_s > 0.9*reference_capacitance and self.current_dose > 0:  # if our current series capacitance is within reach of the reference, and our sample is irradiated
-                    # print('this is the rms of the last 10', rms)
-                    if 0.985*rms < c_s < 1.015*rms:                            # checks the slope of the current c_s by bounding it between the rms + magic number bounds
-                        self.logging.info(f"it looks like the plateau is reached at rms: {rms}, c_s: {rms}, v: {v} and plateau voltage: {plateauVoltage}")
-                        if plateauVoltage > 0: plateauVoltage = v              # update global plateau voltage to determine if the measurement needs to be terminated. 
-                        if self.current_dose > 0 and v < 1.2*plateauVoltage:   # go beyond known plateau voltage
+                if c_s > 0.9*reference_capacitance and self.current_dose > 0:
+                    if 0.985*rms < c_s < 1.015*rms:
+                        self.logging.info(f"it looks like the plateau is reached at rms: {rms}, c_s: {c_s}, v: {v} and plateau voltage: {plateauVoltage}")
+                        if plateauVoltage == None: plateauVoltage = v #only trigger on first hitting the plateau
+                        if self.current_dose > 0 and v < 1.1*plateauVoltage: # after passing the plateau voltage by 10 percent, cutoff measurement
+                            self.logging.info(f"stopping measurement due to plateau at V: {v}")
                             break
-                        else:
-                            self.logging.info('going on because this is an irradiated sample OR we want to go the extra mile... ? ')
-
 
         except BaseException as e:
             self.logging.info('EXCEPTION RAISED:', e)
@@ -295,9 +348,11 @@ class gcdmos(measurement):
         self.save_list(out, fname_out, fmt="%.5E", header="\n".join(hd))
 
         return out
-        ## end of CV scan
 
-    def doIVScan(self, ax, name=''):
+    def doIVScan(self, ax, name='', volt_list=None):
+        if volt_list is None:
+            self.logging.error(f"No voltage list provided for IV scan: {name}. Skipping.")
+            return []
 
         if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])
         self.sourcemeter_1.set_output_on()
@@ -314,7 +369,7 @@ class gcdmos(measurement):
             'Ke6487 current limit:      %8.2E A' % ke6487_lim_cur,
             'Ke2410 voltage limit:      %8.2E V' % ke2410_lim_vol,
             'Ke2410 current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
+            'Voltage delay:             %8.2f s' % self.config['measurements']['IV']['delay'],
             '\n\n',
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
@@ -332,28 +387,10 @@ class gcdmos(measurement):
 
         self.sourcemeter_2.ramp_voltage(self.config['measurements']['IV']['gcd_diode_bias'])
 
-        cutOffVoltage = -85
-
-        if self.current_dose <=1: cutOffVoltage = -30
-        elif self.current_dose <=2: cutOffVoltage = -40 
-        elif self.current_dose <=5: cutOffVoltage = -55 
-        elif self.current_dose <=10: cutOffVoltage = -65 
-        elif self.current_dose <=20: cutOffVoltage = -70 
-        elif self.current_dose <=40: cutOffVoltage = -75 
-
-        print('cut-off voltage = {} V'.format(cutOffVoltage))
-
         fname_out = '_'.join(['iv', self.id, name]) + '.dat'
-        i_baseline, stddev, spread = 0., 0., 0.
-        rolling_avg, rolling_avgs = [], []
-        nowBelow = False
-        minCurrent = 100000.
-        crossOver = 9999
         try:
             ## Loop over voltages
-            for iv,v in enumerate(self.volt_list_iv):
-                if v < cutOffVoltage:
-                    break
+            for iv,v in enumerate(volt_list):
                 self.sourcemeter_1.ramp_voltage(v)
                 time.sleep(self.config['measurements']['IV']['delay'])
 
@@ -367,38 +404,16 @@ class gcdmos(measurement):
                 i = means
                 di = errs 
 
-                if i < minCurrent:
-                    minCurrent = i
-
                 line = [v, vol, i, di, cur_tot]
                 out.append(line)
                 self.logging.info("{:<5.2E}\t{: <5.2E}\t{: <8.3E}\t{: <8.3E}\t{: <5.2E}".format(*line))
 
                 tmp_x.append(v)
                 tmp_y.append(i)
-                tmp_y_err.append(di) # Store the error
+                tmp_y_err.append(di)
 
-                ## update the live plotting
                 live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color='g')
 
-                nFirst = 15 if self.config['sample']['preexisting_dose'] == 0 else 5
-                if iv and iv < nFirst:
-                    i_baseline = i_baseline + (i - i_baseline)/(iv)
-                    rolling_avg.append(i)
-                    stddev = np.std(rolling_avg)
-                    spread = abs(max(rolling_avg)-min(rolling_avg))
-                elif iv >=nFirst:
-                    rolling_avg.pop(0)
-                    rolling_avg.append(i)
-                if iv > 3: rolling_avgs.append(tmp_y[-3:])
-                # curr_avg = np.mean(rolling_avg) if iv else 0.
-                # print('i baseline: {b:.3f}'.format(b=float(i_baseline*1e10)))
-                # print('current average and spread: {a:.3f} +- {b:.3f}'.format(a=float(curr_avg*1e10), b=float(spread*1e10)))
-                
-                if not nowBelow and iv > 9 and i < (i_baseline-5.*spread):
-                    nowBelow = True
-                    self.logging.info('IV scan: i have now reached the bottom of the well!!!!')
-                    crossOver = v
                 if i > self.config['devices']['picoammeter']['lim_cur']:
                     self.logging.info('reached compliance in the keithley6487')
                     self.reset_power_supplies()
@@ -417,7 +432,7 @@ class gcdmos(measurement):
         return out
 
     def execute(self):
-
+        plt.style.use('ggplot')
         self.reset_power_supplies()
         self.reset_switch()
 
@@ -425,17 +440,17 @@ class gcdmos(measurement):
         plots = {}
         
         if 'moshalf' in self.testset:
-            plots_cv_moshalf = self.doCVScan(ax0, name='MOShalf')
+            plots_cv_moshalf = self.doCVScan(ax0, name='MOShalf', volt_list=self.volt_list_moshalf)
             plots["cv_moshalf"] = plots_cv_moshalf
             self.reset_power_supplies()
             self.reset_switch()
         if 'mos2000' in self.testset:
-            plots_cv_mos2000 = self.doCVScan(ax1, name='MOS2000')
+            plots_cv_mos2000 = self.doCVScan(ax1, name='MOS2000', volt_list=self.volt_list_mos2000)
             plots["cv_mos2000"] = plots_cv_mos2000
             self.reset_power_supplies()
             self.reset_switch()
         if 'gcd' in self.testset:
-            plots_iv_gcd = self.doIVScan(ax2, name='GCD')
+            plots_iv_gcd = self.doIVScan(ax2, name='GCD', volt_list=self.volt_list_gcd)
             plots["iv_gcd"] = plots_iv_gcd
             self.reset_power_supplies()
             self.reset_switch()
