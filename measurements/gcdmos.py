@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib
 plt.style.use('ggplot')
-import time, math, os
+import time, math, os, glob, re
 import numpy as np
 from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 
@@ -9,6 +9,7 @@ from utils.correct_cv import lcr_series_equ, lcr_parallel_equ
 from measurements import measurement
 
 def init_liveplot():
+    plt.style.use('ggplot')
     plt.ion()
     fig = plt.figure(figsize=(15,5))
     ax0 = fig.add_subplot(131)
@@ -161,6 +162,45 @@ class gcdmos(measurement):
     #     f.close()
 
     #     return ref_cap
+
+
+    def getReferenceCapacitance(self, name):
+        """
+        Use the 0kGy reference file regardless of self.current_dose.
+        Assumes new naming: logs/{id_with_0kGy}/.../cv_{id_with_0kGy}_{name}.dat
+        """
+        # ensure '0kGy' is in the id (replace any existing "<num>kGy" with "0kGy")
+        if 'kGy' in self.id:
+            id0 = re.sub(r'\d+(?:\.\d+)?kGy', '0kGy', self.id)
+
+        ci = 'cv' if 'MOS' in name else 'iv'
+        pattern = os.path.join('logs', id0, '**', f'{ci}_{id0}_{name}.dat')
+        matches = glob.glob(pattern, recursive=True)
+
+        if not matches:
+            raise FileNotFoundError(f"No reference files found for pattern: {pattern}")
+
+        latest_file = max(matches, key=os.path.getmtime)
+
+        with open(latest_file, 'r', encoding='utf-8') as fh:
+            lines = [ln.strip() for ln in fh if ln.strip()]
+
+        if not lines:
+            raise ValueError(f"Reference file {latest_file} is empty")
+
+        tokens = lines[-1].split()
+        if len(tokens) < 3:
+            raise ValueError(f"Unexpected file format in {latest_file}; last line: '{lines[-1]}'")
+
+        try:
+            ref_cap = float(tokens[-3])
+        except Exception as exc:
+            raise ValueError(f"Couldn't parse capacitance from '{lines[-1]}' in {latest_file}") from exc
+
+        self.logging.info(f"this is my reference capacitance: {ref_cap} (from {latest_file})")
+        return ref_cap
+
+
         
     def savePlots(self, dic):
         ### Save and print
@@ -219,10 +259,10 @@ class gcdmos(measurement):
         rolling_avg = []
 
         try:
-            # if not self.config['sample']['preirradiated']:
-            #     reference_capacitance = self.getReferenceCapacitance(name)
-            # else:
-            #     reference_capacitance = -1
+            if self.current_dose > 0: # only get the reference capacitance if we're measuring irradiated samples
+                reference_capacitance = self.getReferenceCapacitance(name)
+            else:
+                reference_capacitance = -1
             plateauVoltage = 999.
             ## Loop over voltages
             for cv, v in enumerate(self.volt_list_cv):
@@ -232,7 +272,7 @@ class gcdmos(measurement):
                 cur_tot = self.sourcemeter_1.read_current()
                 vol = self.sourcemeter_1.read_voltage()
 
-                measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.config['measurements']['CV']['sample_size'])])
+                measurements = np.array([self.lcrmeter.execute_measurement(trig_delay = self.config['measurements']['CV']['trig_delay']) for _ in range(self.config['measurements']['CV']['sample_size'])])
                 means = np.mean(measurements, axis=0)
                 errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['CV']['sample_size'])
 
@@ -266,15 +306,17 @@ class gcdmos(measurement):
                     rolling_avg.append(c_s)
                 curr_avg = np.mean(rolling_avg)
                 rms = math.sqrt(sum([i**2 for i in rolling_avg])/len(rolling_avg))
-                # if c_s > 0.9*reference_capacitance and not self.config['sample']['preirradiated']:
-                #     print('this is the rms of the last 10', rms)
-                #     if 0.985*rms < c_s < 1.015*rms:
-                #         self.logging.info('it looks like the plateau is reached... ending measurement!')
-                #         if plateauVoltage > 0: plateauVoltage = v
-                #         if not self.config['sample']['preirradiated'] and v < 1.2*plateauVoltage:
-                #             break
-                #         else:
-                #             self.logging.info('going on because this is a preirradiated sample or we want to go the extra mile...')
+
+                # Plateau detection:
+                if c_s > 0.9*reference_capacitance and self.current_dose > 0:  # if our current series capacitance is within reach of the reference, and our sample is irradiated
+                    print('this is the rms of the last 10', rms)
+                    if 0.985*rms < c_s < 1.015*rms:                            # checks the slope of the current c_s by bounding it between the rms + magic number bounds
+                        self.logging.info('it looks like the plateau is reached... ending measurement!')
+                        if plateauVoltage > 0: plateauVoltage = v              # update global plateau voltage to determine if the measurement needs to be terminated. 
+                        if self.current_dose > 0 and v < 1.2*plateauVoltage:
+                            break
+                        else:
+                            self.logging.info('going on because this is an irradiated sample OR we want to go the extra mile... ? ')
 
 
         except BaseException as e:

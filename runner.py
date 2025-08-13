@@ -88,11 +88,11 @@ def main():
     tm_queue = None # preinit to ensure correct parsing when running without chiller, when tm_process has tm_queue = None, 
 
     if "temperature_management" in config:
-        #TODO: why not always run with a cmd queue, even when executing without a chiller? (maybe to enable standalone execution logic? )
+        #TODO: why not always run with a cmd queue, even when executing without a chiller?
         if config['temperature_management']['chiller']['enabled']:
             tm_queue = multiprocessing.Queue()  
 
-        # 2. Create and start the background process
+        # Create and start the background process
         print("Starting temperature management in the background...")
         tm_process = multiprocessing.Process(
             target=temperature_worker, 

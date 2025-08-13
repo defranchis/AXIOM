@@ -1,8 +1,8 @@
 measurement_type: 'gcdmos'
 sample:
-  type: 'gcdmos' #TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
-  id: 100410  #TODO:: this should always be requested from the cli
-  preexisting_dose: 0        # this is only used if no dose is provided by the runner (when running msr without obelix)
+  type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
+  id: 100410                  # TODO: this should always be requested from the cli
+  preexisting_dose: 1        # this is only used if no dose is provided by the runner (when running msr without obelix)
 
 
 devices:
@@ -41,13 +41,14 @@ measurements:
   testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   CV:
     range:
-      v_start: 0.   #  -50 if '120um' in self.id else -100
-      v_end: -5   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      v_start: 0.   # 
+      v_end: -10   #   
       step_size: -0.5
     sample_size: 10
     lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
     lcr_frequency: 10000  # ac voltage frequency in [Hz]
-    delay: 0 # delay in [s] between setting the voltage and executing the measurement
+    delay: 3  # delay in [s] between setting the voltage and executing the measurement
+    trig_delay: 0.1
 
   IV:
     range:
@@ -59,7 +60,7 @@ measurements:
     delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
 
 irradiation:
-  doselist: [0,1,2,5,10]
+  doselist: [0,0.1,2,5,10]
   dose_rate: 14.257  ## value taken on Aug 31st 2023
   voltage: 40  # the voltage of the tube in kV
   current: 50  # the current of the tube in mA

@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import devices
+import yaml
 from utils.tools import add_coloring_to_emit_ansi
 
 
@@ -71,6 +72,8 @@ class measurement(object):
         self.logging.info("Running test: %s" % self.__class__.__name__)
         self.logging.info("------------------------------------------")
         self.logging.info("\t")
+
+        self.logging.info(yaml.dump(self.config, default_flow_style=True))
 
 
         
