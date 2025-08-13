@@ -1,8 +1,8 @@
 measurement_type: 'gcdmos'
 sample:
   type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
-  id: 102183                  # TODO: this should always be requested from the cli
-  preexisting_dose: 100
+  id: 102179                  # TODO: this should always be requested from the cli
+  preexisting_dose: 200
 
 
 devices:
@@ -41,8 +41,8 @@ measurements:
   testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   dynamic_voltage_range:
     enabled: true
-    voltage_array_size: 30
-    range_multiplier: 1.1
+    voltage_array_size: 35
+    range_multiplier: 1
 
   CV:
     range:

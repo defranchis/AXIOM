@@ -51,7 +51,10 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
 
         x_min, x_max = np.min(x_vec), np.max(x_vec)
         x_range = x_max - x_min if x_max > x_min else abs(x_max)
+        if x_range == 0: # Handle case where all x values are the same
+            x_range = abs(x_min) if x_min != 0 else 1.0
         ax.set_xlim(x_min - 0.1 * x_range, x_max + 0.1 * x_range)
+
 
     # This pauses the data so the figure/axis can catch up
     plt.pause(pause_time)
@@ -245,7 +248,7 @@ class gcdmos(measurement):
                                  'Bias Voltage [V]', 'Total Current [A]', 'IV ' + self.id + ' ' + name, fn="iv_total_current_{a}_{b}.png".format(a=self.id, b=name))
 
     def doCVScan(self, ax, name='', volt_list=None): 
-        if volt_list is None:
+        if volt_list is None or len(volt_list) == 0:
             self.logging.error(f"No voltage list provided for CV scan: {name}. Skipping.")
             return []
 
@@ -278,15 +281,15 @@ class gcdmos(measurement):
         color = 'b' if  'MOShalf' in name else 'r' if 'MOS2000' in name else 'c'
         tmp_x, tmp_y, tmp_y_err = [], [], []
 
-        c_baseline = 0.
         rolling_avg = []
 
         try:
-            if self.current_dose > 0: # only get the reference capacitance if we're measuring irradiated samples
+            if self.current_dose > 0:
                 reference_capacitance = self.getReferenceCapacitance(name)
             else:
                 reference_capacitance = -1
             plateauVoltage = None
+            
             ## Loop over voltages
             for cv, v in enumerate(volt_list):
                 self.sourcemeter_1.ramp_voltage(v)
@@ -303,7 +306,7 @@ class gcdmos(measurement):
                 dr, dx = errs
 
                 z = np.sqrt(r**2 + x**2)
-                phi = np.arctan(x/r)
+                phi = np.arctan(x/r) if r != 0 else np.pi/2 * np.sign(x)
                 r_s, c_s, l_s, D = lcr_series_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
                 r_p, c_p, l_p, D = lcr_parallel_equ(self.config['measurements']['CV']['lcr_frequency'], z, phi)
 
@@ -320,21 +323,32 @@ class gcdmos(measurement):
                 live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
 
                 if cv < 10:
-                    c_baseline = c_baseline + (c_s - c_baseline)/(cv+1)
                     rolling_avg.append(c_s)
                 else:
                     rolling_avg.pop(0)
                     rolling_avg.append(c_s)
-                curr_avg = np.mean(rolling_avg)
-                rms = math.sqrt(sum([i**2 for i in rolling_avg])/len(rolling_avg))
+                
+                rms = np.std(rolling_avg)
 
-                if c_s > 0.9*reference_capacitance and self.current_dose > 0:
-                    if 0.985*rms < c_s < 1.015*rms:
-                        self.logging.info(f"it looks like the plateau is reached at rms: {rms}, c_s: {c_s}, v: {v} and plateau voltage: {plateauVoltage}")
-                        if plateauVoltage == None: plateauVoltage = v #only trigger on first hitting the plateau
-                        if self.current_dose > 0 and v < 1.1*plateauVoltage: # after passing the plateau voltage by 10 percent, cutoff measurement
-                            self.logging.info(f"stopping measurement due to plateau at V: {v}")
-                            break
+                # Plateau logic: has dropped significantly from its initial (reference) value.
+                # Condition 1: Check if we are in the depletion region (capacitance has dropped)
+                # and if the sample is irradiated.
+                if c_s > (0.9 * reference_capacitance) and self.current_dose > 0:
+                    
+                    # Condition 2: Check if the curve is flat using the standard deviation of a rolling window.
+                    is_flat = rms < (c_s * 0.015) # True if std dev is < 1.5% of current C
+                    
+                    if is_flat:
+                        # Condition 3: Set the plateau voltage, but only the first time we detect the plateau.
+                        if plateauVoltage is None: 
+                            plateauVoltage = v
+                            self.logging.info(f"Plateau detected and voltage set to: {plateauVoltage:.2f} V")
+
+                        # Condition 4: Terminate the scan if we have gone 10% past the detected plateau.
+                        if plateauVoltage is not None:
+                            if abs(v) > abs(plateauVoltage * 1.1):
+                                self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 110% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
+                                break
 
         except BaseException as e:
             self.logging.info('EXCEPTION RAISED:', e)
@@ -350,7 +364,7 @@ class gcdmos(measurement):
         return out
 
     def doIVScan(self, ax, name='', volt_list=None):
-        if volt_list is None:
+        if volt_list is None or len(volt_list) == 0:
             self.logging.error(f"No voltage list provided for IV scan: {name}. Skipping.")
             return []
 
