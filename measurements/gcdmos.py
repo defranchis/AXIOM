@@ -262,8 +262,9 @@ class gcdmos(measurement):
         if volt_list is None or len(volt_list) == 0:
             self.logging.error(f"No voltage list provided for CV scan: {name}. Skipping.")
             return []
+        
 
-        if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['lcrmeter'])
+        if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections'][name])
         self.sourcemeter_1.set_output_on()
 
         lim_vol  = self.sourcemeter_1.check_voltage_limit()

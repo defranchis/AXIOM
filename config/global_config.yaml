@@ -2,7 +2,7 @@ measurement_type: 'gcdmos'
 sample:
   type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
   id: 102179                  # TODO: this should always be requested from the cli
-  preexisting_dose: 0
+  preexisting_dose: 100
 
 
 devices:
@@ -20,8 +20,9 @@ devices:
     model: 'ke7001'
     address: 7
     connections:
-      lcrmeter: 3
-      picoammeter: 9
+      MOShalf: 1
+      MOS2000: 3
+      picoammeter: 9 # (?)
 
   lcrmeter:
     model: 'agilent_4263b'
@@ -42,13 +43,13 @@ measurements:
   dynamic_voltage_range:
     enabled: true
     voltage_array_size: 35
-    range_multiplier: 1.2
+    range_multiplier: 1
 
   CV:
     range:
       v_start: 0.   # 
-      v_end: -10   #   
-      step_size: -0.5
+      v_end: -200   #   
+      step_size: -10
     sample_size: 10
     lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
     lcr_frequency: 10000  # ac voltage frequency in [Hz]
