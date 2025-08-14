@@ -36,12 +36,13 @@ measurements:
   CV:
     range:
       v_start: -100   #  -50 if '120um' in self.id else -100
-      v_end: -300   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
-      step_size: -50
-    sample_size: 20
+      v_end: -600   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      step_size: -20
+    sample_size: 10
     lcr_amplitude: 0.5
-    frequencies: [10000, 100000]  # needs to be integers otherwise the plotting utils complain
-    delay: 5
+    frequencies: [100, 1000, 10000]  # needs to be integers otherwise the plotting utils complain
+    measurement_delay: 5 # delay after setting the voltage before starting the measurement
+    trig_delay: 0  # delay between lcr triggers
     
   IV:
     measurement_range:
@@ -51,7 +52,8 @@ measurements:
     bias_range:
       v_start: -100
       v_end: -300
-      step_size: -50
+      step_size: -25
     sample_size: 10 # default = 10
-    delay: 5
-    step_delay: 5
+    bias_delay: 5  # delay in ivscan after stting the bias voltage
+    step_delay: 1 # delay in the ivpoint after setting the measurement voltage
+

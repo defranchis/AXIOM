@@ -262,7 +262,7 @@ class strip(measurement):
             'Power Supply current limit:      %8.2E A' % float(lim_cur),
             'LCR measurement voltage:         %8.2E V' % lcr_vol,
             'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['delay'],
+            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['measurement_delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
         ]
 
@@ -273,7 +273,7 @@ class strip(measurement):
             #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
             'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
             'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
+            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['bias_delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
         ]
         #line = [biasV, vol, cur_tot, measV, volSmall, means, errs]
@@ -285,7 +285,7 @@ class strip(measurement):
             #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
             'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
             'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['delay'],
+            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['bias_delay'],
             'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
         ]
 
@@ -298,7 +298,7 @@ class strip(measurement):
         self.sourcemeter_1.ramp_up(biasV)
         self.sourcemeter_2.set_output_on()  #TODO: WHY IS THE SECOND SOURCEMETER USED ONLY HERE TO DO NOTHING?
         self.sourcemeter_2.ramp_up(0)
-        time.sleep(self.config['measurements']['CV']['delay'])
+        time.sleep(self.config['measurements']['CV']['measurement_delay'])
 
         cur_tot = self.sourcemeter_1.read_current()
         vol = self.sourcemeter_1.read_voltage()
@@ -307,7 +307,7 @@ class strip(measurement):
         self.lcrmeter.set_frequency(freq)
         time.sleep(1)
 
-        measurements = np.array([self.lcrmeter.execute_measurement() for _ in range(self.config['measurements']['CV']['sample_size'])])
+        measurements = np.array([self.lcrmeter.execute_measurement(trig_delay=self.config['measurements']['CV']['trig_delay']) for _ in range(self.config['measurements']['CV']['sample_size'])])
         means = np.mean(measurements, axis=0)
         errs = np.std(measurements, axis=0)/math.sqrt(self.config['measurements']['CV']['sample_size'])
 
@@ -458,9 +458,8 @@ class strip(measurement):
                 start_time = time.time()
                 
                 self.sourcemeter_1.ramp_up(v)
-                time.sleep(self.config['measurements']['IV']['delay'])
                 self.sourcemeter_2.set_output_on()
-                time.sleep(self.config['measurements']['IV']['delay'])
+                time.sleep(self.config['measurements']['IV']['bias_delay'])
 
                 if not self.sourcemeter_1.check_compliance():
                     self.logging.info('SOURCEMETER_1 HAS REACHED COMPLIANCE AT BIAS VOLTAGE: %s V', v)

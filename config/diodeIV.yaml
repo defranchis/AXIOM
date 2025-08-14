@@ -27,8 +27,8 @@ measurements:
       v_end: 0.5
       step_size: 0.1
     bias_range:
-      v_start: -10  
-      v_end: -800
-      step_size: -20
+      v_start: 0  
+      v_end: -400
+      step_size: -50
     delay: 3  # delay between setting voltage and executing measurement in [s]
     sample_size: 20  # number of measurements per bias voltage (equal for each picoammeter)
