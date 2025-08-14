@@ -30,12 +30,20 @@ def mypause(interval):
             canvas.start_event_loop(interval)
             return
 
-def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k',pause_time=0.1):
+def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', color='k', pause_time=0.1, ref_line=None):
     # Clear the axis completely on each call
     ax.clear()
 
     # Plot the data with error bars
-    ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
+    if len(x_vec) > 0:
+        ax.errorbar(x_vec, y_vec, yerr=y_err_vec, fmt=color[0]+'-o', alpha=0.8, capsize=3, label=identifier)
+
+    # Plot reference horizontal line if provided
+    if ref_line is not None:
+        try:
+            ax.axhline(ref_line, linestyle='--', linewidth=1, label='reference C')
+        except Exception:
+            pass
 
     # Set titles and labels
     ax.set_title(identifier)
@@ -44,8 +52,12 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
     ax.legend() # Show legend for identifier
 
     # Adjust plot limits dynamically
+    # include reference line in limits calculation if present
     if x_vec and y_vec:
-        y_min, y_max = np.min(y_vec), np.max(y_vec)
+        y_all = np.array(y_vec)
+        if ref_line is not None:
+            y_all = np.append(y_all, ref_line)
+        y_min, y_max = np.min(y_all), np.max(y_all)
         y_range = y_max - y_min if y_max > y_min else abs(y_max)
         ax.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
 
@@ -54,7 +66,6 @@ def live_plotter(x_vec, y_vec, y_err_vec, ax, identifier='', yaxis_title='', col
         if x_range == 0: # Handle case where all x values are the same
             x_range = abs(x_min) if x_min != 0 else 1.0
         ax.set_xlim(x_min - 0.1 * x_range, x_max + 0.1 * x_range)
-
 
     # This pauses the data so the figure/axis can catch up
     plt.pause(pause_time)
@@ -137,7 +148,7 @@ class gcdmos(measurement):
 
     def reset_switch(self):
         # only reset switch if actually used in current configuration
-        if hasattr(self, 'switch'): 
+        if hasattr(self, 'switch'):
             self.switch.reset(1)
             self.switch.get_idn()
             self.switch.open_all()
@@ -289,7 +300,11 @@ class gcdmos(measurement):
             else:
                 reference_capacitance = -1
             plateauVoltage = None
-            
+
+            # Parameters for plateau detection
+            window_size = int(self.config['measurements']['CV'].get('plateau_window', 7)) if 'measurements' in self.config else 7
+            # slope tolerance is defined as 1% of the mean capacitance across the window per volt span
+
             ## Loop over voltages
             for cv, v in enumerate(volt_list):
                 self.sourcemeter_1.ramp_voltage(v)
@@ -320,35 +335,52 @@ class gcdmos(measurement):
                 tmp_y.append(c_s)
                 tmp_y_err.append(dc_s)
 
-                live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color)
+                # Pass reference capacitance to the plotter so it can draw the horizontal line
+                ref_line = reference_capacitance if (self.current_dose > 0 and reference_capacitance > 0) else None
+                live_plotter(tmp_x, tmp_y, tmp_y_err, ax, identifier=tmp_id_title, yaxis_title=tmp_id_y, color=color, ref_line=ref_line)
 
+                # Maintain rolling average for compatibility (not used for plateau detection anymore)
                 if cv < 10:
                     rolling_avg.append(c_s)
                 else:
                     rolling_avg.pop(0)
                     rolling_avg.append(c_s)
-                
-                rms = np.std(rolling_avg)
 
-                # Plateau logic: has dropped significantly from its initial (reference) value.
-                # Condition 1: Check if we are in the depletion region (capacitance has dropped)
-                # and if the sample is irradiated.
-                if c_s > (0.9 * reference_capacitance) and self.current_dose > 0:
-                    
-                    # Condition 2: Check if the curve is flat using the standard deviation of a rolling window.
-                    is_flat = rms < (c_s * 0.015) # True if std dev is < 1.5% of current C
-                    
-                    if is_flat:
-                        # Condition 3: Set the plateau voltage, but only the first time we detect the plateau.
-                        if plateauVoltage is None: 
-                            plateauVoltage = v
-                            self.logging.info(f"Plateau detected and voltage set to: {plateauVoltage:.2f} V")
+                # New plateau detection using a moving window slope + mean-within-10% of reference
+                plateau_detected = False
+                if self.current_dose > 0 and reference_capacitance > 0 and len(tmp_x) >= window_size:
+                    try:
+                        x_window = np.array(tmp_x[-window_size:])
+                        y_window = np.array(tmp_y[-window_size:])
+                        # Fit a linear slope to the window
+                        slope, intercept = np.polyfit(x_window, y_window, 1)
+                        # Voltage span across the window (avoid div by zero)
+                        v_span = max(1e-6, (x_window[-1] - x_window[0]))
+                        # slope tolerance: 1% of mean capacitance per volt across the window
+                        slope_tol = (abs(np.mean(y_window)) * 0.01) / v_span
 
-                        # Condition 4: Terminate the scan if we have gone 10% past the detected plateau.
-                        if plateauVoltage is not None:
-                            if abs(v) > abs(plateauVoltage * 1.1):
-                                self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 110% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
-                                break
+                        mean_window = np.mean(y_window)
+
+                        is_flat_slope = abs(slope) <= slope_tol
+                        is_within_ref = abs(mean_window - reference_capacitance) <= (0.10 * abs(reference_capacitance))
+
+                        if is_flat_slope and is_within_ref:
+                            plateau_detected = True
+                    except Exception as ex:
+                        # If polyfit fails for any reason, don't detect plateau here
+                        self.logging.debug(f"Plateau detection polyfit failed: {ex}")
+                        plateau_detected = False
+
+                if plateau_detected:
+                    if plateauVoltage is None:
+                        plateauVoltage = v
+                        self.logging.info(f"Plateau detected and voltage set to: {plateauVoltage:.2f} V")
+
+                    # Terminate the scan if we have gone 10% past the detected plateau.
+                    if plateauVoltage is not None:
+                        if abs(v) > abs(plateauVoltage * 1.1):
+                            self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 110% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
+                            break
 
         except BaseException as e:
             self.logging.info('EXCEPTION RAISED:', e)

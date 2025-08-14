@@ -2,7 +2,7 @@ measurement_type: 'gcdmos'
 sample:
   type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
   id: 102179                  # TODO: this should always be requested from the cli
-  preexisting_dose: 200
+  preexisting_dose: 0
 
 
 devices:
@@ -42,7 +42,7 @@ measurements:
   dynamic_voltage_range:
     enabled: true
     voltage_array_size: 35
-    range_multiplier: 1
+    range_multiplier: 1.2
 
   CV:
     range:
@@ -52,7 +52,7 @@ measurements:
     sample_size: 10
     lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
     lcr_frequency: 10000  # ac voltage frequency in [Hz]
-    delay: 3  # delay in [s] between setting the voltage and executing the measurement
+    delay: 5  # delay in [s] between setting the voltage and executing the measurement
     trig_delay: 0.1
 
   IV:
