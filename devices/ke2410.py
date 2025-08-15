@@ -24,6 +24,8 @@ class ke2410(device):
 
     def __init__(self, address, lim_cur=1.0e-3, **kwargs):
         device.__init__(self, address=address)
+        if self.ctrl.query("OUTP:STAT?").strip() == '1':
+            self.ramp_down()
         self.ctrl.write("*RST")
         self.ctrl.write(":SENS:CURR:PROT %f" % lim_cur)
 
@@ -39,6 +41,9 @@ class ke2410(device):
     def reset(self, debug=0):
         if debug == 1:
             self.logging.info("Reseting device.")
+        self.logging.info(self.ctrl.query("OUTP:STAT?"))
+        if self.ctrl.query("OUTP:STAT?").strip() == '1':
+            self.ramp_down(debug=debug)
         self.ctrl.write("*RST")
         return 0
 
@@ -131,20 +136,6 @@ class ke2410(device):
             self.logging.info("Ramping voltage from %.2f V to %.2f V." % (now, val))
             self.logging.warning("USAGE OF ramp_voltage FUNCTION DOES NOT RANP BUT IMMEDIATELY SETS OUTPUT TO:  %.2f V." % (val))
 
-        ## MARC if now > val:
-        ## MARC     for v in range(now, val, -25):
-        ## MARC         self.ctrl.write(":SOUR:VOLT %f" % v)
-        ## MARC         time.sleep(1)
-        ## MARC         if debug == 1:
-        ## MARC             print(self.read_voltage())
-        ## MARC     self.ctrl.write(":SOUR:VOLT %f" % val)
-        ## MARC else:
-        ## MARC     for v in range(now, val, +25):
-        ## MARC         self.ctrl.write(":SOUR:VOLT %f" % v)
-        ## MARC         time.sleep(1)
-        ## MARC         if debug == 1:
-        ## MARC             print(self.read_voltage())
-        ## MARC     self.ctrl.write(":SOUR:VOLT %f" % val)
         self.ctrl.write(":SOUR:VOLT %f" % val)
         return 0
 
@@ -165,6 +156,7 @@ class ke2410(device):
                 print(self.read_voltage())
 
         self.ctrl.write(":SOUR:VOLT 0")
+        sys.stdout.flush() 
         time.sleep(3)
         return 0
 
@@ -186,6 +178,7 @@ class ke2410(device):
                 print(self.read_voltage())
 
         self.ctrl.write(":SOUR:VOLT 0")
+        sys.stdout.flush() 
         time.sleep(5)
         return 0
 
