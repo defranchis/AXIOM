@@ -13,7 +13,7 @@ import devices
 
 
 def convertkGyToTime(nkGy, dose_rate=None):
-    nSeconds = int(3600./dose_rate * nkGy)
+    nSeconds = int(3600.0 / dose_rate * nkGy)
     hms = str(datetime.timedelta(seconds=nSeconds))
     hms = [int(i) for i in hms.split(':')]
     return hms[0], hms[1], hms[2]
@@ -367,10 +367,10 @@ def setExposureTimer(n,hours,minutes,seconds):
     #    print("This timer is already On")
 
 def secondsToHoursMinutesAndSeconds(seconds):
-    
-    hours = seconds/3600
-    minutes = ((seconds % 3600)/60)
-    seconds = ((seconds % 3600) % 60)
+    # return integer hours, minutes, seconds
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
 
     return [hours, minutes, seconds]
 
@@ -382,7 +382,20 @@ def readExposureTimerActualValue(n):
     exposureTimerSeconds = port.readline(12)
     exposureTimerSeconds = exposureTimerSeconds[1:(len(exposureTimerSeconds)-1)]
     return int(exposureTimerSeconds)
-    
+
+def compute_accumulated_dose(remaining_seconds, total_seconds, current_dose_kGy, dose_rate_kGy_per_hr):
+    """
+    remaining_seconds: seconds left on timer
+    total_seconds: total irradiation seconds planned
+    current_dose_kGy: starting dose before this irradiation
+    dose_rate_kGy_per_hr: kGy per hour
+    returns (accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds)
+    """
+    elapsed = max(0, int(total_seconds - remaining_seconds))
+    dose_delivered = (elapsed * float(dose_rate_kGy_per_hr)) / 3600.0
+    accumulated = float(current_dose_kGy) + dose_delivered
+    return accumulated, dose_delivered, elapsed
+
 if __name__ == '__main__':
 
     port = serial.Serial('COM3',baudrate = 9600,timeout=1)
@@ -447,6 +460,9 @@ if __name__ == '__main__':
         hours, minutes, seconds = convertkGyToTime(dose_toirr, dose_rate=config['irradiation']['dose_rate'])
         setExposureTimer(3, hours, minutes, seconds)
 
+        # total irradiation time in seconds (used to compute elapsed vs remaining)
+        totalIrradiationTimeInSeconds = int(hours * 3600 + minutes * 60 + seconds)
+
         remainingTimeInSeconds = readExposureTimerActualValue(3)
 
         turnHVOn()
@@ -454,26 +470,77 @@ if __name__ == '__main__':
             biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
         openShutter(3, _overrideUserInput) #int(shutterNumber))
 
+        # irradiation loop - prints accumulated dose continuously
         while(remainingTimeInSeconds):
             remainingTimeInSeconds = readExposureTimerActualValue(3)
-            hours, minutes, seconds = secondsToHoursMinutesAndSeconds(remainingTimeInSeconds)
-            #print('>> Elapsed Time in Seconds: %d' %elapsedTimeInSeconds)
-            print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time: {h}h {m}m {s}s'.format(a=current_dose,b=target_dose,h=hours,m=minutes,s=seconds))
-            print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours,minutes,seconds))
+
+            # compute accumulated dose
+            accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(
+                remainingTimeInSeconds,
+                totalIrradiationTimeInSeconds,
+                current_dose,
+                config['irradiation']['dose_rate']
+            )
+
+            hours_r, minutes_r, seconds_r = secondsToHoursMinutesAndSeconds(remainingTimeInSeconds)
+            # print progress and accumulated dose
+            print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time left: {h}h {m}m {s}s'.format(a=current_dose,b=target_dose,h=hours_r,m=minutes_r,s=seconds_r))
+            print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours_r,minutes_r,seconds_r))
+            print('>> Dose delivered in this run: {:.6f} kGy (elapsed {:+d} s)'.format(dose_delivered_kGy, elapsed_seconds))
+            print('>> Total accumulated dose so far: {:.6f} kGy'.format(accumulated_total_kGy))
+
             generalWarnings(port)
             ret = statusRead4()
             if ret == -1:
                 pass
             time.sleep(1)
+
+        # irradiation finished normally (remainingTimeInSeconds == 0)
+        accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(
+            0,
+            totalIrradiationTimeInSeconds,
+            current_dose,
+            config['irradiation']['dose_rate']
+        )
+        print('OBELIX: irradiation finished normally.')
+        print('OBELIX: Total dose delivered this run: {:.6f} kGy'.format(dose_delivered_kGy))
+        print('OBELIX: Total accumulated dose = {:.6f} kGy'.format(accumulated_total_kGy))
+
         if config['irradiation']['biasing'] :
             biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
     
     except: #Exception as e:
-        print('OBELIX: EXCEPTION RAISED!!!')
+        # Attempt to determine remaining time and compute accumulated dose before exit
+        try:
+            remaining = None
+            try:
+                remaining = readExposureTimerActualValue(3)
+            except Exception:
+                # fallback if read failed
+                remaining = remainingTimeInSeconds if 'remainingTimeInSeconds' in globals() else None
+
+            if remaining is None:
+                # cannot read remaining time, best-effort print
+                print('OBELIX: irradiation stopped, but remaining time could not be read. Current dose value (pre-run): {:.6f} kGy'.format(float(current_dose)))
+            else:
+                accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(
+                    remaining,
+                    totalIrradiationTimeInSeconds if 'totalIrradiationTimeInSeconds' in globals() else 0,
+                    current_dose,
+                    config['irradiation']['dose_rate'] if 'config' in globals() and 'irradiation' in config and 'dose_rate' in config['irradiation'] else 0.0
+                )
+                print('OBELIX: irradiation stopped unexpectedly.')
+                print('OBELIX: Dose delivered before stop: {:.6f} kGy'.format(dose_delivered_kGy))
+                print('OBELIX: Total accumulated dose = {:.6f} kGy'.format(accumulated_total_kGy))
+
+        except Exception as e2:
+            # if anything in the reporting fails, at least print the baseline current dose
+            print('OBELIX: error while computing accumulated dose on exception: {}'.format(e2))
+            print('OBELIX: Current dose before run: {:.6f} kGy'.format(float(current_dose)))
+
         port.write('CS:3\r'.encode())
         port.write('HV:0\r'.encode())
         print('exiting after keyboard interrupt')
         if config['irradiation']['biasing'] :
             biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
         exit(1)
-    

@@ -1,7 +1,7 @@
 measurement_type: 'diodeCV'
 sample:
   type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
-  id: 100408_A  #TODO:: this should always be requested from the cli
+  id: 100429  #TODO:: this should always be requested from the cli
   preexisting_dose: 0        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
 
   
@@ -28,20 +28,20 @@ measurements:
   CV:
     range:
       v_start: -0
-      v_end: -800
+      v_end: -25
       step_size: -25
     sample_size: 10
-    delay: 5                        # delay between setting voltage and executing measurement in [s]
+    delay: 0                        # delay between setting voltage and executing measurement in [s]
     trig_delay: 0.1                   # delay between individual lcr triggers  
     lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
     lcr_frequency: 1000                 # ac frequency in [Hz]
 
-# irradiation:
-#   doselist: [0,2,5,10]
-#   dose_rate: 14.257  ## value taken on Aug 31st 2023
-#   voltage: 40  # the voltage of the tube in kV
-#   current: 50  # the current of the tube in mA
-#   biasing: false  # whether to bias the sample during irradiation
+irradiation:
+  doselist: [0,2,5,10]
+  dose_rate: 14.257  ## value taken on Aug 31st 2023
+  voltage: 40  # the voltage of the tube in kV
+  current: 50  # the current of the tube in mA
+  biasing: false  # whether to bias the sample during irradiation
 
 # temperature_management:
 #   chiller:

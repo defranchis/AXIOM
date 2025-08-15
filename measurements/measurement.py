@@ -73,7 +73,7 @@ class measurement(object):
         self.logging.info("------------------------------------------")
         self.logging.info("\t")
 
-        self.logging.info(yaml.dump(self.config, default_flow_style=True))
+        self.logging.info(yaml.dump(self.config, default_flow_style=False))
 
 
         

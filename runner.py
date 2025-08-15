@@ -40,6 +40,9 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
     print(f"Remaining dose steps to be applied: {targets_to_run}")
     
     try:
+        print(f"\n--- Running INITIAL measurement with total accumulated dose: {current_dose:.2f} kGy ---")
+        run_measurement(msr_class, config, current_dose=current_dose)
+
         # Loop only through the remaining, filtered dose steps
         for target_dose in targets_to_run:
             print(f"\n--- Irradiating from {current_dose:.2f} kGy to {target_dose:.2f} kGy ---")
