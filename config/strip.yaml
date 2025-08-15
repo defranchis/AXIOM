@@ -33,6 +33,7 @@ devices:
 
 
 measurements:
+  testset:  [cv, iv]
   CV:
     range:
       v_start: -100   #  -50 if '120um' in self.id else -100

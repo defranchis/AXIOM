@@ -489,8 +489,8 @@ class gcdmos(measurement):
         if 'moshalf' in self.testset:
             plots_cv_moshalf = self.doCVScan(ax0, name='MOShalf', volt_list=self.volt_list_moshalf)
             plots["cv_moshalf"] = plots_cv_moshalf
-            self.reset_power_supplies()
-            self.reset_switch()
+            self.reset_power_supplies()  # due to the early exit behaviour these are still repeated here
+            self.reset_switch()             #TODO: move reset funcitons to the end of the cv and iv scan 
         if 'mos2000' in self.testset:
             plots_cv_mos2000 = self.doCVScan(ax1, name='MOS2000', volt_list=self.volt_list_mos2000)
             plots["cv_mos2000"] = plots_cv_mos2000

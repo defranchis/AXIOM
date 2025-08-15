@@ -81,29 +81,35 @@ class strip(measurement):
     def initialise(self):
         self._initialise()
         self._initialise_devices()
-        self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
-        self.lcrmeter.set_mode('RX')
 
-        # CV measurement voltage list from config
-        self.volt_list_bias_CV = np.arange(
-            self.config['measurements']['CV']['range']['v_start'],
-            self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
-            self.config['measurements']['CV']['range']['step_size']
-        )
+        self.testset = self.config['measurements'].get('testset', [])
 
-        # IV measurement voltage list
-        self.volt_list_iv = np.arange(
-            self.config['measurements']['IV']['measurement_range']['v_start'],
-            self.config['measurements']['IV']['measurement_range']['v_end'] +  self.config['measurements']['IV']['measurement_range']['step_size'],
-            self.config['measurements']['IV']['measurement_range']['step_size']
-        )
+        if 'cv' in self.testset:
+            self.lcrmeter.set_voltage(self.config['measurements']['CV']['lcr_amplitude'])
+            self.lcrmeter.set_mode('RX')
 
-        # IV bias voltage list
-        self.volt_list_bias_IV = np.arange(
-            self.config['measurements']['IV']['bias_range']['v_start'],
-            self.config['measurements']['IV']['bias_range']['v_end'] + self.config['measurements']['IV']['bias_range']['step_size'],
-            self.config['measurements']['IV']['bias_range']['step_size']
-        )
+            # CV measurement voltage list from config
+            self.volt_list_bias_CV = np.arange(
+                self.config['measurements']['CV']['range']['v_start'],
+                self.config['measurements']['CV']['range']['v_end'] + self.config['measurements']['CV']['range']['step_size'],
+                self.config['measurements']['CV']['range']['step_size']
+            )
+        
+        if 'iv' in self.testset:
+
+            # IV measurement voltage list
+            self.volt_list_iv = np.arange(
+                self.config['measurements']['IV']['measurement_range']['v_start'],
+                self.config['measurements']['IV']['measurement_range']['v_end'] +  self.config['measurements']['IV']['measurement_range']['step_size'],
+                self.config['measurements']['IV']['measurement_range']['step_size']
+            )
+
+            # IV bias voltage list
+            self.volt_list_bias_IV = np.arange(
+                self.config['measurements']['IV']['bias_range']['v_start'],
+                self.config['measurements']['IV']['bias_range']['v_end'] + self.config['measurements']['IV']['bias_range']['step_size'],
+                self.config['measurements']['IV']['bias_range']['step_size']
+            )
 
     def reset_power_supplies(self):
 
@@ -143,11 +149,11 @@ class strip(measurement):
         self.picoammeter.set_nplc(2)
 
     def reset_switch(self):
-
-        ## Set up the switch
-        self.switch.reset(1)
-        self.switch.get_idn()
-        self.switch.open_all()
+        # only reset switch if actually used in current configuration
+        if hasattr(self, 'switch'):
+            self.switch.reset(1)
+            self.switch.get_idn()
+            self.switch.open_all()
     
     def saveSinglePlot(self, fig, ax, name):
         extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
@@ -245,55 +251,62 @@ class strip(measurement):
         # CV
         lim_vol  = self.sourcemeter_1.check_voltage_limit()
         lim_cur  = self.sourcemeter_1.check_current_limit()
-        lcr_vol  = float(self.lcrmeter.check_voltage())
-        lcr_freq = float(self.lcrmeter.check_frequency())
-
-        # IV
-        ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
-        #ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
+        if 'cv' in self.testset:
+            lcr_vol  = float(self.lcrmeter.check_voltage())
+            lcr_freq = float(self.lcrmeter.check_frequency())
+       
+       
+        if 'cv' in self.testset:
+            ke6487_lim_vol = -999. #self.picoammeter.check_voltage_limit()
+            #ke6487_lim_cur = self.lim_cur_ke6487 ## hopefully keithley6487.check_current_limit() #self.picoammeter.check_current_limit()
         ke2410_lim_vol  = self.sourcemeter_2.check_voltage_limit()
         ke2410_lim_cur  = self.sourcemeter_2.check_current_limit()
 
+        hdCV = hdIV = hdRV = []
+        
+        if 'cv' in self.testset:
         ## Header
-        hdCV = [
-            'CV Sweep\n',
-            'Measurement Settings:',
-            'Power Supply voltage limit:      %8.2E V' % lim_vol,
-            'Power Supply current limit:      %8.2E A' % float(lim_cur),
-            'LCR measurement voltage:         %8.2E V' % lcr_vol,
-            'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
-            'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['measurement_delay'],
-            'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
-        ]
-
-        hdIV = [
-            'IV Sweep\n',
-            'Measurement Settings:',
-            'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
-            #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
-            'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['bias_delay'],
-            'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
-        ]
+            hdCV = [
+                'CV Sweep\n',
+                'Measurement Settings:',
+                'Power Supply voltage limit:      %8.2E V' % lim_vol,
+                'Power Supply current limit:      %8.2E A' % float(lim_cur),
+                'LCR measurement voltage:         %8.2E V' % lcr_vol,
+                'LCR measurement frequency:       %8.2E Hz' % lcr_freq,
+                'Voltage Delay:                   %8.2f s' % self.config['measurements']['CV']['measurement_delay'],
+                'Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]'
+            ]  
+            hdRV = [
+                'RV Sweep\n',
+                'Measurement Settings:',
+                'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
+                #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
+                'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
+                'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
+                'Voltage delay:                   %8.2f s' % self.config['measurements']['CV']['trig_delay'],
+                'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
+            ]
+        
+        if 'iv' in self.testset:
+            hdIV = [
+                'IV Sweep\n',
+                'Measurement Settings:',
+                'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
+                #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
+                'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
+                'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
+                'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['bias_delay'],
+                'Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]'
+            ]
         #line = [biasV, vol, cur_tot, measV, volSmall, means, errs]
 
-        hdRV = [
-            'RV Sweep\n',
-            'Measurement Settings:',
-            'picoammeter voltage limit:      %8.2E V' % ke6487_lim_vol,
-            #'picoammeter current limit:      %8.2E A' % ke6487_lim_cur,
-            'sourcemeter voltage limit:      %8.2E V' % ke2410_lim_vol,
-            'sourcemeter current limit:      %8.2E A' % ke2410_lim_cur,
-            'Voltage delay:                   %8.2f s' % self.config['measurements']['IV']['bias_delay'],
-            'Nominal Voltage [V]\t Measured Voltage [V]\tCurrent [A]\tCurrent Error [A]\tTotal Current[A]\t'
-        ]
 
         return(hdCV, hdIV, hdRV)
 
-    def CVpoint(self, biasV, freq, channel): 
-
-        self.switch.close_channel(channel)
+    def CVpoint(self, biasV, freq): 
+        
+        #TODO: move switch closing outside the CVpoint to the CVscan to avoid continous switch closure commands being send. 
+        if hasattr(self, 'switch'):  self.switch.close_channel(self.config['devices']['switch']['connections']['lcrmeter'])
         self.sourcemeter_1.set_output_on()
         self.sourcemeter_1.ramp_up(biasV)
         self.sourcemeter_2.set_output_on()  #TODO: WHY IS THE SECOND SOURCEMETER USED ONLY HERE TO DO NOTHING?
@@ -388,7 +401,7 @@ class strip(measurement):
             self.logging.info("Nominal Voltage [V]\t Measured Voltage [V]\tFreq [Hz]\tR [Ohm]\tR_Err [Ohm]\tX [Ohm]\tX_Err [Ohm]\tCs [F]\tCp [F]\tTotal Current [A]")
             for v in self.volt_list_bias_CV:
                 for idx, f in enumerate(freq_list):
-                    lineCV = self.CVpoint(v, f, self.config['devices']['switch']['connections']['lcrmeter'])
+                    lineCV = self.CVpoint(v, f)
                     
                     # lineCV = [biasV, vol, freq, r, dr, x, dx, c_s, c_p, cur_tot]
                     r, dr = lineCV[3], lineCV[4]
@@ -450,7 +463,7 @@ class strip(measurement):
 
         try:
             # Do IV Scan
-            self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])  
+            if hasattr(self, 'switch'): self.switch.close_channel(self.config['devices']['switch']['connections']['picoammeter'])  
             self.sourcemeter_1.set_output_on()
             self.logging.info('Nominal Voltage [V]\t Measured Voltage [V]\tTotal current [A]\tIS nominal voltage[V]\tIS measured voltage[V]\tIS current [A]\tIS current Error [A]\tRamping PS current[A]')
 
@@ -535,8 +548,8 @@ class strip(measurement):
         for line in hdCV:
             self.logging.info(line)
 
-        self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
-        self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
+        if 'cv'in self.testset: self.CVscan(name, fig, ax0, ax1, ax4, ax5, ax6, ax7, hdCV)
+        if 'iv'in self.testset: self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
    
     def finalise(self):
         self._finalise()

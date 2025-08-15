@@ -1,7 +1,7 @@
-measurement_type: 'diodeCV'
+measurement_type: 'strip'
 sample:
-  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
-  id: '100429'  #TODO:: this should always be requested from the cli
+  type: 'strip' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
+  id: '1337420'  #TODO:: this should always be requested from the cli
   preexisting_dose: 0        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
 
   
@@ -9,56 +9,79 @@ devices:
   sourcemeter_1:
     model: 'ke2410'  
     address: 8
-    lim_cur: 1.0e-3                 # compliance in [A]
+    lim_cur: 1.0e-3
 
-  switch:
-    model: 'ke7001'
-    address: 7
+  sourcemeter_2:
+    model: 'ke2410'  
+    address: 25
+    lim_cur: 1.0e-3
+    
+  # switch:
+  #   model: 'ke7001'
+  #   address: 7
+  #   connections:
+  #     lcrmeter: 1
+  #     picoammeter: 3
 
   lcrmeter:
     model: 'agilent_4263b'
-    address: 17                     # in the SSD lab this is 9
-    mode: 'RX'
-    approx_open_corr: 50.0e-12
+    address: 17
+
+  # picoammeter:
+  #   model: 'ke6487'
+  #   address: 15
 
 
 measurements:
-  testset: [floating, short, ground]  #[floating, short, ground]
-
+  testset:  [cv]
   CV:
     range:
-      v_start: -0
-      v_end: -25
-      step_size: -25
+      v_start: 0   #  -50 if '120um' in self.id else -100
+      v_end: -20   #   -400 if '120um' in self.id else (-600 if '200um' in self.id else -900)
+      step_size: -20
     sample_size: 10
-    delay: 0                        # delay between setting voltage and executing measurement in [s]
-    trig_delay: 0.1                   # delay between individual lcr triggers  
-    lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
-    lcr_frequency: 1000                 # ac frequency in [Hz]
+    lcr_amplitude: 0.5
+    frequencies: [100, 1000, 10000]  # needs to be integers otherwise the plotting utils complain
+    measurement_delay: 5 # delay after setting the voltage before starting the measurement
+    trig_delay: 0  # delay between lcr triggers
+    
+  # IV:
+  #   measurement_range:
+  #     v_start: -1
+  #     v_end: 1
+  #     step_size: 0.2
+  #   bias_range:
+  #     v_start: -0
+  #     v_end: -25
+  #     step_size: -25
+  #   sample_size: 10 # default = 10
+  #   bias_delay: 5  # delay in ivscan after stting the bias voltage
+  #   step_delay: 1 # delay in the ivpoint after setting the measurement voltage
 
-irradiation:
-  doselist: [0,2,5,10]
-  dose_rate: 14.257  ## value taken on Aug 31st 2023
-  voltage: 40  # the voltage of the tube in kV
-  current: 50  # the current of the tube in mA
-  biasing: false  # whether to bias the sample during irradiation
 
-temperature_management:
-  chiller:
-    enabled: true
-    model: 'chiller_cc_505'
-    port: 'COM11'
-    default_temperature: -25 # this temp is what is used to setup the chiller, 
-    update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
+# irradiation:
+#   doselist: [0,2,5,10]
+#   dose_rate: 14.257  ## value taken on Aug 31st 2023
+#   voltage: 40  # the voltage of the tube in kV
+#   current: 50  # the current of the tube in mA
+#   biasing: false  # whether to bias the sample during irradiation
 
-  logging:
-    directory: 'temperature_logs' # Directory to save log files
-    log_interval_sec: 20          # How often to write to the log file (in seconds)
-  plotting:
-    update_interval_sec: 2 # plotting update frequency in seconds
+# temperature_management:
+#   chiller:
+#     enabled: true
+#     model: 'chiller_cc_505'
+#     port: 'COM11'
+#     default_temperature: -25 # this temp is what is used to setup the chiller, 
+#     update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
+
+#   logging:
+#     directory: 'temperature_logs' # Directory to save log files
+#     log_interval_sec: 20          # How often to write to the log file (in seconds)
+#   plotting:
+#     update_interval_sec: 2 # plotting update frequency in seconds
 
 # annealing:
 #   n_iterations: 10
 #   period: 1  # time in [m] between measurements
-#   anneal_temp: 30
-#   measur_temp: 10
+#   anneal_temp: 30 #TODO: currently not yet implemented
+#   measur_temp: 10 #TODO: currently not yet implemented
