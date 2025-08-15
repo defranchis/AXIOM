@@ -41,7 +41,6 @@ class ke2410(device):
     def reset(self, debug=0):
         if debug == 1:
             self.logging.info("Reseting device.")
-        self.logging.info(self.ctrl.query("OUTP:STAT?"))
         if self.ctrl.query("OUTP:STAT?").strip() == '1':
             self.ramp_down(debug=debug)
         self.ctrl.write("*RST")

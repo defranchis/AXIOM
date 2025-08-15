@@ -5,7 +5,6 @@ class chiller_cc_505:
     """
     Dummy class for the Huber CC-505 chiller to simulate its behavior
     for testing the ThermalManager without the actual hardware.
-    It perfectly mirrors the public methods and behavior of the real class.
     """
 
     def __init__(self, port: str = 'COM5'):

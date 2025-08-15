@@ -1,7 +1,7 @@
 import yaml
 from typing import Dict, Any, List, Tuple
 from config.default_schemas import *
-import sys
+import sys, os ,re
 
 
 schemas = {
@@ -61,11 +61,9 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
         print(f"Error parsing YAML file: {e}")
         sys.exit(1)
 
-    # Print YAML nicely
     print("Parsed configuration:\n")
     print(yaml.dump(config, default_flow_style=False))
 
-    # Validate against base schema
     errors.extend(_check_keys_recursively(config, BASE_SCHEMA))
 
     if 'measurement_type' not in config:
@@ -78,21 +76,17 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
     else:
         errors.append(f"Warning: No validation schema found for measurement_type '{measurement_type}'.")
 
-    # GCDMOS logic
     if measurement_type == 'gcdmos':
         measurements = config.get('measurements', {})
         devices = config.get('devices', {})
         testset = measurements.get('testset', [])
-
         has_gcd = 'gcd' in testset
         has_mos = 'mos2000' in testset or 'moshalf' in testset
 
-        if has_gcd and not has_mos:
-            if 'IV' not in measurements:
-                errors.append("For 'gcdmos' with 'gcd' in testset, 'measurements.IV' is required.")
-        if has_mos and not has_gcd:
-            if 'CV' not in measurements:
-                errors.append("For 'gcdmos' with 'mos2000' or 'moshalf' in testset, 'measurements.CV' is required.")
+        if has_gcd and not has_mos and 'IV' not in measurements:
+            errors.append("For 'gcdmos' with 'gcd' in testset, 'measurements.IV' is required.")
+        if has_mos and not has_gcd and 'CV' not in measurements:
+            errors.append("For 'gcdmos' with 'mos2000' or 'moshalf' in testset, 'measurements.CV' is required.")
         if has_gcd and has_mos:
             if 'IV' not in measurements:
                 errors.append("For 'gcdmos' with both, 'measurements.IV' is required.")
@@ -101,14 +95,12 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
             if 'switch' not in devices:
                 errors.append("For 'gcdmos' with both, 'devices.switch' is required.")
 
-    # Irradiation
     if 'irradiation' in config:
         if not isinstance(config['irradiation'], dict):
             errors.append("'irradiation' should be a dictionary.")
         else:
             errors.extend(_check_keys_recursively(config['irradiation'], IRRADIATION_SCHEMA, path='irradiation'))
 
-    # Exclusivity check: cannot have both irradiation and annealing
     if 'irradiation' in config and 'annealing' in config:
         errors.append("Invalid configuration: 'irradiation' and 'annealing' cannot both be present. continuing will only run irradiation loop.")
     
@@ -118,10 +110,23 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
         else:
             errors.extend(_check_keys_recursively(config['annealing'], ANNEALING_SCHEMA, path='annealing'))
 
-    # Final error handling
     if errors:
         _handle_errors(errors)
     else:
         print("Configuration matches schema. Proceeding.")
 
-    return config  # return parsed config for later use
+    # === Previous irradiation check ===
+    if config.get('sample', {}).get('preexisting_dose', 0) == 0 and os.path.isdir('logs'):
+        matches = []
+        for d in os.listdir('logs'):
+            if os.path.isdir(os.path.join('logs', d)) and config['sample']['id'] in d:
+                m = re.search(r'(\d+(?:\.\d+)?)\s*kGy', d)
+                if m and float(m.group(1)) > 0:
+                    matches.append(d)
+        if matches:
+            print(f"WARNING: Previous irradiation logs found for sample '{config['sample']['id']}', but preexisting_dose is 0.")
+            print("Matches:", *[os.path.join('logs', m) for m in matches], sep="\n  - ")
+            if input("Do you want to continue? (y/n): ").lower().strip() != 'y':
+                sys.exit("Aborting run.")
+
+    return config

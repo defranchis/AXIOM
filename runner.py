@@ -3,6 +3,8 @@ import measurements
 import subprocess
 import time
 import queue
+import os
+import sys
 import datetime
 from utils.config_validator import validate_config_structure 
 import multiprocessing
@@ -110,12 +112,11 @@ def main():
     config = validate_config_structure(config_path)
     msr_class = getattr(measurements, config['measurement_type'])
     tm_queue = None # preinit to ensure correct parsing when running without chiller, when tm_process has tm_queue = None, 
+
+    # start thermal manager on separate thread    
     if "temperature_management" in config:
-        #TODO: why not always run with a cmd queue, even when executing without a chiller?
         if config['temperature_management']['chiller']['enabled']:
             tm_queue = multiprocessing.Queue()  
-        # Create and start the background process
-        print("Starting temperature management in the background...")
         tm_process = multiprocessing.Process(
             target=temperature_worker, 
             args=(config_path, tm_queue) # Pass config and queue
