@@ -377,10 +377,10 @@ class gcdmos(measurement):
                         plateauVoltage = v
                         self.logging.info(f"Plateau detected and voltage set to: {plateauVoltage:.2f} V")
 
-                    # Terminate the scan if we have gone 10% past the detected plateau.
+                    # Terminate the scan if we have gone some % past the detected plateau.
                     if plateauVoltage is not None:
-                        if abs(v) > abs(plateauVoltage * 1.1):
-                            self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 110% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
+                        if abs(v) > abs(plateauVoltage * 1.0):
+                            self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 100% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
                             break
 
         except BaseException as e:

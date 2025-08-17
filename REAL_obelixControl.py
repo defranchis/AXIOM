@@ -8,6 +8,7 @@ from obelixWarnings import generalWarnings
 
 import devices
 
+from xraymachine import XrayMachine
 
 
 

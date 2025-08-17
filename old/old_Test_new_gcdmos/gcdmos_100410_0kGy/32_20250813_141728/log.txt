@@ -1,0 +1,240 @@
+[14:17:28] [INFO ]  	
+[14:17:28] [INFO ]  ------------------------------------------
+[14:17:28] [INFO ]  Running test: gcdmos
+[14:17:28] [INFO ]  ------------------------------------------
+[14:17:28] [INFO ]  	
+[14:17:28] [INFO ]  Start date          : 2025/08/13 14:17:28
+[14:17:28] [INFO ]  User                : hgsensor
+[14:17:28] [INFO ]  Host                : pcdttp02
+[14:17:28] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[14:17:28] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/32_20250813_141728/log.txt
+[14:17:28] [INFO ]  	
+[14:17:28] [INFO ]  --- Initialising devices from config ---
+[14:17:29] [INFO ]  Initialising device.
+[14:17:29] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[14:17:29] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[14:17:29] [INFO ]  Initialising device.
+[14:17:29] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[14:17:29] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[14:17:29] [INFO ]  Initialising device.
+[14:17:29] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[14:17:29] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[14:17:29] [INFO ]  Initialising device.
+[14:17:29] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[14:17:29] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[14:17:29] [INFO ]  Initialising device.
+[14:17:29] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[14:17:29] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[14:17:29] [INFO ]  ------------------------------------
+[14:17:38] [INFO ]  Reseting device.
+[14:17:38] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[14:17:38] [INFO ]  Power Supply current limit:      1.00E-03 A
+[14:17:38] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[14:17:38] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[14:17:38] [INFO ]  Voltage Delay:                       0.00 s
+[14:17:38] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[14:17:40] [INFO ]  0.00E+00	7.28E-05	1.00E+04	2.65E+03	7.88E+02	-1.36E+06	6.00E+02	1.168E-11	1.168E-11	3.24E-08
+[14:17:41] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	7.80E+03	3.39E+02	-1.36E+06	2.27E+03	1.167E-11	1.167E-11	-2.77E-06
+[14:17:43] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	6.51E+03	7.10E+02	-1.38E+06	2.27E+03	1.157E-11	1.157E-11	-4.20E-06
+[14:17:44] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	7.62E+03	7.47E+02	-1.41E+06	5.43E+03	1.127E-11	1.127E-11	-4.40E-06
+[14:17:46] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.19E+04	1.17E+03	-1.52E+06	8.60E+03	1.045E-11	1.045E-11	-4.20E-06
+[14:17:47] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	3.89E+03	5.23E+02	-8.84E+05	1.41E+04	1.800E-11	1.800E-11	-4.38E-06
+[14:17:48] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	2.67E+03	3.42E+02	-7.46E+05	1.42E+03	2.134E-11	2.134E-11	-4.38E-06
+[14:17:50] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	2.26E+03	2.91E+02	-7.26E+05	3.30E+02	2.192E-11	2.192E-11	-4.22E-06
+[14:17:51] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	6.36E+02	1.68E+02	-7.17E+05	2.88E+02	2.219E-11	2.219E-11	-4.38E-06
+[14:17:52] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	2.30E+03	1.41E+02	-7.13E+05	1.94E+02	2.232E-11	2.232E-11	-4.41E-06
+[14:17:54] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	9.09E+02	1.50E+02	-7.12E+05	1.79E+02	2.235E-11	2.235E-11	-4.38E-06
+[14:17:54] [INFO ]  
+
+[14:17:54] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/cv_gcdmos_100410_0kGy_MOShalf.dat
+[14:18:05] [INFO ]  Reseting device.
+[14:18:05] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[14:18:05] [INFO ]  Power Supply current limit:      1.00E-03 A
+[14:18:05] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[14:18:05] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[14:18:05] [INFO ]  Voltage Delay:                       0.00 s
+[14:18:05] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[14:18:06] [INFO ]  0.00E+00	7.39E-05	1.00E+04	7.10E+03	6.64E+02	-1.37E+06	4.96E+02	1.163E-11	1.163E-11	3.34E-08
+[14:18:07] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	2.30E+03	5.51E+02	-1.36E+06	8.57E+02	1.167E-11	1.167E-11	-2.77E-06
+[14:18:09] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	9.22E+03	3.91E+02	-1.37E+06	2.55E+03	1.164E-11	1.164E-11	-4.38E-06
+[14:18:10] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	1.25E+04	6.20E+02	-1.41E+06	5.15E+03	1.129E-11	1.129E-11	-4.40E-06
+[14:18:12] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.45E+04	4.41E+02	-1.53E+06	8.11E+03	1.043E-11	1.042E-11	-4.21E-06
+[14:18:13] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	2.93E+03	3.30E+02	-8.76E+05	1.33E+04	1.817E-11	1.817E-11	-4.39E-06
+[14:18:15] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	7.98E+02	1.67E+02	-7.41E+05	7.05E+01	2.148E-11	2.148E-11	-1.70E-07
+[14:18:17] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	1.75E+03	2.27E+02	-7.24E+05	3.56E+02	2.199E-11	2.199E-11	-2.78E-06
+[14:18:18] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	2.78E+03	1.03E+02	-7.17E+05	1.53E+02	2.219E-11	2.219E-11	-4.38E-06
+[14:18:19] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	2.52E+03	1.97E+02	-7.14E+05	1.41E+02	2.228E-11	2.228E-11	-4.40E-06
+[14:18:21] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	1.31E+03	1.88E+02	-7.12E+05	1.86E+02	2.235E-11	2.235E-11	-4.20E-06
+[14:18:21] [INFO ]  
+
+[14:18:21] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/cv_gcdmos_100410_0kGy_MOS2000.dat
+[14:18:31] [INFO ]  Reseting device.
+[14:18:31] [INFO ]  Measurement Settings:
+[14:18:31] [INFO ]  Ke6487 voltage limit:      -9.99E+02 V
+[14:18:31] [INFO ]  Ke6487 current limit:      1.00E-07 A
+[14:18:31] [INFO ]  Ke2410 voltage limit:      2.10E+01 V
+[14:18:31] [INFO ]  Ke2410 current limit:      1.00E-03 A
+[14:18:31] [INFO ]  Voltage delay:                       2.00 s
+[14:18:31] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Current [A]	Current Error [A]	Total Current[A]	
+----------------------------------------------------------------------------------------------------------
+[14:18:35] [INFO ]  1.00E+01	1.00E+01	-2.346E-10	9.399E-13	2.72E-08
+[14:18:40] [INFO ]  9.00E+00	9.00E+00	-2.417E-10	4.360E-12	-2.84E-07
+[14:18:44] [INFO ]  8.00E+00	8.00E+00	-2.327E-10	1.201E-12	-3.90E-08
+[14:18:49] [INFO ]  7.00E+00	7.00E+00	-2.411E-10	4.440E-12	-2.97E-07
+[14:18:53] [INFO ]  6.00E+00	6.00E+00	-2.327E-10	8.459E-13	-2.94E-08
+[14:18:58] [INFO ]  5.00E+00	5.00E+00	-2.393E-10	4.326E-12	-2.99E-07
+[14:19:02] [INFO ]  4.00E+00	4.00E+00	-2.298E-10	8.864E-13	-3.85E-08
+[14:19:06] [INFO ]  3.00E+00	3.00E+00	-2.547E-10	2.543E-12	-2.87E-07
+[14:19:11] [INFO ]  2.00E+00	2.00E+00	-1.004E-09	3.226E-13	-4.29E-08
+[14:19:15] [INFO ]  1.00E+00	1.00E+00	-1.037E-09	2.554E-12	-3.17E-07
+[14:19:20] [INFO ]  0.00E+00	7.34E-05	-1.037E-09	6.247E-13	-2.82E-08
+[14:19:24] [INFO ]  -1.00E+00	-1.00E+00	-1.051E-09	2.427E-12	-3.29E-07
+[14:19:28] [INFO ]  -2.00E+00	-2.00E+00	-1.045E-09	3.811E-13	-3.50E-08
+[14:19:33] [INFO ]  -3.00E+00	-3.00E+00	-7.586E-10	3.060E-12	-2.92E-07
+[14:19:37] [INFO ]  -4.00E+00	-4.00E+00	-4.231E-10	5.957E-13	-3.34E-08
+[14:19:42] [INFO ]  -5.00E+00	-5.00E+00	-3.649E-10	1.941E-12	-2.94E-07
+[14:19:46] [INFO ]  -6.00E+00	-6.00E+00	-3.300E-10	3.429E-13	-3.99E-08
+[14:19:50] [INFO ]  -7.00E+00	-7.00E+00	-3.180E-10	1.899E-12	-3.04E-07
+[14:19:55] [INFO ]  -8.00E+00	-8.00E+00	-3.007E-10	6.204E-13	-3.25E-08
+[14:19:59] [INFO ]  -9.00E+00	-9.00E+00	-2.985E-10	1.815E-12	-2.96E-07
+[14:20:04] [INFO ]  -1.00E+01	-1.00E+01	-2.865E-10	8.909E-13	-3.91E-08
+[14:20:04] [INFO ]  
+
+[14:20:04] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_gcdmos_100410_0kGy_GCD.dat
+[14:20:14] [INFO ]  Reseting device.
+[14:20:14] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/cv_gcdmos_100410_0kGy_cv_moshalf.png
+[14:20:15] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/1c2v_gcdmos_100410_0kGy_cv_moshalf.png
+[14:20:15] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_total_current_gcdmos_100410_0kGy_cv_moshalf.png
+[14:20:15] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/cv_gcdmos_100410_0kGy_cv_mos2000.png
+[14:20:16] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/1c2v_gcdmos_100410_0kGy_cv_mos2000.png
+[14:20:16] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_total_current_gcdmos_100410_0kGy_cv_mos2000.png
+[14:20:16] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_gcdmos_100410_0kGy_iv_gcd.png
+[14:20:17] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_zoom_gcdmos_100410_0kGy_iv_gcd.png
+[14:20:17] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/32_20250813_141728/iv_total_current_gcdmos_100410_0kGy_iv_gcd.png
+[14:20:17] [INFO ]  	
+[14:20:17] [INFO ]  Cleaning up.
+[14:20:17] [INFO ]  	
+[14:20:17] [INFO ]  	
+[14:24:33] [INFO ]  	
+[14:24:33] [INFO ]  ------------------------------------------
+[14:24:33] [INFO ]  Running test: gcdmos
+[14:24:33] [INFO ]  ------------------------------------------
+[14:24:33] [INFO ]  	
+[14:24:33] [INFO ]  Start date          : 2025/08/13 14:24:33
+[14:24:33] [INFO ]  User                : hgsensor
+[14:24:33] [INFO ]  Host                : pcdttp02
+[14:24:33] [INFO ]  Identifier          : gcdmos_100410_1kGy
+[14:24:33] [INFO ]  Log will be stored to logs/gcdmos_100410_1kGy/02_20250813_142433/log.txt
+[14:24:33] [INFO ]  	
+[14:24:33] [INFO ]  --- Initialising devices from config ---
+[14:24:33] [INFO ]  Initialising device.
+[14:24:33] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[14:24:33] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[14:24:33] [INFO ]  Initialising device.
+[14:24:33] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[14:24:33] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[14:24:33] [INFO ]  Initialising device.
+[14:24:33] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[14:24:33] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[14:24:33] [INFO ]  Initialising device.
+[14:24:33] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[14:24:33] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[14:24:33] [INFO ]  Initialising device.
+[14:24:33] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[14:24:33] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[14:24:33] [INFO ]  ------------------------------------
+[14:24:42] [INFO ]  Reseting device.
+[14:24:42] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[14:24:42] [INFO ]  Power Supply current limit:      1.00E-03 A
+[14:24:42] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[14:24:42] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[14:24:42] [INFO ]  Voltage Delay:                       0.00 s
+[14:24:42] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[14:24:43] [INFO ]  0.00E+00	7.52E-05	1.00E+04	1.51E+03	7.99E+02	-1.36E+06	8.58E+02	1.167E-11	1.167E-11	3.20E-08
+[14:24:45] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	5.56E+03	6.41E+02	-1.36E+06	1.28E+03	1.171E-11	1.171E-11	-2.78E-06
+[14:24:47] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	7.46E+03	3.14E+02	-1.38E+06	2.38E+03	1.157E-11	1.157E-11	-4.38E-06
+[14:24:48] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	7.13E+03	1.16E+03	-1.41E+06	4.34E+03	1.131E-11	1.131E-11	-4.37E-06
+[14:24:50] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.23E+04	8.95E+02	-1.49E+06	8.23E+03	1.068E-11	1.068E-11	-4.22E-06
+[14:24:51] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	4.82E+03	5.81E+02	-8.74E+05	1.27E+04	1.821E-11	1.821E-11	-4.35E-06
+[14:24:53] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	2.42E+03	2.54E+02	-7.42E+05	1.28E+02	2.145E-11	2.145E-11	-4.39E-06
+[14:24:54] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	1.57E+03	2.01E+02	-7.24E+05	5.86E+02	2.197E-11	2.197E-11	-4.38E-06
+[14:24:56] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	1.02E+03	1.12E+02	-7.16E+05	1.63E+02	2.222E-11	2.222E-11	-1.42E-07
+[14:24:57] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	1.80E+03	3.06E+02	-7.14E+05	1.51E+02	2.228E-11	2.228E-11	-2.78E-06
+[14:24:59] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	2.84E+03	2.09E+02	-7.12E+05	2.12E+02	2.236E-11	2.236E-11	-4.38E-06
+[14:24:59] [INFO ]  
+
+[14:24:59] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/cv_gcdmos_100410_1kGy_MOShalf.dat
+[14:25:10] [INFO ]  Reseting device.
+[14:25:10] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[14:25:10] [INFO ]  Power Supply current limit:      1.00E-03 A
+[14:25:10] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[14:25:10] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[14:25:10] [INFO ]  Voltage Delay:                       0.00 s
+[14:25:10] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[14:25:11] [INFO ]  0.00E+00	7.54E-05	1.00E+04	2.45E+03	6.03E+02	-1.36E+06	7.74E+02	1.167E-11	1.167E-11	2.77E-08
+[14:25:13] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	5.25E+03	7.21E+02	-1.37E+06	2.33E+03	1.164E-11	1.164E-11	-2.75E-06
+[14:25:14] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	4.40E+03	5.14E+02	-1.37E+06	1.53E+03	1.162E-11	1.162E-11	-4.37E-06
+[14:25:16] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	1.11E+04	7.03E+02	-1.41E+06	6.57E+03	1.130E-11	1.130E-11	-4.41E-06
+[14:25:17] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.24E+04	7.94E+02	-1.54E+06	7.36E+03	1.034E-11	1.034E-11	-4.37E-06
+[14:25:19] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	4.61E+03	5.76E+02	-8.78E+05	1.44E+04	1.812E-11	1.812E-11	-4.24E-06
+[14:25:20] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	1.46E+03	2.00E+02	-7.48E+05	1.78E+03	2.128E-11	2.128E-11	-4.38E-06
+[14:25:22] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	1.84E+03	1.65E+02	-7.24E+05	3.88E+02	2.198E-11	2.198E-11	-4.41E-06
+[14:25:23] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	1.19E+03	3.08E+02	-7.17E+05	3.32E+02	2.219E-11	2.219E-11	-4.38E-06
+[14:25:25] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	2.14E+03	4.43E+02	-7.14E+05	2.06E+02	2.229E-11	2.229E-11	-4.40E-06
+[14:25:26] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	2.06E+03	1.53E+02	-7.10E+05	1.83E+02	2.241E-11	2.241E-11	-4.38E-06
+[14:25:26] [INFO ]  
+
+[14:25:26] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/cv_gcdmos_100410_1kGy_MOS2000.dat
+[14:25:36] [INFO ]  Reseting device.
+[14:25:36] [INFO ]  Measurement Settings:
+[14:25:36] [INFO ]  Ke6487 voltage limit:      -9.99E+02 V
+[14:25:36] [INFO ]  Ke6487 current limit:      1.00E-07 A
+[14:25:36] [INFO ]  Ke2410 voltage limit:      2.10E+01 V
+[14:25:36] [INFO ]  Ke2410 current limit:      1.00E-03 A
+[14:25:36] [INFO ]  Voltage delay:                       2.00 s
+[14:25:36] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Current [A]	Current Error [A]	Total Current[A]	
+----------------------------------------------------------------------------------------------------------
+[14:25:40] [INFO ]  1.00E+01	1.00E+01	-2.305E-10	1.123E-12	2.58E-08
+[14:25:45] [INFO ]  9.00E+00	9.00E+00	-2.400E-10	3.982E-12	-2.85E-07
+[14:25:49] [INFO ]  8.00E+00	8.00E+00	-2.311E-10	8.364E-13	-3.98E-08
+[14:25:54] [INFO ]  7.00E+00	7.00E+00	-2.362E-10	4.056E-12	-2.98E-07
+[14:25:56] [ERROR]  EXCEPTION RAISED. Ramping down voltage and shutting down.
+
+[14:25:56] [ERROR]  
+[14:25:56] [INFO ]  
+
+[14:25:56] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_gcdmos_100410_1kGy_GCD.dat
+[14:26:05] [INFO ]  Reseting device.
+[14:26:06] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/cv_gcdmos_100410_1kGy_cv_moshalf.png
+[14:26:06] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/1c2v_gcdmos_100410_1kGy_cv_moshalf.png
+[14:26:06] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_total_current_gcdmos_100410_1kGy_cv_moshalf.png
+[14:26:07] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/cv_gcdmos_100410_1kGy_cv_mos2000.png
+[14:26:07] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/1c2v_gcdmos_100410_1kGy_cv_mos2000.png
+[14:26:08] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_total_current_gcdmos_100410_1kGy_cv_mos2000.png
+[14:26:08] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_gcdmos_100410_1kGy_iv_gcd.png
+[14:26:08] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_zoom_gcdmos_100410_1kGy_iv_gcd.png
+[14:26:09] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/02_20250813_142433/iv_total_current_gcdmos_100410_1kGy_iv_gcd.png
+[14:26:09] [INFO ]  	
+[14:26:09] [INFO ]  Cleaning up.
+[14:26:09] [INFO ]  	
+[14:26:09] [INFO ]  	

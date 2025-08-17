@@ -52,7 +52,7 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
             # The target dose is an absolute value. 
             # obelixControl is responsible for calculating the difference to irradiate.
             subprocess.run(
-                ['python', './MOCK_obelixControl.py', config_path, str(current_dose), str(target_dose)],
+                ['python', './new_obelix_control.py', config_path, str(current_dose), str(target_dose)],
                 check=True
             )
 
@@ -66,11 +66,11 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
     except subprocess.CalledProcessError as e:
         # If obelix fails, call the kill script and print the error.
         print(f"\n!!! obelixControl failed: {e} !!!")
-        subprocess.run(['python', './MOCK_obelixControl.py', 'killObelix'])
+        subprocess.run(['python', './new_obelix_control.py', 'killObelix'])
     except Exception as e:
         # Catch any other unexpected errors during the loop.
         print(f"\n!!! An unexpected error occurred in the irradiation loop: {e} !!!")
-        subprocess.run(['python', './MOCK_obelixControl.py', 'killObelix'])
+        subprocess.run(['python', './new_obelix_control.py', 'killObelix'])
 
 def run_annealing_loop(config, msr_class, tm_queue = None):
     """ Runs repeated measurements during annealing steps at a configured time interval. """

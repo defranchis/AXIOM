@@ -1,0 +1,16 @@
+# Single IV
+# 
+# Measurement Settings:
+# Ke6487 voltage limit:      -9.99E+02 V
+# Ke6487 current limit:      1.00E-07 A
+# Ke2410 voltage limit:      2.10E+01 V
+# Ke2410 current limit:      1.00E-03 A
+# Voltage delay:                       2.00 s
+# 
+# 
+# 
+# Nominal Voltage [V]	 Measured Voltage [V]	Current [A]	Current Error [A]	Total Current[A]	
+1.00000E+01	1.00014E+01	-2.30462E-10	1.12283E-12	2.58187E-08
+9.00000E+00	9.00115E+00	-2.40049E-10	3.98206E-12	-2.85107E-07
+8.00000E+00	8.00125E+00	-2.31130E-10	8.36421E-13	-3.98339E-08
+7.00000E+00	7.00118E+00	-2.36242E-10	4.05622E-12	-2.98138E-07

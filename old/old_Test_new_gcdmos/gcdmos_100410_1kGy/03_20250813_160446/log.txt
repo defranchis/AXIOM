@@ -1,0 +1,66 @@
+[16:04:46] [INFO ]  	
+[16:04:46] [INFO ]  ------------------------------------------
+[16:04:46] [INFO ]  Running test: gcdmos
+[16:04:46] [INFO ]  ------------------------------------------
+[16:04:46] [INFO ]  	
+[16:04:46] [INFO ]  {devices: {lcrmeter: {address: 17, model: agilent_4263b}, multimeter: {address: 16,
+      model: ke2001, sensor_r0: 1000}, picoammeter: {address: 15, lim_cur: 1.0e-07,
+      model: ke6487}, sourcemeter_1: {address: 8, lim_cur: 0.001, model: ke2410},
+    sourcemeter_2: {address: 25, lim_cur: 0.001, model: ke2410}, switch: {address: 7,
+      connections: {lcrmeter: 3, picoammeter: 9}, model: ke7001}}, irradiation: {
+    biasing: false, current: 50, dose_rate: 14.257, doselist: [0, 0.1, 2, 5, 10],
+    voltage: 40}, measurement_type: gcdmos, measurements: {CV: {delay: 3, lcr_amplitude: 0.25,
+      lcr_frequency: 10000, range: {step_size: -0.5, v_end: -5, v_start: 0.0}, sample_size: 10,
+      trig_delay: 0.1}, IV: {delay: 2.0, gcd_diode_bias: 5.0, range: {step_size: -1,
+        v_end: -10, v_start: 10}, sample_size: 10}, testset: [moshalf, mos2000, gcd]},
+  sample: {id: 100410, preexisting_dose: 1, type: gcdmos}, temperature_management: {
+    chiller: {default_temperature: -25, enabled: true, model: chiller_cc_505, port: COM11,
+      update_frequency: 2}, logging: {directory: temperature_logs, log_interval_sec: 20},
+    plotting: {update_interval_sec: 2}}}
+
+[16:04:46] [INFO ]  Start date          : 2025/08/13 16:04:46
+[16:04:46] [INFO ]  User                : hgsensor
+[16:04:46] [INFO ]  Host                : pcdttp02
+[16:04:46] [INFO ]  Identifier          : gcdmos_100410_1kGy
+[16:04:46] [INFO ]  Log will be stored to logs/gcdmos_100410_1kGy/03_20250813_160446/log.txt
+[16:04:46] [INFO ]  	
+[16:04:46] [INFO ]  --- Initialising devices from config ---
+[16:04:46] [INFO ]  Initialising device.
+[16:04:46] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[16:04:46] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[16:04:46] [INFO ]  Initialising device.
+[16:04:46] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[16:04:46] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[16:04:46] [INFO ]  Initialising device.
+[16:04:46] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[16:04:46] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[16:04:46] [INFO ]  Initialising device.
+[16:04:46] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[16:04:46] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[16:04:46] [INFO ]  Initialising device.
+[16:04:46] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[16:04:47] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[16:04:47] [INFO ]  ------------------------------------
+[16:04:55] [INFO ]  Reseting device.
+[16:04:55] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[16:04:55] [INFO ]  Power Supply current limit:      1.00E-03 A
+[16:04:55] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[16:04:55] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[16:04:55] [INFO ]  Voltage Delay:                       3.00 s
+[16:04:55] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[16:04:55] [INFO ]  looking for reference file with pattern logs\gcdmos_100410_1kGy\**\cv_gcdmos_100410_1kGy_MOShalf.dat
+[16:04:55] [INFO ]  this is my reference capacitance: 2.2359e-11 (from logs\gcdmos_100410_1kGy\02_20250813_142433\cv_gcdmos_100410_1kGy_MOShalf.dat)
+[16:05:00] [INFO ]  0.00E+00	7.23E-05	1.00E+04	5.12E+03	3.94E+02	-1.36E+06	6.40E+02	1.171E-11	1.171E-11	-4.11E-10
+[16:05:02] [ERROR]  EXCEPTION RAISED. Ramping down voltage and shutting down.
+
+[16:05:02] [ERROR]  
+[16:05:02] [INFO ]  
+
+[16:05:02] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/03_20250813_160446/cv_gcdmos_100410_1kGy_MOShalf.dat

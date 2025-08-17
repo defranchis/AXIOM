@@ -1,0 +1,181 @@
+[16:29:05] [INFO ]  	
+[16:29:05] [INFO ]  ------------------------------------------
+[16:29:05] [INFO ]  Running test: gcdmos
+[16:29:05] [INFO ]  ------------------------------------------
+[16:29:05] [INFO ]  	
+[16:29:05] [INFO ]  {devices: {lcrmeter: {address: 17, model: agilent_4263b}, multimeter: {address: 16,
+      model: ke2001, sensor_r0: 1000}, picoammeter: {address: 15, lim_cur: 1.0e-07,
+      model: ke6487}, sourcemeter_1: {address: 8, lim_cur: 0.001, model: ke2410},
+    sourcemeter_2: {address: 25, lim_cur: 0.001, model: ke2410}, switch: {address: 7,
+      connections: {lcrmeter: 3, picoammeter: 9}, model: ke7001}}, irradiation: {
+    biasing: false, current: 50, dose_rate: 14.257, doselist: [0, 0.1, 2, 5, 10],
+    voltage: 40}, measurement_type: gcdmos, measurements: {CV: {delay: 3, lcr_amplitude: 0.25,
+      lcr_frequency: 10000, range: {step_size: -0.5, v_end: -10, v_start: 0.0}, sample_size: 10,
+      trig_delay: 0.1}, IV: {delay: 2.0, gcd_diode_bias: 5.0, range: {step_size: -1,
+        v_end: -10, v_start: 10}, sample_size: 10}, testset: [moshalf, mos2000, gcd]},
+  sample: {id: 100410, preexisting_dose: 1, type: gcdmos}, temperature_management: {
+    chiller: {default_temperature: -25, enabled: true, model: chiller_cc_505, port: COM11,
+      update_frequency: 2}, logging: {directory: temperature_logs, log_interval_sec: 20},
+    plotting: {update_interval_sec: 2}}}
+
+[16:29:05] [INFO ]  Start date          : 2025/08/13 16:29:05
+[16:29:05] [INFO ]  User                : hgsensor
+[16:29:05] [INFO ]  Host                : pcdttp02
+[16:29:05] [INFO ]  Identifier          : gcdmos_100410_1kGy
+[16:29:05] [INFO ]  Log will be stored to logs/gcdmos_100410_1kGy/06_20250813_162905/log.txt
+[16:29:05] [INFO ]  	
+[16:29:05] [INFO ]  --- Initialising devices from config ---
+[16:29:05] [INFO ]  Initialising device.
+[16:29:05] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[16:29:05] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[16:29:05] [INFO ]  Initialising device.
+[16:29:05] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[16:29:05] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[16:29:05] [INFO ]  Initialising device.
+[16:29:05] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[16:29:05] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[16:29:05] [INFO ]  Initialising device.
+[16:29:05] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[16:29:05] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[16:29:05] [INFO ]  Initialising device.
+[16:29:05] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[16:29:05] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[16:29:05] [INFO ]  ------------------------------------
+[16:29:13] [INFO ]  Reseting device.
+[16:29:14] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[16:29:14] [INFO ]  Power Supply current limit:      1.00E-03 A
+[16:29:14] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[16:29:14] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[16:29:14] [INFO ]  Voltage Delay:                       3.00 s
+[16:29:14] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[16:29:14] [INFO ]  this is my reference capacitance: 2.24337e-11 (from logs\gcdmos_100410_0kGy\34_20250813_154443\cv_gcdmos_100410_0kGy_MOShalf.dat)
+[16:29:19] [INFO ]  0.00E+00	7.40E-05	1.00E+04	4.36E+03	6.45E+02	-1.36E+06	9.32E+02	1.170E-11	1.170E-11	6.62E-10
+[16:29:24] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	4.51E+03	6.86E+02	-1.37E+06	7.71E+02	1.164E-11	1.164E-11	-2.25E-10
+[16:29:30] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	5.80E+03	8.85E+02	-1.38E+06	7.64E+02	1.156E-11	1.156E-11	-2.70E-10
+[16:29:36] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	9.27E+03	6.93E+02	-1.42E+06	1.37E+03	1.118E-11	1.118E-11	-3.01E-10
+[16:29:40] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.39E+04	1.28E+03	-1.47E+06	8.33E+02	1.083E-11	1.083E-11	-3.33E-10
+[16:29:46] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	3.40E+03	3.55E+02	-8.38E+05	3.45E+02	1.900E-11	1.900E-11	-2.13E-10
+[16:29:51] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	1.50E+03	2.77E+02	-7.40E+05	2.23E+02	2.150E-11	2.150E-11	-4.20E-10
+[16:29:57] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	1.63E+03	1.29E+02	-7.22E+05	2.52E+02	2.203E-11	2.203E-11	-3.19E-10
+[16:30:02] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	8.66E+02	1.38E+02	-7.16E+05	2.33E+02	2.223E-11	2.223E-11	-5.23E-10
+[16:30:08] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	1.15E+03	2.49E+02	-7.12E+05	2.44E+02	2.235E-11	2.235E-11	-5.53E-10
+[16:30:13] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	2.21E+03	1.56E+02	-7.09E+05	1.21E+02	2.243E-11	2.243E-11	-4.30E-10
+[16:30:18] [INFO ]  -5.50E+00	-5.50E+00	1.00E+04	1.71E+03	1.09E+02	-7.09E+05	6.77E+01	2.244E-11	2.244E-11	-4.47E-10
+[16:30:24] [INFO ]  -6.00E+00	-6.00E+00	1.00E+04	1.87E+03	1.89E+02	-7.07E+05	1.70E+02	2.251E-11	2.251E-11	-4.41E-10
+[16:30:29] [INFO ]  -6.50E+00	-6.50E+00	1.00E+04	1.40E+03	1.85E+02	-7.07E+05	2.06E+02	2.252E-11	2.252E-11	-5.46E-10
+[16:30:35] [INFO ]  -7.00E+00	-7.00E+00	1.00E+04	1.55E+03	2.49E+02	-7.06E+05	2.17E+02	2.255E-11	2.255E-11	-5.00E-10
+[16:30:40] [INFO ]  -7.50E+00	-7.50E+00	1.00E+04	1.98E+03	1.59E+02	-7.06E+05	2.03E+02	2.255E-11	2.255E-11	-5.46E-10
+[16:30:40] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:30:40] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:30:46] [INFO ]  -8.00E+00	-8.00E+00	1.00E+04	1.51E+03	1.41E+02	-7.06E+05	1.52E+02	2.256E-11	2.256E-11	-6.01E-10
+[16:30:46] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:30:46] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:30:50] [INFO ]  -8.50E+00	-8.50E+00	1.00E+04	1.52E+03	2.11E+02	-7.05E+05	1.44E+02	2.256E-11	2.256E-11	-5.74E-10
+[16:30:51] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:30:51] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:30:56] [INFO ]  -9.00E+00	-9.00E+00	1.00E+04	3.57E+02	1.27E+02	-7.04E+05	1.99E+02	2.259E-11	2.259E-11	-5.66E-10
+[16:30:56] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:30:56] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:31:01] [INFO ]  -9.50E+00	-9.50E+00	1.00E+04	1.18E+03	2.28E+02	-7.03E+05	1.51E+02	2.264E-11	2.264E-11	-6.22E-10
+[16:31:01] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:31:01] [INFO ]  
+
+[16:31:01] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/cv_gcdmos_100410_1kGy_MOShalf.dat
+[16:31:12] [INFO ]  Reseting device.
+[16:31:12] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[16:31:12] [INFO ]  Power Supply current limit:      1.00E-03 A
+[16:31:12] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[16:31:12] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[16:31:12] [INFO ]  Voltage Delay:                       3.00 s
+[16:31:12] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[16:31:12] [INFO ]  this is my reference capacitance: 2.24058e-11 (from logs\gcdmos_100410_0kGy\34_20250813_154443\cv_gcdmos_100410_0kGy_MOS2000.dat)
+[16:31:16] [INFO ]  0.00E+00	7.50E-05	1.00E+04	6.12E+03	5.12E+02	-1.36E+06	6.11E+02	1.168E-11	1.168E-11	2.30E-09
+[16:31:22] [INFO ]  -5.00E-01	-5.00E-01	1.00E+04	3.86E+03	7.26E+02	-1.37E+06	4.55E+02	1.163E-11	1.163E-11	6.84E-10
+[16:31:28] [INFO ]  -1.00E+00	-1.00E+00	1.00E+04	2.29E+03	6.34E+02	-1.38E+06	6.39E+02	1.155E-11	1.155E-11	2.85E-10
+[16:31:33] [INFO ]  -1.50E+00	-1.50E+00	1.00E+04	8.22E+03	8.34E+02	-1.42E+06	9.28E+02	1.120E-11	1.120E-11	6.57E-11
+[16:31:39] [INFO ]  -2.00E+00	-2.00E+00	1.00E+04	2.49E+04	7.70E+02	-1.47E+06	9.57E+02	1.085E-11	1.085E-11	-8.29E-11
+[16:31:44] [INFO ]  -2.50E+00	-2.50E+00	1.00E+04	1.87E+03	2.64E+02	-8.38E+05	3.54E+02	1.900E-11	1.900E-11	-1.06E-10
+[16:31:50] [INFO ]  -3.00E+00	-3.00E+00	1.00E+04	1.18E+03	1.51E+02	-7.39E+05	1.06E+02	2.154E-11	2.154E-11	-1.54E-10
+[16:31:55] [INFO ]  -3.50E+00	-3.50E+00	1.00E+04	3.72E+02	8.51E+01	-7.23E+05	2.12E+02	2.202E-11	2.202E-11	-3.44E-10
+[16:32:00] [INFO ]  -4.00E+00	-4.00E+00	1.00E+04	6.74E+02	1.68E+02	-7.15E+05	1.26E+02	2.226E-11	2.226E-11	-1.44E-10
+[16:32:06] [INFO ]  -4.50E+00	-4.50E+00	1.00E+04	2.00E+03	2.11E+02	-7.12E+05	1.85E+02	2.236E-11	2.236E-11	-3.26E-10
+[16:32:11] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	1.02E+03	1.42E+02	-7.11E+05	8.90E+01	2.239E-11	2.239E-11	-4.24E-10
+[16:32:17] [INFO ]  -5.50E+00	-5.50E+00	1.00E+04	2.25E+03	1.50E+02	-7.09E+05	9.79E+01	2.245E-11	2.245E-11	-4.23E-10
+[16:32:21] [INFO ]  -6.00E+00	-6.00E+00	1.00E+04	6.71E+02	1.45E+02	-7.08E+05	1.35E+02	2.248E-11	2.248E-11	-5.29E-10
+[16:32:27] [INFO ]  -6.50E+00	-6.50E+00	1.00E+04	9.43E+02	2.00E+02	-7.07E+05	2.29E+02	2.252E-11	2.252E-11	-4.85E-10
+[16:32:32] [INFO ]  -7.00E+00	-7.00E+00	1.00E+04	1.85E+03	2.08E+02	-7.06E+05	2.30E+02	2.255E-11	2.255E-11	-5.31E-10
+[16:32:38] [INFO ]  -7.50E+00	-7.50E+00	1.00E+04	9.34E+02	1.78E+02	-7.06E+05	2.27E+02	2.255E-11	2.255E-11	-4.55E-10
+[16:32:38] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:32:38] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:32:44] [INFO ]  -8.00E+00	-8.00E+00	1.00E+04	1.08E+03	1.58E+02	-7.04E+05	1.29E+02	2.261E-11	2.261E-11	-5.40E-10
+[16:32:44] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:32:44] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:32:49] [INFO ]  -8.50E+00	-8.50E+00	1.00E+04	3.00E+02	1.25E+02	-7.04E+05	1.94E+02	2.259E-11	2.259E-11	-5.85E-10
+[16:32:49] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:32:49] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:32:55] [INFO ]  -9.00E+00	-9.00E+00	1.00E+04	6.20E+02	1.47E+02	-7.04E+05	1.91E+02	2.261E-11	2.261E-11	-5.81E-10
+[16:32:55] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:32:55] [INFO ]  going on because this is an irradiated sample OR we want to go the extra mile... ? 
+[16:33:00] [INFO ]  -9.50E+00	-9.50E+00	1.00E+04	1.22E+03	1.56E+02	-7.05E+05	1.08E+02	2.259E-11	2.259E-11	-5.84E-10
+[16:33:00] [INFO ]  it looks like the plateau is reached... ending measurement!
+[16:33:00] [INFO ]  
+
+[16:33:00] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/cv_gcdmos_100410_1kGy_MOS2000.dat
+[16:33:10] [INFO ]  Reseting device.
+[16:33:10] [INFO ]  Measurement Settings:
+[16:33:10] [INFO ]  Ke6487 voltage limit:      -9.99E+02 V
+[16:33:10] [INFO ]  Ke6487 current limit:      1.00E-07 A
+[16:33:10] [INFO ]  Ke2410 voltage limit:      2.10E+01 V
+[16:33:10] [INFO ]  Ke2410 current limit:      1.00E-03 A
+[16:33:10] [INFO ]  Voltage delay:                       2.00 s
+[16:33:10] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Current [A]	Current Error [A]	Total Current[A]	
+----------------------------------------------------------------------------------------------------------
+[16:33:14] [INFO ]  1.00E+01	1.00E+01	-2.331E-10	6.789E-13	2.74E-08
+[16:33:19] [INFO ]  9.00E+00	9.00E+00	-2.330E-10	4.348E-12	-2.77E-07
+[16:33:23] [INFO ]  8.00E+00	8.00E+00	-2.376E-10	4.394E-12	-2.91E-07
+[16:33:28] [INFO ]  7.00E+00	7.00E+00	-2.340E-10	5.013E-12	-2.85E-07
+[16:33:32] [INFO ]  6.00E+00	6.00E+00	-2.366E-10	4.048E-12	-2.82E-07
+[16:33:37] [INFO ]  5.00E+00	5.00E+00	-2.354E-10	4.563E-12	-2.99E-07
+[16:33:41] [INFO ]  4.00E+00	4.00E+00	-2.370E-10	4.443E-12	-2.88E-07
+[16:33:45] [INFO ]  3.00E+00	3.00E+00	-2.534E-10	2.905E-12	-2.87E-07
+[16:33:49] [INFO ]  2.00E+00	2.00E+00	-1.014E-09	2.290E-12	-3.17E-07
+[16:33:54] [INFO ]  1.00E+00	1.00E+00	-1.039E-09	2.496E-12	-3.10E-07
+[16:33:58] [INFO ]  0.00E+00	6.73E-05	-1.050E-09	2.161E-12	-3.24E-07
+[16:33:58] [INFO ]  IV scan: i have now reached the bottom of the well!!!!
+[16:34:03] [INFO ]  -1.00E+00	-1.00E+00	-1.052E-09	2.817E-12	-3.18E-07
+[16:34:07] [INFO ]  -2.00E+00	-2.00E+00	-1.056E-09	2.162E-12	-3.12E-07
+[16:34:12] [INFO ]  -3.00E+00	-3.00E+00	-7.582E-10	4.531E-12	-3.03E-07
+[16:34:16] [INFO ]  -4.00E+00	-4.00E+00	-4.285E-10	1.975E-12	-2.87E-07
+[16:34:21] [INFO ]  -5.00E+00	-5.00E+00	-3.619E-10	2.896E-12	-3.04E-07
+[16:34:25] [INFO ]  -6.00E+00	-6.00E+00	-3.350E-10	1.648E-12	-2.95E-07
+[16:34:30] [INFO ]  -7.00E+00	-7.00E+00	-3.172E-10	2.747E-12	-3.00E-07
+[16:34:33] [INFO ]  -8.00E+00	-8.00E+00	-3.042E-10	2.037E-12	-2.89E-07
+[16:34:38] [INFO ]  -9.00E+00	-9.00E+00	-2.941E-10	2.709E-12	-3.05E-07
+[16:34:42] [INFO ]  -1.00E+01	-1.00E+01	-2.895E-10	2.369E-12	-2.90E-07
+[16:34:42] [INFO ]  
+
+[16:34:42] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_gcdmos_100410_1kGy_GCD.dat
+[16:34:53] [INFO ]  Reseting device.
+[16:34:53] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/cv_gcdmos_100410_1kGy_cv_moshalf.png
+[16:34:54] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/1c2v_gcdmos_100410_1kGy_cv_moshalf.png
+[16:34:54] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_total_current_gcdmos_100410_1kGy_cv_moshalf.png
+[16:34:54] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/cv_gcdmos_100410_1kGy_cv_mos2000.png
+[16:34:55] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/1c2v_gcdmos_100410_1kGy_cv_mos2000.png
+[16:34:55] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_total_current_gcdmos_100410_1kGy_cv_mos2000.png
+[16:34:55] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_gcdmos_100410_1kGy_iv_gcd.png
+[16:34:56] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_zoom_gcdmos_100410_1kGy_iv_gcd.png
+[16:34:56] [INFO ]  Saving output to file logs/gcdmos_100410_1kGy/06_20250813_162905/iv_total_current_gcdmos_100410_1kGy_iv_gcd.png
+[16:34:56] [INFO ]  	
+[16:34:56] [INFO ]  Cleaning up.
+[16:34:56] [INFO ]  	
+[16:34:56] [INFO ]  	

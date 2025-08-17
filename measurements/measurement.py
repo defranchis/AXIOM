@@ -27,9 +27,10 @@ class measurement(object):
 
         preexisting_dose = self.config['sample']['preexisting_dose']
 
-        # summing the dose that is supplied by obelix with the preexisting dose. 
-        self.current_dose = (current_dose or 0) + preexisting_dose
-        # current_dose = self.current_dose #remove this dependency 
+        if current_dose is None:
+            self.current_dose = preexisting_dose
+        else:
+            self.current_dose = current_dose
 
         # 2. Construct ID base
         self.id = f"{config['sample']['type']}_{config['sample']['id']}_{self.current_dose}kGy"

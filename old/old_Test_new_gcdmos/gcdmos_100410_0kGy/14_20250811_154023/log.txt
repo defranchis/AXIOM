@@ -1,0 +1,60 @@
+[15:40:23] [INFO ]  	
+[15:40:23] [INFO ]  ------------------------------------------
+[15:40:23] [INFO ]  Running test: gcdmos
+[15:40:23] [INFO ]  ------------------------------------------
+[15:40:23] [INFO ]  	
+[15:40:23] [INFO ]  Start date          : 2025/08/11 15:40:23
+[15:40:23] [INFO ]  User                : hgsensor
+[15:40:23] [INFO ]  Host                : pcdttp02
+[15:40:23] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[15:40:23] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/14_20250811_154023/log.txt
+[15:40:23] [INFO ]  	
+[15:40:23] [INFO ]  --- Initialising devices from config ---
+[15:40:23] [INFO ]  Initialising device.
+[15:40:23] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[15:40:23] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[15:40:23] [INFO ]  Initialising device.
+[15:40:23] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[15:40:23] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[15:40:23] [INFO ]  Initialising device.
+[15:40:23] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[15:40:23] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[15:40:23] [INFO ]  Initialising device.
+[15:40:23] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[15:40:23] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[15:40:23] [INFO ]  Initialising device.
+[15:40:23] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[15:40:23] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[15:40:23] [INFO ]  ------------------------------------
+[15:40:31] [INFO ]  Reseting device.
+[15:40:31] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[15:40:31] [INFO ]  Power Supply current limit:      1.00E-03 A
+[15:40:31] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[15:40:31] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[15:40:31] [INFO ]  Voltage Delay:                       0.30 s
+[15:40:31] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[15:40:33] [INFO ]  0.00E+00	7.20E-05	1.00E+04	-1.80E+03	2.94E+02	-3.23E+06	2.34E+02	-4.920E-12	-4.920E-12	4.53E-11
+[15:40:34] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	-2.81E+03	2.48E+02	-3.24E+06	1.80E+02	-4.919E-12	-4.919E-12	2.25E-11
+[15:40:35] [INFO ]  -1.00E+01	-1.00E+01	1.00E+04	-3.09E+03	3.80E+02	-3.23E+06	5.34E+02	-4.920E-12	-4.920E-12	2.17E-11
+[15:40:36] [INFO ]  -1.50E+01	-1.50E+01	1.00E+04	-2.88E+03	3.01E+02	-3.24E+06	2.68E+02	-4.919E-12	-4.919E-12	3.15E-11
+[15:40:37] [INFO ]  -2.00E+01	-2.00E+01	1.00E+04	-2.21E+03	1.74E+02	-3.24E+06	3.26E+02	-4.919E-12	-4.919E-12	4.09E-11
+[15:40:38] [INFO ]  -2.50E+01	-2.50E+01	1.00E+04	-2.94E+03	2.75E+02	-3.23E+06	3.86E+02	-4.921E-12	-4.921E-12	9.62E-10
+[15:40:39] [INFO ]  -3.00E+01	-3.00E+01	1.00E+04	-1.75E+03	2.74E+02	-3.24E+06	1.99E+02	-4.919E-12	-4.919E-12	9.95E-10
+[15:40:40] [INFO ]  -3.50E+01	-3.50E+01	1.00E+04	-2.98E+03	1.61E+02	-3.23E+06	4.35E+02	-4.920E-12	-4.920E-12	1.21E-09
+[15:40:41] [INFO ]  -4.00E+01	-4.00E+01	1.00E+04	-2.88E+03	2.95E+02	-3.23E+06	2.73E+02	-4.920E-12	-4.920E-12	1.16E-09
+[15:40:42] [INFO ]  -4.50E+01	-4.50E+01	1.00E+04	-3.42E+03	3.19E+02	-3.24E+06	1.19E+02	-4.919E-12	-4.919E-12	1.27E-09
+[15:40:43] [INFO ]  -5.00E+01	-5.00E+01	1.00E+04	-1.93E+03	4.26E+02	-3.24E+06	1.62E+02	-4.919E-12	-4.919E-12	1.08E-09
+[15:40:44] [INFO ]  -5.50E+01	-5.50E+01	1.00E+04	-2.35E+03	5.03E+02	-3.23E+06	2.13E+02	-4.920E-12	-4.920E-12	1.13E-09
+[15:40:45] [ERROR]  EXCEPTION RAISED. Ramping down voltage and shutting down.
+
+[15:40:45] [ERROR]  
+[15:40:45] [INFO ]  
+
+[15:40:45] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/14_20250811_154023/cv_gcdmos_100410_0kGy_MOShalf.dat

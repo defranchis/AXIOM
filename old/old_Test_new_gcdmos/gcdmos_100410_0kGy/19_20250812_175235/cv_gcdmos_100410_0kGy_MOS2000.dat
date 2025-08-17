@@ -1,0 +1,13 @@
+# Single CV
+# 
+# Power Supply voltage limit:      2.10E+01 V
+# Power Supply current limit:      1.00E-03 A
+# LCR measurement voltage:         2.50E-01 V
+# LCR measurement frequency:       1.00E+03 Hz
+# Voltage Delay:                       0.30 s
+# 
+# 
+# 
+# Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+0.00000E+00	5.26949E-05	1.00000E+04	1.61286E+03	9.23698E+02	-1.36328E+06	1.01609E+03	1.16744E-11	1.16744E-11	1.20734E-08
+-1.00000E-01	-9.99388E-02	1.00000E+04	3.22820E+03	7.62965E+02	-1.36288E+06	1.34468E+03	1.16779E-11	1.16778E-11	-2.08644E-07

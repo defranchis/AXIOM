@@ -1,0 +1,75 @@
+[16:57:03] [INFO ]  	
+[16:57:03] [INFO ]  ------------------------------------------
+[16:57:03] [INFO ]  Running test: gcdmos
+[16:57:03] [INFO ]  ------------------------------------------
+[16:57:03] [INFO ]  	
+[16:57:03] [INFO ]  Start date          : 2025/08/11 16:57:03
+[16:57:03] [INFO ]  User                : hgsensor
+[16:57:03] [INFO ]  Host                : pcdttp02
+[16:57:03] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[16:57:03] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/16_20250811_165703/log.txt
+[16:57:03] [INFO ]  	
+[16:57:03] [INFO ]  --- Initialising devices from config ---
+[16:57:03] [INFO ]  Initialising device.
+[16:57:03] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[16:57:03] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[16:57:03] [INFO ]  Initialising device.
+[16:57:03] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[16:57:03] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[16:57:03] [INFO ]  Initialising device.
+[16:57:03] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[16:57:03] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[16:57:03] [INFO ]  Initialising device.
+[16:57:03] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[16:57:03] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[16:57:03] [INFO ]  Initialising device.
+[16:57:03] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[16:57:03] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[16:57:03] [INFO ]  ------------------------------------
+[16:57:12] [INFO ]  Reseting device.
+[16:57:12] [INFO ]  Measurement Settings:
+[16:57:12] [INFO ]  Ke6487 voltage limit:      -9.99E+02 V
+[16:57:12] [INFO ]  Ke6487 current limit:      1.00E-07 A
+[16:57:12] [INFO ]  Ke2410 voltage limit:      2.10E+01 V
+[16:57:12] [INFO ]  Ke2410 current limit:      1.00E-03 A
+[16:57:12] [INFO ]  Voltage delay:                       2.00 s
+[16:57:12] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Current [A]	Current Error [A]	Total Current[A]	
+----------------------------------------------------------------------------------------------------------
+[16:57:19] [INFO ]  1.00E+01	1.00E+01	-4.788E-10	8.098E-13	2.04E-08
+[16:57:26] [INFO ]  8.00E+00	8.00E+00	-5.943E-10	2.356E-11	-5.81E-06
+[16:57:33] [INFO ]  6.00E+00	6.00E+00	-1.409E-09	7.873E-13	4.35E-09
+[16:57:40] [INFO ]  4.00E+00	4.00E+00	-1.452E-09	1.689E-11	-5.82E-06
+[16:57:47] [INFO ]  2.00E+00	1.99E+00	-1.428E-09	9.218E-13	8.44E-09
+[16:57:53] [INFO ]  0.00E+00	5.71E-05	-1.445E-09	1.682E-11	-5.62E-06
+[16:58:00] [INFO ]  -2.00E+00	-2.01E+00	-1.358E-09	7.766E-13	1.03E-08
+[16:58:07] [INFO ]  -4.00E+00	-4.00E+00	-8.169E-10	1.729E-11	-5.70E-06
+[16:58:14] [INFO ]  -6.00E+00	-6.00E+00	-6.412E-10	8.542E-13	1.61E-09
+[16:58:21] [INFO ]  -8.00E+00	-8.00E+00	-6.159E-10	1.542E-11	-5.83E-06
+[16:58:28] [INFO ]  -1.00E+01	-1.00E+01	-5.548E-10	5.084E-13	-5.66E-10
+[16:58:35] [INFO ]  -1.20E+01	-1.20E+01	-5.651E-10	1.435E-11	-5.83E-06
+[16:58:42] [INFO ]  -1.40E+01	-1.40E+01	-5.271E-10	3.515E-13	4.02E-10
+[16:58:49] [INFO ]  -1.60E+01	-1.60E+01	-5.436E-10	1.474E-11	-5.80E-06
+[16:58:56] [INFO ]  -1.80E+01	-1.80E+01	-5.100E-10	4.023E-13	6.93E-10
+[16:59:03] [INFO ]  -2.00E+01	-2.00E+01	-5.278E-10	1.458E-11	-5.80E-06
+[16:59:10] [INFO ]  -2.20E+01	-2.20E+01	-4.973E-10	4.918E-13	-1.66E-09
+[16:59:17] [INFO ]  -2.40E+01	-2.40E+01	-5.203E-10	1.423E-11	-5.95E-06
+[16:59:23] [INFO ]  -2.60E+01	-2.60E+01	-4.898E-10	5.620E-13	-8.80E-09
+[16:59:30] [INFO ]  -2.80E+01	-2.80E+01	-5.124E-10	1.428E-11	-6.10E-06
+[16:59:37] [INFO ]  -3.00E+01	-3.00E+01	-4.820E-10	6.350E-13	-2.39E-08
+[16:59:37] [INFO ]  
+
+[16:59:37] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/16_20250811_165703/iv_gcdmos_100410_0kGy_GCD.dat
+[16:59:49] [INFO ]  Reseting device.
+[16:59:49] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/16_20250811_165703/iv_gcdmos_100410_0kGy_iv_gcd.png
+[16:59:50] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/16_20250811_165703/iv_zoom_gcdmos_100410_0kGy_iv_gcd.png
+[16:59:50] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/16_20250811_165703/iv_total_current_gcdmos_100410_0kGy_iv_gcd.png
+[16:59:50] [INFO ]  	
+[16:59:50] [INFO ]  Cleaning up.
+[16:59:50] [INFO ]  	
+[16:59:50] [INFO ]  	

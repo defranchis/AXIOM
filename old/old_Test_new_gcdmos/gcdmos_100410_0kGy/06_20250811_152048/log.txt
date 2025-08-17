@@ -1,0 +1,64 @@
+[15:20:48] [INFO ]  	
+[15:20:48] [INFO ]  ------------------------------------------
+[15:20:48] [INFO ]  Running test: gcdmos
+[15:20:48] [INFO ]  ------------------------------------------
+[15:20:48] [INFO ]  	
+[15:20:48] [INFO ]  Start date          : 2025/08/11 15:20:48
+[15:20:48] [INFO ]  User                : hgsensor
+[15:20:48] [INFO ]  Host                : pcdttp02
+[15:20:48] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[15:20:48] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/06_20250811_152048/log.txt
+[15:20:48] [INFO ]  	
+[15:20:48] [INFO ]  --- Initialising devices from config ---
+[15:20:48] [INFO ]  Initialising device.
+[15:20:48] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[15:20:48] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[15:20:48] [INFO ]  Initialising device.
+[15:20:48] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[15:20:48] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[15:20:48] [INFO ]  Initialising device.
+[15:20:48] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[15:20:48] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[15:20:48] [INFO ]  Initialising device.
+[15:20:48] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[15:20:48] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[15:20:48] [INFO ]  Initialising device.
+[15:20:48] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[15:20:48] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[15:20:48] [INFO ]  ------------------------------------
+[15:20:57] [INFO ]  Reseting device.
+[15:20:57] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[15:20:57] [INFO ]  Power Supply current limit:      1.00E-03 A
+[15:20:57] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[15:20:57] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[15:20:57] [INFO ]  Voltage Delay:                       0.30 s
+[15:20:57] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[15:20:58] [INFO ]  0.00E+00	6.92E-05	1.00E+04	2.16E+04	3.91E+02	-1.38E+06	6.50E+02	1.157E-11	1.157E-11	1.00E-08
+[15:20:59] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	1.26E+04	5.43E+02	-7.23E+05	1.63E+03	2.202E-11	2.201E-11	-3.05E-05
+[15:21:00] [INFO ]  -1.00E+01	-1.00E+01	1.00E+04	1.22E+04	3.41E+02	-7.11E+05	1.03E+02	2.240E-11	2.239E-11	-1.11E-05
+[15:21:01] [INFO ]  -1.50E+01	-1.50E+01	1.00E+04	1.18E+04	1.94E+02	-7.09E+05	8.21E+01	2.245E-11	2.244E-11	-1.08E-05
+[15:21:02] [INFO ]  -2.00E+01	-2.00E+01	1.00E+04	1.36E+04	3.72E+02	-7.09E+05	6.91E+01	2.245E-11	2.244E-11	-1.07E-05
+[15:21:03] [INFO ]  -2.50E+01	-2.50E+01	1.00E+04	1.30E+04	5.85E+02	-7.10E+05	2.16E+02	2.242E-11	2.242E-11	-1.06E-05
+[15:21:04] [INFO ]  -3.00E+01	-3.00E+01	1.00E+04	1.15E+04	3.32E+02	-7.09E+05	2.73E+02	2.244E-11	2.243E-11	-1.11E-05
+[15:21:05] [INFO ]  -3.50E+01	-3.50E+01	1.00E+04	1.14E+04	3.38E+02	-7.08E+05	3.06E+02	2.248E-11	2.247E-11	-1.06E-05
+[15:21:06] [INFO ]  -4.00E+01	-4.00E+01	1.00E+04	1.27E+04	3.95E+02	-7.07E+05	1.71E+02	2.250E-11	2.250E-11	-1.07E-05
+[15:21:07] [INFO ]  -4.50E+01	-4.50E+01	1.00E+04	1.32E+04	4.09E+02	-7.08E+05	2.49E+02	2.248E-11	2.247E-11	-1.04E-05
+[15:21:08] [INFO ]  -5.00E+01	-5.00E+01	1.00E+04	1.29E+04	3.97E+02	-7.09E+05	2.24E+02	2.244E-11	2.243E-11	-1.09E-05
+[15:21:09] [INFO ]  -5.50E+01	-5.50E+01	1.00E+04	1.18E+04	4.79E+02	-7.09E+05	1.33E+02	2.245E-11	2.244E-11	-1.10E-05
+[15:21:10] [INFO ]  -6.00E+01	-6.00E+01	1.00E+04	1.15E+04	3.20E+02	-7.08E+05	2.26E+02	2.250E-11	2.249E-11	-1.09E-05
+[15:21:11] [INFO ]  -6.50E+01	-6.50E+01	1.00E+04	1.26E+04	2.76E+02	-7.07E+05	1.74E+02	2.251E-11	2.250E-11	-1.02E-05
+[15:21:12] [INFO ]  -7.00E+01	-7.00E+01	1.00E+04	1.34E+04	5.41E+02	-7.08E+05	2.11E+02	2.248E-11	2.247E-11	-1.02E-05
+[15:21:13] [INFO ]  -7.50E+01	-7.50E+01	1.00E+04	1.20E+04	5.72E+02	-7.09E+05	1.95E+02	2.245E-11	2.245E-11	-1.03E-05
+[15:21:14] [ERROR]  EXCEPTION RAISED. Ramping down voltage and shutting down.
+
+[15:21:14] [ERROR]  
+[15:21:14] [INFO ]  
+
+[15:21:14] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/06_20250811_152048/cv_gcdmos_100410_0kGy_MOShalf.dat

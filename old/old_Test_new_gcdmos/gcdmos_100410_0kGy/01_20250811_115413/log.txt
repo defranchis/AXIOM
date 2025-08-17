@@ -1,0 +1,61 @@
+[11:54:13] [INFO ]  	
+[11:54:13] [INFO ]  ------------------------------------------
+[11:54:13] [INFO ]  Running test: gcdmos
+[11:54:13] [INFO ]  ------------------------------------------
+[11:54:13] [INFO ]  	
+[11:54:13] [INFO ]  Start date          : 2025/08/11 11:54:13
+[11:54:13] [INFO ]  User                : hgsensor
+[11:54:13] [INFO ]  Host                : pcdttp02
+[11:54:13] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[11:54:13] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/01_20250811_115413/log.txt
+[11:54:13] [INFO ]  	
+[11:54:13] [INFO ]  --- Initialising devices from config ---
+[11:54:13] [INFO ]  Initialising device.
+[11:54:13] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[11:54:13] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[11:54:13] [INFO ]  Initialising device.
+[11:54:13] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[11:54:13] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[11:54:13] [INFO ]  Initialising device.
+[11:54:13] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[11:54:13] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[11:54:13] [INFO ]  Initialising device.
+[11:54:13] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[11:54:13] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[11:54:13] [INFO ]  Initialising device.
+[11:54:13] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[11:54:13] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[11:54:13] [INFO ]  ------------------------------------
+[11:54:22] [INFO ]  Reseting device.
+[11:54:22] [INFO ]  Power Supply voltage limit:      2.10E+01 V
+[11:54:22] [INFO ]  Power Supply current limit:      1.00E-03 A
+[11:54:22] [INFO ]  LCR measurement voltage:         2.50E-01 V
+[11:54:22] [INFO ]  LCR measurement frequency:       1.00E+03 Hz
+[11:54:22] [INFO ]  Voltage Delay:                       0.30 s
+[11:54:22] [INFO ]  	
+	Nominal Voltage [V]	 Measured Voltage [V]	Freq [Hz]	R [Ohm]	R_Err [Ohm]	X [Ohm]	X_Err [Ohm]	Cs [F]	Cp [F]	Total Current [A]
+---------------------------------------------------------------------------------------------------------------------------------------------------
+[11:54:23] [INFO ]  0.00E+00	7.10E-05	1.00E+04	4.82E+04	8.62E+02	-1.98E+06	1.17E+03	8.020E-12	8.015E-12	1.02E-08
+[11:54:24] [INFO ]  -5.00E+00	-5.00E+00	1.00E+04	3.92E+03	4.78E+02	-7.38E+05	1.74E+03	2.156E-11	2.156E-11	-3.04E-05
+[11:54:25] [INFO ]  -1.00E+01	-1.00E+01	1.00E+04	3.85E+03	3.42E+02	-7.27E+05	3.06E+02	2.189E-11	2.189E-11	-1.09E-05
+[11:54:26] [INFO ]  -1.50E+01	-1.50E+01	1.00E+04	4.22E+03	3.35E+02	-7.26E+05	4.50E+02	2.191E-11	2.191E-11	-1.03E-05
+[11:54:27] [INFO ]  -2.00E+01	-2.00E+01	1.00E+04	3.74E+03	3.64E+02	-7.26E+05	2.28E+02	2.191E-11	2.191E-11	-1.09E-05
+[11:54:28] [INFO ]  -2.50E+01	-2.50E+01	1.00E+04	3.49E+03	2.20E+02	-7.26E+05	2.44E+02	2.193E-11	2.193E-11	-1.06E-05
+[11:54:29] [INFO ]  -3.00E+01	-3.00E+01	1.00E+04	3.37E+03	2.23E+02	-7.26E+05	2.42E+02	2.191E-11	2.191E-11	-7.10E-06
+[11:54:31] [INFO ]  -3.50E+01	-3.50E+01	1.00E+04	4.19E+03	7.46E+02	-7.26E+05	2.82E+02	2.192E-11	2.192E-11	-1.96E-05
+[11:54:32] [INFO ]  -4.00E+01	-4.00E+01	1.00E+04	2.43E+03	3.56E+02	-7.26E+05	1.19E+02	2.192E-11	2.192E-11	-1.05E-05
+[11:54:33] [INFO ]  -4.50E+01	-4.50E+01	1.00E+04	2.49E+03	3.33E+02	-7.26E+05	1.75E+02	2.192E-11	2.192E-11	-1.07E-05
+[11:54:34] [INFO ]  -5.00E+01	-5.00E+01	1.00E+04	1.98E+03	1.72E+02	-7.26E+05	2.58E+02	2.192E-11	2.192E-11	-1.03E-05
+[11:54:35] [INFO ]  -5.50E+01	-5.50E+01	1.00E+04	2.60E+03	2.31E+02	-7.26E+05	2.95E+02	2.192E-11	2.192E-11	-1.03E-05
+[11:54:36] [INFO ]  -6.00E+01	-6.00E+01	1.00E+04	2.46E+03	4.23E+02	-7.26E+05	3.07E+02	2.193E-11	2.192E-11	-1.08E-05
+[11:54:37] [ERROR]  EXCEPTION RAISED. Ramping down voltage and shutting down.
+
+[11:54:37] [ERROR]  
+[11:54:37] [INFO ]  
+
+[11:54:37] [INFO ]  Saving output to file logs/gcdmos_100410_0kGy/01_20250811_115413/cv_gcdmos_100410_0kGy_MOShalf.dat

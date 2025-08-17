@@ -1,0 +1,33 @@
+[11:33:52] [INFO ]  	
+[11:33:52] [INFO ]  ------------------------------------------
+[11:33:52] [INFO ]  Running test: gcdmos
+[11:33:52] [INFO ]  ------------------------------------------
+[11:33:52] [INFO ]  	
+[11:33:52] [INFO ]  Start date          : 2025/08/13 11:33:52
+[11:33:52] [INFO ]  User                : hgsensor
+[11:33:52] [INFO ]  Host                : pcdttp02
+[11:33:52] [INFO ]  Identifier          : gcdmos_100410_0kGy
+[11:33:52] [INFO ]  Log will be stored to logs/gcdmos_100410_0kGy/24_20250813_113352/log.txt
+[11:33:52] [INFO ]  	
+[11:33:52] [INFO ]  --- Initialising devices from config ---
+[11:33:53] [INFO ]  Initialising device.
+[11:33:53] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4005154,C32   Oct  4 2010 14:20:11/A02  /J/K
+
+[11:33:53] [INFO ]  Successfully initialised 'sourcemeter_1' (Model: ke2410)
+[11:33:53] [INFO ]  Initialising device.
+[11:33:53] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 2410,4354538,C34 Sep 21 2016 15:30:00/A02  /K/M
+
+[11:33:53] [INFO ]  Successfully initialised 'sourcemeter_2' (Model: ke2410)
+[11:33:53] [INFO ]  Initialising device.
+[11:33:53] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 7001,1293707,A10  /A02  
+
+[11:33:53] [INFO ]  Successfully initialised 'switch' (Model: ke7001)
+[11:33:53] [INFO ]  Initialising device.
+[11:33:53] [INFO ]  HEWLETT-PACKARD,4263B,MY40104746,01.06
+
+[11:33:53] [INFO ]  Successfully initialised 'lcrmeter' (Model: agilent_4263b)
+[11:33:53] [INFO ]  Initialising device.
+[11:33:53] [INFO ]  KEITHLEY INSTRUMENTS INC.,MODEL 6487,1335907,B02   Sep 08 2010 12:47:38/A02  /C/G
+
+[11:33:53] [INFO ]  Successfully initialised 'picoammeter' (Model: ke6487)
+[11:33:53] [INFO ]  ------------------------------------

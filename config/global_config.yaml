@@ -1,8 +1,8 @@
 measurement_type: 'gcdmos'
 sample:
-  type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
-  id: '102179'                  # TODO: this should always be requested from the cli
-  preexisting_dose: 100
+  type: 'gcdmos'          
+  id: '100410'                  # TODO: this should always be requested from the cli
+  preexisting_dose: 0
 
 
 devices:
@@ -42,8 +42,8 @@ measurements:
   testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
   dynamic_voltage_range:
     enabled: true
-    voltage_array_size: 45
-    range_multiplier: 1
+    voltage_array_size: 100
+    range_multiplier: 1.5
 
   CV:
     range:
@@ -65,19 +65,20 @@ measurements:
     gcd_diode_bias: 5.0  # [V] bias voltage applied to the GCD diode
     delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
 
-# irradiation:
-#   doselist: [0,2,5,10]
-#   dose_rate: 14.257  ## value taken on Aug 31st 2023
-#   voltage: 40  # the voltage of the tube in kV
-#   current: 50  # the current of the tube in mA
-#   biasing: false  # whether to bias the sample during irradiation
+irradiation:
+  shutter_id: 3 # 3 for obelix
+  doselist: [0, 1, 2, 3, 4, 5, 10, 20, 40, 70, 100]
+  dose_rate: 16  ## value taken on Aug 31st 2023
+  voltage: 40  # the voltage of the tube in kV
+  current: 50  # the current of the tube in mA
+  biasing: false  # whether to bias the sample during irradiation
 
 temperature_management:
   chiller:
     enabled: true
     model: 'chiller_cc_505'
     port: 'COM8'
-    default_temperature: 15 # this temp is what is used to setup the chiller, 
+    default_temperature: -20 # this temp is what is used to setup the chiller, 
     update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
 
   logging:
