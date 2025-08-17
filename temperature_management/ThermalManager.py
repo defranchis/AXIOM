@@ -150,7 +150,7 @@ class ThermalManager:
         readings = {}
         if self.devices.get('multimeter'):
             try:
-                r0 = float(self.config['devices']['multimeter']['sensor_r0']           )
+                r0 = float(self.config['devices']['multimeter']['sensor_r0']           ) #TODO: add value missing error parsing
                 mm_reply = self.devices['multimeter'].read_resistance()
                 if 'OOHM' in mm_reply: 
                     logging.warning(f"multimeter in overflow, reply: {mm_reply}")

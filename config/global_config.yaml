@@ -1,54 +1,83 @@
-measurement_type: 'diodeCV'
+measurement_type: 'gcdmos'
 sample:
-  type: 'diode' #TODO: this can always be inferred from which type of measurement is specified (except diode as strip i guess?)
-  id: '100429'  #TODO:: this should always be requested from the cli
-  preexisting_dose: 0        # this is only used if no dose is provided by the runner (so just running msr without irradiation)
+  type: 'gcdmos'              # TODO: this can always be inferred from which type of measurement is specified (except when executing diode as strip i guess?)
+  id: '102179'                  # TODO: this should always be requested from the cli
+  preexisting_dose: 100
 
-  
+
 devices:
   sourcemeter_1:
     model: 'ke2410'  
     address: 8
-    lim_cur: 1.0e-3                 # compliance in [A]
+    lim_cur: 1.0e-3 # compliance current in [A]
 
-  switch:
+  sourcemeter_2:
+    model: 'ke2410'  
+    address: 25
+    lim_cur: 1.0e-3 # compliance current in [A]
+    
+  switch:           #if the switch is specified, it will try to initialize and use it. if directly connecting to devices, comment switch out.
     model: 'ke7001'
     address: 7
+    connections:
+      MOShalf: 1
+      MOS2000: 3
+      picoammeter: 9 # (?)
 
   lcrmeter:
     model: 'agilent_4263b'
-    address: 17                     # in the SSD lab this is 9
-    mode: 'RX'
-    approx_open_corr: 50.0e-12
+    address: 17
 
+  picoammeter:
+    model: 'ke6487'
+    address: 15
+    lim_cur: 100.0e-9    # compliance in [A] for the GCD, this should be 10 nA
 
-measurements:
-  testset: [floating, short, ground]  #[floating, short, ground]
+  multimeter:
+    model: 'ke2001'
+    address: 16
+    sensor_r0: 1000
+
+measurements: 
+  testset: [moshalf, mos2000, gcd]    #determines which measurements are exectued
+  dynamic_voltage_range:
+    enabled: true
+    voltage_array_size: 45
+    range_multiplier: 1
 
   CV:
     range:
-      v_start: -0
-      v_end: -25
-      step_size: -25
+      v_start: 0.   # 
+      v_end: -200   #   
+      step_size: -10
     sample_size: 10
-    delay: 0                        # delay between setting voltage and executing measurement in [s]
-    trig_delay: 0.1                   # delay between individual lcr triggers  
-    lcr_amplitude: 0.5                    # ac voltage amplitude in [mV]
-    lcr_frequency: 1000                 # ac frequency in [Hz]
+    lcr_amplitude: 0.250 # 0.501 # ac voltage amplitude in [mV]
+    lcr_frequency: 10000  # ac voltage frequency in [Hz]
+    delay: 7.5  # delay in [s] between setting the voltage and executing the measurement
+    trig_delay: 0.2
 
-irradiation:
-  doselist: [0,2,5,10]
-  dose_rate: 14.257  ## value taken on Aug 31st 2023
-  voltage: 40  # the voltage of the tube in kV
-  current: 50  # the current of the tube in mA
-  biasing: false  # whether to bias the sample during irradiation
+  IV:
+    range:
+      v_start: 10
+      v_end: -10
+      step_size: -1
+    sample_size: 10
+    gcd_diode_bias: 5.0  # [V] bias voltage applied to the GCD diode
+    delay: 2.0 # delay in [s] between setting the voltage and executing the measurement
+
+# irradiation:
+#   doselist: [0,2,5,10]
+#   dose_rate: 14.257  ## value taken on Aug 31st 2023
+#   voltage: 40  # the voltage of the tube in kV
+#   current: 50  # the current of the tube in mA
+#   biasing: false  # whether to bias the sample during irradiation
 
 temperature_management:
   chiller:
     enabled: true
     model: 'chiller_cc_505'
-    port: 'COM11'
-    default_temperature: -25 # this temp is what is used to setup the chiller, 
+    port: 'COM8'
+    default_temperature: 15 # this temp is what is used to setup the chiller, 
     update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
 
   logging:

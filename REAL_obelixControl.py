@@ -410,6 +410,7 @@ if __name__ == '__main__':
             port.write('HV:0\r'.encode())
             print('exiting after keyboard interrupt')
             biasMOS2000_OFF(channel=3)
+            # port.close TODO: DETERMINE IF THIS IS NECESSARY
         exit(0)
     else:
         config_path = args[1]
