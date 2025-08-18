@@ -180,8 +180,8 @@ class gcdmos(measurement):
 
         # Get configuration parameters from the 'dynamic_voltage_range' section
         dynamic_config = self.config['measurements']['dynamic_voltage_range']
-        size = dynamic_config.get('voltage_array_size', 101) # Default to 101 points
         multiplier = dynamic_config.get('range_multiplier', 1.0) # Default to 1.0 (no change)
+        size = math.floor(dynamic_config.get('voltage_array_size', 101)*multiplier)  # multiply the voltage points to avoid sparse measurement
 
         # Interpolate to find the end voltage for the current dose.
         # np.interp handles cases where self.current_dose is outside the range by clamping to the min/max.
@@ -189,7 +189,7 @@ class gcdmos(measurement):
         end_mos2000 = np.interp(self.current_dose, doses, mos2000_ranges) * multiplier
         end_gcd = np.interp(self.current_dose, doses, gcd_ranges) * multiplier
         
-        self.logging.info(f"Interpolated end voltages (multiplier: {multiplier}):")
+        self.logging.info(f"Interpolated end voltages (multiplier: {multiplier}, n_samples: {size}:")
         self.logging.info(f"  - MOShalf: {end_moshalf:.2f} V")
         self.logging.info(f"  - MOS2000: {end_mos2000:.2f} V")
         self.logging.info(f"  - GCD:     {end_gcd:.2f} V")
@@ -303,7 +303,7 @@ class gcdmos(measurement):
             plateauVoltage = None
 
             # Parameters for plateau detection
-            window_size = int(self.config['measurements']['CV'].get('plateau_window', 7)) if 'measurements' in self.config else 7
+            window_size = int(self.config['measurements']['CV']['plateau_window'])
             # slope tolerance is defined as 1% of the mean capacitance across the window per volt span
 
             ## Loop over voltages
@@ -357,8 +357,8 @@ class gcdmos(measurement):
                         slope, intercept = np.polyfit(x_window, y_window, 1)
                         # Voltage span across the window (avoid div by zero)
                         v_span = max(1e-6, (x_window[-1] - x_window[0]))
-                        # slope tolerance: 1% of mean capacitance per volt across the window
-                        slope_tol = (abs(np.mean(y_window)) * 0.01) / v_span
+                        # slope tolerance: 0.5% of mean capacitance per volt across the window
+                        slope_tol = (abs(np.mean(y_window)) * 0.005) / v_span
 
                         mean_window = np.mean(y_window)
 
@@ -379,8 +379,8 @@ class gcdmos(measurement):
 
                     # Terminate the scan if we have gone some % past the detected plateau.
                     if plateauVoltage is not None:
-                        if abs(v) > abs(plateauVoltage * 1.0):
-                            self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > 100% of |plateauVoltage| ({abs(plateauVoltage):.2f})")
+                        if abs(v) > abs(plateauVoltage * self.config['measurements']['CV']['plateau_extention']):
+                            self.logging.info(f"Stopping measurement: |v| ({abs(v):.2f}) > {self.config['measurements']['CV']['plateau_extention']}|plateauVoltage| ({abs(plateauVoltage):.2f})")
                             break
 
         except BaseException as e:

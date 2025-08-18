@@ -488,14 +488,28 @@ if __name__ == '__main__':
         # irradiation loop - prints accumulated dose continuously
         while(remaining_time > 0):
             remaining_time = get_timer(tn = 3)
+            # ------- check current and voltage values -------- 
+            TOLERANCE_PERCENT = 5.0
+            voltage_deviation = config['irradiation']['voltage'] * (TOLERANCE_PERCENT / 100.0)
+            current_deviation = config['irradiation']['current'] * (TOLERANCE_PERCENT / 100.0)
+            measured_voltage = XRM.getHighVoltage()
+            measured_current = XRM.getCurrent()
+
+            if abs(measured_voltage - config['irradiation']['voltage']) > voltage_deviation:
+                raise ValueError(f"Voltage out of tolerance! Set: {config['irradiation']['voltage']} kV, Actual: {measured_voltage} kV")
+
+            if abs(measured_current - config['irradiation']['current']) > current_deviation:
+                raise ValueError(f"Current out of tolerance! Set: {config['irradiation']['current']} mA, Actual: {measured_current} mA")
+            
+            
             # compute accumulated dose
             accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(remaining_time, irradiation_seconds, current_dose, config['irradiation']['dose_rate'])
-            # hours_r, minutes_r, seconds_r = secondsToHoursMinutesAndSeconds(remaining_time)
+            hours_r, minutes_r, seconds_r = secondsToHoursMinutesAndSeconds(remaining_time)
+            hours_t, minutes_t, seconds_t = secondsToHoursMinutesAndSeconds(irradiation_seconds)
 
+            sys.stdout.write("\033[F\033[K" * 3)  # move cursor up 3 lines & clear them
             # print progress and accumulated dose
-            # print('OBELIX: i am currently irradiating from {a} to {b} kGy; total time left: {h}h {m}m {s}s'.format(a=current_dose,b=target_dose,h=hours_r,m=minutes_r,s=seconds_r))
-            # print('>> Still irradiating for: %02d Hours %02d Minutes and %02d Seconds' %(hours_r,minutes_r,seconds_r))
-            print(f"OBELIX: irradiating for in total: {irradiation_seconds}, with  {remaining_time} left")
+            print(f"OBELIX: irradiating for in total: {hours_t}:{minutes_t}:{seconds_t}, with  {hours_r}:{minutes_r}:{seconds_r} left")
             print('>> Dose delivered in this run: {:.6f} kGy (elapsed {:+d} s)'.format(dose_delivered_kGy, elapsed_seconds))
             print('>> Total accumulated dose so far: {:.6f} kGy'.format(accumulated_total_kGy))
 
@@ -525,7 +539,5 @@ if __name__ == '__main__':
         if config['irradiation']['biasing'] : biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
 
         print('OBELIX: irradiation stopped unexpectedly.')
-        print('OBELIX: ESTIMATED dose delivered before stop: {:.6f} kGy'.format(dose_delivered_kGy))
-        print('OBELIX: Total accumulated dose = {:.6f} kGy'.format(accumulated_total_kGy))
 
         exit(1)
