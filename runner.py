@@ -49,14 +49,14 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
         # Loop only through the remaining, filtered dose steps
         for target_dose in targets_to_run:
             print(f"\n--- Irradiating from {current_dose:.2f} kGy to {target_dose:.2f} kGy ---")
-            
-            # The target dose is an absolute value. 
             # obelixControl is responsible for calculating the difference to irradiate.
             subprocess.run( ['python', './new_obelix_control.py', config_path, str(current_dose), str(target_dose)],  check=True )
+            # print("-----------------------= NOT ACTUALY RUNNING COMMENTED OUT IN RUNNER =-----------------------------------")
+
             current_dose = target_dose             # After successful irradiation, update the current dose to the new total.
 
             print(f"\n--- Running measurement for total accumulated dose: {current_dose:.2f} kGy ---")
-            # Pass the new total accumulated dose to the measurement function.
+            # we pass the new, ACCUMULATED dose to the measurement function.
             run_measurement(msr_class, config, current_dose=current_dose)
 
     except subprocess.CalledProcessError as e:

@@ -44,6 +44,7 @@ class measurement(object):
         self.ldir = f"{self.base}logs/{self.id}"
         mkdir(self.ldir)
 
+        # determine run id before logger setup so logger name can include it
         self.nrun = self.get_run_id(self.id)
         self.rdir = f"{self.ldir}/{self.nrun}"
         mkdir(self.rdir)
@@ -51,21 +52,39 @@ class measurement(object):
         self.logfile = f"{self.rdir}/log.txt"
 
         # --- Logger setup ---
-        logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s", datefmt='%H:%M:%S')
-        self.logging = logging.getLogger('root')
+        logFormatter = logging.Formatter(fmt="[%(asctime)s] [%(levelname)-5.5s]  %(message)s",
+                                        datefmt='%H:%M:%S')
+
+        logger_name = f"{self.id}.{self.nrun}"
+        self.logging = logging.getLogger(logger_name)
         self.logging.setLevel(logging.DEBUG)
 
-        if not self.logging.handlers:
-            if platform.system() != 'Windows':
-                logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
+        #  remove any pre-existing handlers on this named logger
+        for h in list(self.logging.handlers):
+            try:
+                self.logging.removeHandler(h)
+                if hasattr(h, 'close'):
+                    h.close()
+            except Exception:
+                pass
 
-            consoleHandler = logging.StreamHandler()
-            consoleHandler.setFormatter(logFormatter)
-            self.logging.addHandler(consoleHandler)
+        # add coloring for console handler
+        if platform.system() != 'Windows':
+            logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
-            fileHandler = logging.FileHandler(filename=self.logfile)
-            fileHandler.setFormatter(logFormatter)
-            self.logging.addHandler(fileHandler)
+        # console handler (per-run logger keeps it local; duplicates on console are expected if 
+        # instantiating many measurement objects simultaneously)
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(logFormatter)
+        self.logging.addHandler(consoleHandler)
+
+        # file handler (unique file per run)
+        fileHandler = logging.FileHandler(filename=self.logfile)
+        fileHandler.setFormatter(logFormatter)
+        self.logging.addHandler(fileHandler)
+
+        # keep a reference to ensure closure in the finalizationn 
+        self._file_handler = fileHandler
 
         # --- Log header ---
         self.logging.info("\t")
@@ -255,8 +274,17 @@ class measurement(object):
         self.logging.info("\t")
 
     def _finalise(self):
-        plt.close('all') # ensuring plots are closed at the end of every individual measurement session. 
+        # remove & close the per-run file handler so next run gets its own file
+        if hasattr(self, "_file_handler"):
+            try:
+                self.logging.removeHandler(self._file_handler)
+                self._file_handler.close()
+            except Exception:
+                pass
+
+        plt.close('all')
         self.logging.info("\t")
         self.logging.info("Cleaning up.")
         self.logging.info("\t")
         self.logging.info("\t")
+

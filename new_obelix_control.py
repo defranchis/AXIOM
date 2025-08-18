@@ -1,4 +1,3 @@
-import serial
 import datetime, time
 import sys
 import re
@@ -368,13 +367,6 @@ def biasMOS2000_OFF(channel=3):
 #     #else:
 #     #    print("This timer is already On")
 
-def secondsToHoursMinutesAndSeconds(seconds):
-    # return integer hours, minutes, seconds
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    seconds = int(seconds % 60)
-
-    return [hours, minutes, seconds]
 
 # def readExposureTimerActualValue(n):
 
@@ -384,6 +376,14 @@ def secondsToHoursMinutesAndSeconds(seconds):
 #     exposureTimerSeconds = port.readline(12)
 #     exposureTimerSeconds = exposureTimerSeconds[1:(len(exposureTimerSeconds)-1)]
 #     return int(exposureTimerSeconds)
+
+def secondsToHoursMinutesAndSeconds(seconds):
+    # return integer hours, minutes, seconds
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+
+    return [hours, minutes, seconds]
 
 def compute_accumulated_dose(remaining_seconds, total_seconds, current_dose_kGy, dose_rate_kGy_per_hr):
     """
@@ -469,12 +469,7 @@ if __name__ == '__main__':
         XRM.setHighVoltage(config['irradiation']['voltage']) 
         XRM.setCurrent(config['irradiation']['current']) 
 
-        # print('OBELIX: i will irradiate this sample from {a} to {b} kGy. This will add {c} kGy to the total dose!'.format(a=current_dose, b=target_dose, c=dose_toirr))
         irradiation_seconds = convertkGyToTime(dose_toirr, dose_rate=config['irradiation']['dose_rate'])
-
-        # total irradiation time in seconds (used to compute elapsed vs remaining)
-        # irradiation_seconds = int(hours * 3600 + minutes * 60 + seconds)
-
         if config['irradiation']['biasing'] :
             biasMOS2000_ON(channel=config['devices']['switch']['connections']['biasMOS2000'])
 
@@ -485,7 +480,7 @@ if __name__ == '__main__':
 
         remaining_time = get_timer(tn = 3)
 
-        # irradiation loop - prints accumulated dose continuously
+        # irradiation loop - prints accumulated dose while monitoring current and voltage levels
         while(remaining_time > 0):
             remaining_time = get_timer(tn = 3)
             # ------- check current and voltage values -------- 
