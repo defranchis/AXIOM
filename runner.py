@@ -50,8 +50,8 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
         for target_dose in targets_to_run:
             print(f"\n--- Irradiating from {current_dose:.2f} kGy to {target_dose:.2f} kGy ---")
             # obelixControl is responsible for calculating the difference to irradiate.
-            # subprocess.run( ['python', './new_obelix_control.py', config_path, str(current_dose), str(target_dose)],  check=True )
-            print("-----------------------= NOT ACTUALY RUNNING COMMENTED OUT IN RUNNER =-----------------------------------")
+            subprocess.run( ['python', './new_obelix_control.py', config_path, str(current_dose), str(target_dose)],  check=True )
+            # print("-----------------------= NOT ACTUALY RUNNING COMMENTED OUT IN RUNNER =-----------------------------------")
 
             current_dose = target_dose             # After successful irradiation, update the current dose to the new total.
 

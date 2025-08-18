@@ -70,7 +70,7 @@ measurements:
 irradiation:
   shutter_id: 3 # 3 for obelix
   doselist: [0, 1, 2, 3, 4, 5, 10, 20, 40, 70, 100, 100.2]
-  initial_measurement: true # enable this to always do at least 1 measurement before doing any irradiation. 
+  initial_measurement: false # enable this to always do at least 1 measurement before doing any irradiation. 
   dose_rate: 16  ## value taken on Aug 31st 2023
   voltage: 40  # the voltage of the tube in kV
   current: 50  # the current of the tube in mA
@@ -81,7 +81,7 @@ temperature_management:
     enabled: true
     model: 'chiller_cc_505'
     port: 'COM8'
-    default_temperature: 10 # this temp is what is used to setup the chiller, 
+    default_temperature: 20 # this temp is what is used to setup the chiller, 
     update_frequency: 2 #how often the temp manager checks the setpoint updates from the runner. 
 
   logging:

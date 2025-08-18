@@ -399,22 +399,22 @@ def compute_accumulated_dose(remaining_seconds, total_seconds, current_dose_kGy,
     return accumulated, dose_delivered, elapsed
 
 def kill_XRM():
-    # print('OBELIX: SOMEBODY WANTS TO KILL ME!!!')
-    # print('OBELIX: KILLING IT ALLLLLLLL')
+    print('OBELIX: SOMEBODY WANTS TO KILL ME!!!')
+    print('OBELIX: KILLING IT ALLLLLLLL')
     print('OBELIX: shutdown triggered')
     XRM.closeShutter(n_shutter)    # close obelix shutter
     XRM.hvEnable(False)    # ensure power is off
     time.sleep(1)
-    remains = XRM.port.read_all
-    print(f"remains on xrm port comms: {remains}")
-    XRM.disconnect
+    remains = XRM.port.read_all()
+    print(f"OBELIX: remains on xrm port comms: {remains}")
+    XRM.disconnect()
 
 def get_timer(tn = None):
     try:
         time_left = XRM.getTimer(tn=tn)
     except:
         print("Timer exception")
-        time_left = 0
+        time_left = -1  #TODO: This should be -1 and parsed in time check logic as a value error
 
     return time_left
 
@@ -483,6 +483,10 @@ if __name__ == '__main__':
         # irradiation loop - prints accumulated dose while monitoring current and voltage levels
         while(remaining_time > 0):
             remaining_time = get_timer(tn = 3)
+
+            if remaining_time == -1:
+                raise ValueError(f"XRM timer returned unexpected value, exiting.")
+
             # ------- check current and voltage values -------- 
             TOLERANCE_PERCENT = 5.0
             voltage_deviation = config['irradiation']['voltage'] * (TOLERANCE_PERCENT / 100.0)
@@ -504,35 +508,31 @@ if __name__ == '__main__':
 
             sys.stdout.write("\033[F\033[K" * 3)  # move cursor up 3 lines & clear them
             # print progress and accumulated dose
-            print(f"OBELIX: irradiating for in total: {hours_t}:{minutes_t}:{seconds_t}, with  {hours_r}:{minutes_r}:{seconds_r} left")
-            print('>> Dose delivered in this run: {:.6f} kGy (elapsed {:+d} s)'.format(dose_delivered_kGy, elapsed_seconds))
-            print('>> Total accumulated dose so far: {:.6f} kGy'.format(accumulated_total_kGy))
-
+            print(f"OBELIX: Irradiating for in total: {hours_t}:{minutes_t}:{seconds_t}, with  {hours_r}:{minutes_r}:{seconds_r} left")
+            print('OBELIX: Dose delivered in this run: {:.6f} kGy (elapsed {:+d} s)'.format(dose_delivered_kGy, elapsed_seconds))
+            print('OBELIX: Total accumulated dose so far: {:.6f} kGy'.format(accumulated_total_kGy))
 
         # ------------------ Finished irradiation -------------------
 
-        accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(0, irradiation_seconds, current_dose, config['irradiation']['dose_rate'])
+        accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(remaining_time, irradiation_seconds, current_dose, config['irradiation']['dose_rate'])
         print('OBELIX: irradiation finished normally.')
         print('OBELIX: Total dose delivered this run: {:.6f} kGy'.format(dose_delivered_kGy))
         print('OBELIX: Total accumulated dose = {:.6f} kGy'.format(accumulated_total_kGy))
 
         kill_XRM()
         if config['irradiation']['biasing'] : biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
-        
         exit(0)
     
-    except Exception as e:
-        # try to recover the accumulated dose if an exception occurred during irradiation. 
-        print(f"OBELIX: EXCEPTION DURING IRRADIATION: {e}")
-        try:
-            accumulated_total_kGy, dose_delivered_kGy, elapsed_seconds = compute_accumulated_dose(get_timer(tn=3), irradiation_seconds, current_dose, config['irradiation']['dose_rate'])
-        except Exception as e2:
-                print(f"OBELIX: FAILED TO READ TIMER AFTER EXCEPTION DURING IRRADIATION: {e2}")
-                print('OBELIX: SHUTTING DOWN')
 
+    except KeyboardInterrupt:
+        print("\nOBELIX: KeyboardInterrupt received — initiating shutdown...")
         kill_XRM()
-        if config['irradiation']['biasing'] : biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
+        if config['irradiation']['biasing']:  biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
+        sys.exit(1)
 
+    except Exception as e:
+        print(f"OBELIX: EXCEPTION DURING IRRADIATION: {e}")
+        kill_XRM()
+        if config['irradiation']['biasing']: biasMOS2000_OFF(channel=config['devices']['switch']['connections']['biasMOS2000'])
         print('OBELIX: irradiation stopped unexpectedly.')
-
-        exit(1)
+        sys.exit(1)
