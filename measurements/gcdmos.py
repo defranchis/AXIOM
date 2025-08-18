@@ -201,40 +201,66 @@ class gcdmos(measurement):
 
     def getReferenceCapacitance(self, name):
         """
-        Use the 0kGy reference file regardless of self.current_dose.
+        Finds the 0kGy reference file 
         Assumes new naming: logs/{id_with_0kGy}/.../cv_{id_with_0kGy}_{name}.dat
+        Behaviour:
+        - Try exact ID match first
+        - If none found, try a wildcarded temperature match where any "_<temp>C"
+        in the ID can be any value (e.g. "_10C", "_25.0C", "_-5C").
         """
         # ensure '0kGy' is in the id (replace any existing "<num>kGy" with "0kGy")
         id0 = self.id
-        if 'kGy' in self.id:
-            id0 = re.sub(r'\d+(\.\d+)?kGy', '0kGy', self.id)
+        if 'kGy' in id0:
+            id0 = re.sub(r'\d+(\.\d+)?kGy', '0kGy', id0)
 
         ci = 'cv' if 'MOS' in name else 'iv'
-        pattern = os.path.join('logs', id0, '**', f'{ci}_{id0}_{name}.dat')
-        matches = glob.glob(pattern, recursive=True)
+        # exact pattern
+        pattern_exact = os.path.join('logs', id0, '**', f'{ci}_{id0}_{name}.dat')
+        matches = glob.glob(pattern_exact, recursive=True)
 
-        if not matches:
-            raise FileNotFoundError(f"No reference files found for pattern: {pattern}")
+        # Helper to parse file and return capacitance
+        def _parse_cap_from_file(filepath):
+            with open(filepath, 'r', encoding='utf-8') as fh:
+                lines = [ln.strip() for ln in fh if ln.strip()]
+            if not lines:
+                raise ValueError(f"Reference file {filepath} is empty")
+            tokens = lines[-1].split()
+            if len(tokens) < 3:
+                raise ValueError(f"Unexpected file format in {filepath}; last line: '{lines[-1]}'")
+            try:
+                ref_cap = float(tokens[-3])
+            except Exception as exc:
+                raise ValueError(f"Couldn't parse capacitance from '{lines[-1]}' in {filepath}") from exc
+            return ref_cap
 
-        latest_file = max(matches, key=os.path.getmtime)
+        if matches:
+            latest_file = max(matches, key=os.path.getmtime)
+            ref_cap = _parse_cap_from_file(latest_file)
+            self.logging.info(f"this is my reference capacitance: {ref_cap} (from {latest_file})")
+            return ref_cap
 
-        with open(latest_file, 'r', encoding='utf-8') as fh:
-            lines = [ln.strip() for ln in fh if ln.strip()]
+        # --- no exact matches, try wildcarding any temperature substring "_<num>C" ---
+        # If id0 already contains a "_<num>C" substring, replace it with '_*C'.
+        # Otherwise, append '_*C' to look for any temp-suffixed id.
+        temp_pattern = re.compile(r'_(?:-?\d+(?:\.\d+)?)C')
+        if temp_pattern.search(id0):
+            wildcard_id = temp_pattern.sub('_*C', id0)
+        else:
+            wildcard_id = id0 + '_*C'
 
-        if not lines:
-            raise ValueError(f"Reference file {latest_file} is empty")
+        pattern_wild = os.path.join('logs', wildcard_id, '**', f'{ci}_{wildcard_id}_{name}.dat')
+        matches2 = glob.glob(pattern_wild, recursive=True)
 
-        tokens = lines[-1].split()
-        if len(tokens) < 3:
-            raise ValueError(f"Unexpected file format in {latest_file}; last line: '{lines[-1]}'")
+        if matches2:
+            latest_file = max(matches2, key=os.path.getmtime)
+            self.logging.info(f"Reference capacitance found for a different temperature:\n  {latest_file}")
+            ref_cap = _parse_cap_from_file(latest_file)
+            self.logging.info(f"this is my reference capacitance: {ref_cap} (from {latest_file})")
+            return ref_cap
 
-        try:
-            ref_cap = float(tokens[-3])
-        except Exception as exc:
-            raise ValueError(f"Couldn't parse capacitance from '{lines[-1]}' in {latest_file}") from exc
+        # nothing found at all
+        raise FileNotFoundError(f"No reference files found for pattern: {pattern_exact}")
 
-        self.logging.info(f"this is my reference capacitance: {ref_cap} (from {latest_file})")
-        return ref_cap
 
     def savePlots(self, dic):
         ### Save and print

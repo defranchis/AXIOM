@@ -40,6 +40,25 @@ class measurement(object):
             period = config["annealing"].get("period", "X")
             self.id += f"_annealStep{n_annealing}_p{period}min"
 
+            #TODO: if annealing with static temp or curve, add name formatting here.
+
+        # 4. Append chiller temperature to id if enabled
+        # (only add when config contains the key and 'enabled' is truthy)
+        try:
+            chiller_cfg = self.config.get('temperature_management', {}).get('chiller', {})
+            if chiller_cfg.get('enabled'):
+                temp_val = chiller_cfg.get('default_temperature')
+                if temp_val is not None:
+                    # format integer-like floats as integers for cleaner names
+                    if isinstance(temp_val, float) and temp_val.is_integer():
+                        temp_str = str(int(temp_val))
+                    else:
+                        temp_str = str(temp_val)
+                    self.id += f"_{temp_str}C"
+        except Exception:
+            # defensive: do not break initialization if config shape is unexpected
+            pass
+
         # --- Directory setup ---
         self.ldir = f"{self.base}logs/{self.id}"
         mkdir(self.ldir)
@@ -89,12 +108,11 @@ class measurement(object):
         # --- Log header ---
         self.logging.info("\t")
         self.logging.info("------------------------------------------")
-        self.logging.info("Running test: %s" % self.__class__.__name__)
+        self.logging.info("Running test: %s" % self.nrun)
         self.logging.info("------------------------------------------")
         self.logging.info("\t")
 
         self.logging.info(yaml.dump(self.config, default_flow_style=False))
-
 
         
     def _initialise_devices(self):
