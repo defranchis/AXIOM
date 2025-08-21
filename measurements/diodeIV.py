@@ -267,17 +267,6 @@ class diodeIV(measurement):
         fig, ax_gr, ax_diode, ax_combined = init_liveplot()
         hdIV, hdRV = self.createHeader()
         self.IVscan(name, fig, ax_gr, ax_diode, ax_combined, hdIV, hdRV)
-
-        # # Name of files
-        # name =  self.__class__.__name__
-
-        # # Create plots
-        # fig, ax_gr, ax_diode, ax_combined = init_liveplot()
-
-        # ## Print header
-        # [hdIV, hdRV] = self.createHeader()
-
-        # self.IVscan(name, fig, ax2, ax3, hdIV, hdRV)
         
     def finalise(self):
         self._finalise()

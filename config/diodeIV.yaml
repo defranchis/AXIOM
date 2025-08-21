@@ -1,7 +1,7 @@
 measurement_type: 'diodeIV'
 sample:
   type: 'diode' 
-  id: 1337420  #TODO:: this should always be requested from the cli
+  id: '1337420'  #TODO:: this should always be requested from the cli
   preexisting_dose: 0       
 
   

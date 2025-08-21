@@ -50,7 +50,7 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
         for target_dose in targets_to_run:
             print(f"\n--- Irradiating from {current_dose:.2f} kGy to {target_dose:.2f} kGy ---")
             # obelixControl is responsible for calculating the difference to irradiate.
-            subprocess.run( ['python', './new_obelix_control.py', config_path, str(current_dose), str(target_dose)],  check=True )
+            subprocess.run( ['python', './obelix_control.py', config_path, str(current_dose), str(target_dose)],  check=True )
             # print("-----------------------= NOT ACTUALY RUNNING COMMENTED OUT IN RUNNER =-----------------------------------")
 
             current_dose = target_dose             # After successful irradiation, update the current dose to the new total.
@@ -62,11 +62,11 @@ def run_irradiation_loop(config, msr_class, config_path, tm_queue = None):
     except subprocess.CalledProcessError as e:
         # If obelix fails, call the kill script and print the error.
         print(f"\n!!! obelixControl failed: {e} !!!")
-        subprocess.run(['python', './new_obelix_control.py', 'killObelix'])
+        subprocess.run(['python', './obelix_control.py', 'killObelix'])
     except Exception as e:
         # Catch any other unexpected errors during the loop.
         print(f"\n!!! An unexpected error occurred in the irradiation loop: {e} !!!")
-        subprocess.run(['python', './new_obelix_control.py', 'killObelix'])
+        subprocess.run(['python', './obelix_control.py', 'killObelix'])
 
 def run_annealing_loop(config, msr_class, tm_queue = None):
     """ Runs repeated measurements during annealing steps at a configured time interval. """
@@ -127,8 +127,10 @@ def main():
         run_annealing_loop(config, msr_class, tm_queue=tm_queue)
     else:
         run_measurement(msr_class, config, tm_queue=tm_queue)
-    #TODO: ADD PROPER PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC. IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
-    #TODO: this is to avoid the somewhat rare behaviour of rampdown not being triggered by a keyboard interrupt.  
+    
+    #TODO: ADD ADDITIONAL PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC.
+    # >> IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
+    # >> This is to avoid the somewhat rare behaviour of rampdown not being triggered by a keyboard interrupt.  
 
 if __name__ == "__main__":
     main()

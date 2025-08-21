@@ -56,7 +56,7 @@ class measurement(object):
                         temp_str = str(temp_val)
                     self.id += f"_{temp_str}C"
         except Exception:
-            # defensive: do not break initialization if config shape is unexpected
+            # defensive: do not break initialization if config shape is unexpected (this makes config extention / experimentation possible without having to configure all checks first.)
             pass
 
         # --- Directory setup ---
