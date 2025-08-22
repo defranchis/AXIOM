@@ -114,6 +114,9 @@ def validate_config_structure(file_path: str) -> Dict[str, Any]:
         _handle_errors(errors)
     else:
         print("Configuration matches schema. Proceeding.")
+        print("--------------------------------------------------------------------------------")
+        print("------------------- GOOD LUCK WITH YOUR MEASUREMENTS EVA!! ---------------------")
+        print("--------------------------------------------------------------------------------")
 
     # === Previous irradiation check ===
     if config.get('sample', {}).get('preexisting_dose', 0) == 0 and os.path.isdir('logs'):

@@ -103,24 +103,37 @@ def temperature_worker(config_path, command_queue):
 def main():
     parser = argparse.ArgumentParser(description="Validate YAML configuration file.")
     parser.add_argument("config_path", help="Path to the YAML config file")
+    parser.add_argument("--fun", action="store_true", help="Run config auto-correction and exit")
     args = parser.parse_args()
+    
     config_path = args.config_path
+
+    # Run the auto_correction routine as a subprocess and exit
+    if args.fun:
+        print(">> Running auto-correction from utils/auto_correction.py ...")
+        subprocess.run(
+            ["python", "utils/auto_correction.py", config_path],
+            check=True
+        )
+        sys.exit(0)
+
     config = validate_config_structure(config_path)
     msr_class = getattr(measurements, config['measurement_type'])
-    tm_queue = None # preinit to ensure correct parsing when running without chiller, basically when when tm_process has tm_queue = None
+    tm_queue = None  # preinit to ensure correct parsing when running without chiller
 
-    # start thermal manager on separate thread    
+    # start thermal manager on separate process    
     if "temperature_management" in config:
         if config['temperature_management']['chiller']['enabled']:
             tm_queue = multiprocessing.Queue()  
         tm_process = multiprocessing.Process(
             target=temperature_worker, 
-            args=(config_path, tm_queue) # Pass config and queue
+            args=(config_path, tm_queue)  # Pass config and queue
         )
         tm_process.daemon = True 
         tm_process.start()
         time.sleep(2)
         input("Temperature management initialized. Press ENTER to continue")
+
     if "irradiation" in config:
         run_irradiation_loop(config, msr_class, config_path, tm_queue=tm_queue)
     elif "annealing" in config:
@@ -130,7 +143,7 @@ def main():
     
     #TODO: ADD ADDITIONAL PARSING OF INCOMING KEYBOARD INTERRUPT, CLOSING DEVICES, RAMPING DOWN VOLTAGES ETC.
     # >> IF THIS IS NOT CAUGHT IN ONE OF THE SUBPROCESSES, IT SHOULD BE CAUGHT HERE. 
-    # >> This is to avoid the somewhat rare behaviour of rampdown not being triggered by a keyboard interrupt.  
+    # >> This is to avoid the somewhat rare behaviour of rampdown not being triggered by a keyboard interrupt.   
 
 if __name__ == "__main__":
     main()
