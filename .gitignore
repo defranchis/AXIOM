@@ -16,3 +16,4 @@ annealing-studies-plotter/*
 temperature_management/temperature_logs
 old/annealing-studies-plotter
 old/old_Test_new_gcdmos
+.vscode
